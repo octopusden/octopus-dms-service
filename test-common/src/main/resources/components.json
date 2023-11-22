@@ -1,0 +1,13 @@
+{
+  "components": [
+    {
+      "id": "ee-component",
+      "name": "EE Component",
+      "securityGroups": {
+        "read": [
+          "Production Security"
+        ]
+      }
+    }
+  ]
+}

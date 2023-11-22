@@ -1,0 +1,15 @@
+name: Check for artifact and register release
+
+on:
+  workflow_run:
+    workflows: ["Gradle Release"]
+    types:
+      - completed
+
+jobs:
+  build:
+    uses: octopusden/octopus-base/.github/workflows/common-check-and-register-release.yml@v2.1.7
+    if:  "${{ github.event.workflow_run.conclusion == 'success' }}"
+    with:
+      artifact-pattern: "octopus/dms/dms-service/_VER_/dms-service-_VER_.jar"
+    secrets: inherit

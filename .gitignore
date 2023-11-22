@@ -1,0 +1,18 @@
+syntax: glob
+.classpath
+.project
+*/target/**
+target/**
+out/
+.settings/**
+.idea
+*.iml
+*.ipr
+*.iws
+*.log
+*.versionsBackup
+*.tree
+*.orig
+.gradle
+build
+test_db.mv.db

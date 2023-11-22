@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+    dms-db:
+        container_name: dms-ut-dms-db
+        image: ${DOCKER_REGISTRY}/postgres:11-alpine
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_DB=dms
+            - POSTGRES_USER=dms
+            - POSTGRES_PASSWORD=dms
+
+    artifactory:
+        container_name: dms-ut-artifactory
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.16.3
+        ports:
+            - "8081:8081"
+            - "8082:8082"
+        volumes:
+            - ../../../../test-common/src/main/artifactory/dump:/dump
+        logging:
+            driver: json-file
+            options:
+                max-size: "50m"
+                max-file: "10"
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 32000
+                hard: 40000
+
+    components-registry-service:
+        container_name: dms-ut-components-registry-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/components-registry-service:${OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION}
+        ports:
+            - "4567:4567"
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=ut
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+        volumes:
+            - ./components-registry-service.yaml:/application-ut.yaml
+            - ../../../../test-common/src/main/components-registry:/components-registry
+
+    mockserver:
+        container_name: dms-ut-mockserver
+        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-5.11.1
+        ports:
+            - "1080:1080"

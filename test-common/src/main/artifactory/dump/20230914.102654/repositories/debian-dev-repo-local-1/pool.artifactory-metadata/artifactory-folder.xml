@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<artifactory-folder>
+  <repoPath>
+    <repoKey>debian-dev-repo-local-1</repoKey>
+    <path>pool</path>
+    <folder>true</folder>
+  </repoPath>
+  <name>pool</name>
+  <created>1694686619363</created>
+  <lastModified>1694686619363</lastModified>
+  <additionalInfo>
+    <createdBy>admin</createdBy>
+    <modifiedBy>admin</modifiedBy>
+    <lastUpdated>1694686619363</lastUpdated>
+  </additionalInfo>
+</artifactory-folder>

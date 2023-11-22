@@ -1,0 +1,2 @@
+-- DB script is consolidated in V20230817172901__artifact_remove_validation_fields.sql
+-- FILE HAS BEEN KEPT FOR BACKWARD COMPATIBILITY!

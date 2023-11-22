@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<artifactory-folder>
+  <repoPath>
+    <repoKey>maven-dev-repo-local</repoKey>
+    <path>test/add/distribution/1.0</path>
+    <folder>true</folder>
+  </repoPath>
+  <name>1.0</name>
+  <created>1694618901378</created>
+  <lastModified>1694618901378</lastModified>
+  <additionalInfo>
+    <createdBy>admin</createdBy>
+    <modifiedBy>admin</modifiedBy>
+    <lastUpdated>1694618901378</lastUpdated>
+  </additionalInfo>
+</artifactory-folder>

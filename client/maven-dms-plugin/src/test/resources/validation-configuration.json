@@ -1,0 +1,45 @@
+{
+  "licenseValidation": {
+    "enabled": true,
+    "pattern": {
+      "pattern": "((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$",
+      "options": []
+    }
+  },
+  "nameValidation": {
+    "enabled": true,
+    "allowedPattern": {
+      "pattern": "^(?!.*([Uu][Nn][Aa][Ll][Ll][Oo][Ww][Ee][Dd])).*$",
+      "options": []
+    }
+  },
+  "contentValidation": {
+    "enabled": true,
+    "parallelism": 20,
+    "exclude": [
+      "**.bin",
+      "**.prm",
+      "**.exe",
+      "**.dll",
+      "**.so",
+      "**.gif",
+      "**.jpg",
+      "**.png",
+      "**.class",
+      "**.xsd",
+      "**.xsb",
+      "**.wsdl"
+    ],
+    "forbiddenTokens": [
+      "unallowed"
+    ],
+    "forbiddenPatterns": [
+      {
+        "pattern": ".*unallowed.*",
+        "options": [
+          "IGNORE_CASE"
+        ]
+      }
+    ]
+  }
+}

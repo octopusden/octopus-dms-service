@@ -1,0 +1,12 @@
+{
+  "versions": [
+    {
+      "version": "03.54.30.64-1",
+      "status": "RELEASE"
+    },
+    {
+      "version": "03.54.30.53-1",
+      "status": "RC"
+    }
+  ]
+}

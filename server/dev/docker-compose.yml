@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+
+    artifactory:
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.16.3
+        container_name: dms-dev-artifactory
+        ports:
+            - 18081:8081
+            - 18082:8082
+        restart: always
+        logging:
+            driver: json-file
+            options:
+                max-size: "50m"
+                max-file: "10"
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 32000
+                hard: 40000
+
+    dms-db:
+        image: ${DOCKER_REGISTRY}/postgres:11-alpine
+        container_name: dms-dev-dms-db
+        restart: always
+        environment:
+            POSTGRES_USER: dms
+            POSTGRES_PASSWORD: dms
+            POSTGRES_DB: dms
+        ports:
+            - 5432:5432
+
+    api-gateway:
+        container_name: dms-dev-api-gateway
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.1
+        ports:
+            - 8765:8765
+        volumes:
+            - ./api-gateway.yaml:/application-dev.yaml
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+            - AUTH_SERVER_URL=${AUTH_SERVER_URL}
+            - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
+            - AUTH_SERVER_CLIENT_ID=${AUTH_SERVER_CLIENT_ID}
+            - AUTH_SERVER_CLIENT_SECRET=${AUTH_SERVER_CLIENT_SECRET}

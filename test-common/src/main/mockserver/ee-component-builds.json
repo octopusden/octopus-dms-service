@@ -1,0 +1,47 @@
+[
+  {
+    "status": "RELEASE",
+    "version": "03.53.30.31-1",
+    "release_version": "03.53.30.31"
+  },
+  {
+    "status": "BUILD",
+    "version": "03.53.30.42-1",
+    "release_version": "03.53.30.42"
+  },
+  {
+    "status": "RC",
+    "version": "03.53.30.53-1",
+    "release_version": "03.53.30.53"
+  },
+  {
+    "status": "BUILD",
+    "version": "03.54.30.42-1",
+    "release_version": "03.54.30.42"
+  },
+  {
+    "status": "RC",
+    "version": "03.54.30.53-1",
+    "release_version": "03.54.30.53"
+  },
+  {
+    "status": "RELEASE",
+    "version": "03.54.30.64-1",
+    "release_version": "03.54.30.64"
+  },
+  {
+    "status": "BUILD",
+    "version": "03.55.30.42-1",
+    "release_version": "03.55.30.42"
+  },
+  {
+    "status": "RC",
+    "version": "03.55.30.53-1",
+    "release_version": "03.55.30.53"
+  },
+  {
+    "status": "BUILD",
+    "version": "03.56.30.42-1",
+    "release_version": "03.56.30.42"
+  }
+]

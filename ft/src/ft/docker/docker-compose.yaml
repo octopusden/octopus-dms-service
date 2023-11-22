@@ -1,0 +1,92 @@
+version: '3'
+
+services:
+    dms-db:
+        container_name: dms-ft-dms-db
+        image: ${DOCKER_REGISTRY}/postgres:11-alpine
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_DB=dms
+            - POSTGRES_USER=dms
+            - POSTGRES_PASSWORD=dms
+
+    artifactory:
+        container_name: dms-ft-artifactory
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.16.3
+        ports:
+            - "8081:8081"
+            - "8082:8082"
+        volumes:
+            - ../../../../test-common/src/main/artifactory/dump:/dump
+        logging:
+            driver: json-file
+            options:
+                max-size: "50m"
+                max-file: "10"
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 32000
+                hard: 40000
+
+    components-registry-service:
+        container_name: dms-ft-components-registry-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/components-registry-service:${OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION}
+        ports:
+            - "4567:4567"
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=ft
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+        volumes:
+            - ./components-registry-service.yaml:/application-ft.yaml
+            - ../../../../test-common/src/main/components-registry:/components-registry
+
+    mockserver:
+        container_name: dms-ft-mockserver
+        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-5.11.1
+        ports:
+            - "1080:1080"
+
+    dms-service:
+        container_name: dms-ft-dms-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
+        ports:
+            - "8080:8080"
+        volumes:
+            - ./dms-service.yaml:/application-ft.yaml
+        depends_on:
+            - dms-db
+            - artifactory
+            - components-registry-service
+            - mockserver
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=ft
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+            - AUTH_SERVER_URL=${AUTH_SERVER_URL}
+            - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
+
+    api-gateway:
+        container_name: dms-ft-api-gateway
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.1
+        ports:
+            - "8765:8765"
+        volumes:
+            - ./api-gateway.yaml:/application-ft.yaml
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=ft
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+            - AUTH_SERVER_URL=${AUTH_SERVER_URL}
+            - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
+            - AUTH_SERVER_CLIENT_ID=${AUTH_SERVER_CLIENT_ID}
+            - AUTH_SERVER_CLIENT_SECRET=${AUTH_SERVER_CLIENT_SECRET}
+        depends_on:
+            - dms-service
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8765/dms-service/actuator/health" ]
+            interval: 10s
+            timeout: 30s
+            retries: 50

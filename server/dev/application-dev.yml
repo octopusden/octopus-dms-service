@@ -1,0 +1,95 @@
+eureka:
+  client:
+    enabled: false
+
+server:
+  forward-headers-strategy: framework
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${auth-server.url}/realms/${auth-server.realm}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dms
+    username: dms
+    password: dms
+
+auth-server:
+  url: # set via env
+  realm: # set via env
+
+storage:
+  maven-group-prefix: corp.domain.dms
+  artifactory:
+    host: http://localhost:8081
+    user: admin
+    password: password
+    upload-repositories:
+      MAVEN: example-repo-local
+
+components-registry-service:
+  url: # set via env
+
+releng:
+  host: # set via env
+
+validation:
+  license-validator:
+    enabled: true
+    pattern: ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
+  name-validator:
+    enabled: true
+    allowed-pattern: ^(?!.*([Uu][Nn][Aa][Ll][Ll][Oo][Ww][Ee][Dd])).*$
+  content-validator:
+    enabled: true
+    parallelism: 20
+    exclude:
+      - '**/WEB-INF/licenses/**'
+      - '**.bin'
+      - '**.prm'
+      - '**.exe'
+      - '**.dll'
+      - '**.so'
+      - '**.gif'
+      - '**.jpg'
+      - '**.png'
+      - '**.class'
+      - '**.xsd'
+      - '**.xsb'
+      - '**.wsdl'
+    forbidden-tokens:
+      - unallowed
+    forbidden-patterns:
+      - .*unallowed.*
+
+octopus-security:
+  roles:
+    ROLE_DMS_USER_DEV:
+      - ACCESS_CONFIGURATION
+      - ACCESS_META
+      - ACCESS_NOTES
+      - ACCESS_DOCUMENTATION
+      - ACCESS_DISTRIBUTION
+      - PUBLISH_ARTIFACT
+      - DELETE_DATA
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, env, metrics, threaddump, heapdump, info, configprops, prometheus, loggers
+    loggers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+
+logging.level:
+  ROOT: INFO
+  org.octopusden.octopus.platform.commons.http.client: ERROR
+  org.octopusden.cloud.commons.security: TRACE
+  org.octopusden.octopus.dms.security: TRACE
+  org.octopusden.octopus.dms: DEBUG
