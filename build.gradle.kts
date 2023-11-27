@@ -93,4 +93,43 @@ subprojects {
         }
         val configureMockServer by registering(ConfigureMockServer::class)
     }
+
+    ext {
+        System.getenv().let {
+            set("signingRequired", it.containsKey("ORG_GRADLE_PROJECT_signingKey") && it.containsKey("ORG_GRADLE_PROJECT_signingPassword"))
+            set("dockerRegistry", System.getenv().getOrDefault("DOCKER_REGISTRY", project.properties["docker.registry"]))
+            set("octopusGithubDockerRegistry", System.getenv().getOrDefault("OCTOPUS_GITHUB_DOCKER_REGISTRY", project.properties["octopus.github.docker.registry"]))
+            set("authServerUrl", System.getenv().getOrDefault("AUTH_SERVER_URL", project.properties["auth-server.url"]))
+            set("authServerRealm", System.getenv().getOrDefault("AUTH_SERVER_REALM", project.properties["auth-server.realm"]))
+            set("authServerClientId", System.getenv().getOrDefault("AUTH_SERVER_CLIENT_ID", project.properties["auth-server.client-id"]))
+            set("authServerClientSecret", System.getenv().getOrDefault("AUTH_SERVER_CLIENT_SECRET", project.properties["auth-server.client-secret"]))
+            set("dmsServiceUser", System.getenv().getOrDefault("DMS_SERVICE_USER", project.properties["dms-service.user"]))
+            set("dmsServicePassword", System.getenv().getOrDefault("DMS_SERVICE_PASSWORD", project.properties["dms-service.password"]))
+        }
+        set("validateFun", { properties: List<String> ->
+            val emptyProperties = properties.filter { (project.ext[it] as? String).isNullOrBlank() }
+            if (emptyProperties.isNotEmpty()) {
+                throw IllegalArgumentException(
+                    "Start gradle build with" +
+                            (if (emptyProperties.contains("dockerRegistry")) " -Pdocker.registry=..." else "") +
+                            (if (emptyProperties.contains("octopusGithubDockerRegistry")) " -Poctopus.github.docker.registry=..." else "") +
+                            (if (emptyProperties.contains("authServerUrl")) " -Pauth-server.url=..." else "") +
+                            (if (emptyProperties.contains("authServerRealm")) " -Pauth-server.realm=..." else "") +
+                            (if (emptyProperties.contains("authServerClientId")) " -Pauth-server.client-id=..." else "") +
+                            (if (emptyProperties.contains("authServerClientSecret")) " -Pauth-server.client-secret=..." else "") +
+                            (if (emptyProperties.contains("dmsServiceUser")) " -Pdms-service.user=..." else "") +
+                            (if (emptyProperties.contains("dmsServicePassword")) " -Pdms-service.password=..." else "") +
+                            " or set env variable(s):" +
+                            (if (emptyProperties.contains("dockerRegistry")) " DOCKER_REGISTRY" else "") +
+                            (if (emptyProperties.contains("octopusGithubDockerRegistry")) " OCTOPUS_GITHUB_DOCKER_REGISTRY" else "") +
+                            (if (emptyProperties.contains("authServerUrl")) " AUTH_SERVER_URL" else "") +
+                            (if (emptyProperties.contains("authServerRealm")) " AUTH_SERVER_REALM" else "") +
+                            (if (emptyProperties.contains("authServerClientId")) " AUTH_SERVER_CLIENT_ID" else "") +
+                            (if (emptyProperties.contains("authServerClientSecret")) " AUTH_SERVER_CLIENT_SECRET" else "") +
+                            (if (emptyProperties.contains("dmsServiceUser")) " DMS_SERVICE_USER" else "") +
+                            (if (emptyProperties.contains("dmsServicePassword")) " DMS_SERVICE_PASSWORD" else "")
+                )
+            }
+        })
+    }
 }

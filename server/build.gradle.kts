@@ -49,10 +49,8 @@ publishing {
     }
 }
 
-val skipSigning = (System.getenv().getOrDefault("SKIP_SIGNING", project.properties["skip.signing"]) as? String).toBoolean()
-
 signing {
-    isRequired = !skipSigning
+    isRequired = project.ext["signingRequired"] as Boolean
     val signingKey: String? by project
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
@@ -63,30 +61,20 @@ springBoot {
     buildInfo()
 }
 
-val dockerRegistry = System.getenv().getOrDefault("DOCKER_REGISTRY", project.properties["docker.registry"]) as? String
-val octopusGithubDockerRegistry = System.getenv().getOrDefault("OCTOPUS_GITHUB_DOCKER_REGISTRY", project.properties["octopus.github.docker.registry"]) as? String
-val authServerUrl = System.getenv().getOrDefault("AUTH_SERVER_URL", project.properties["auth-server.url"]) as? String
-val authServerRealm = System.getenv().getOrDefault("AUTH_SERVER_REALM", project.properties["auth-server.realm"]) as? String
+@Suppress("UNCHECKED_CAST")
+val extValidateFun = project.ext["validateFun"] as ((List<String>) -> Unit)
+fun String.getExt() = project.ext[this] as? String
 
 docker {
     springBootApplication {
-        baseImage.set("$dockerRegistry/openjdk:11")
+        baseImage.set("${"dockerRegistry".getExt()}/openjdk:11")
         ports.set(listOf(8080, 8080))
-        images.set(setOf("$octopusGithubDockerRegistry/octopusden/${project.name}:${project.version}"))
+        images.set(setOf("${"octopusGithubDockerRegistry".getExt()}/octopusden/${project.name}:${project.version}"))
     }
 }
 
 tasks.getByName("dockerBuildImage").doFirst {
-    if (dockerRegistry.isNullOrBlank() || octopusGithubDockerRegistry.isNullOrBlank()) {
-        throw IllegalArgumentException(
-            "Start gradle build with" +
-                    (if (dockerRegistry.isNullOrBlank()) " -Pdocker.registry=..." else "") +
-                    (if (octopusGithubDockerRegistry.isNullOrBlank()) " -Poctopus.github.docker.registry=..." else "") +
-                    " or set env variable(s):" +
-                    (if (dockerRegistry.isNullOrBlank()) " DOCKER_REGISTRY" else "") +
-                    (if (octopusGithubDockerRegistry.isNullOrBlank()) " OCTOPUS_GITHUB_DOCKER_REGISTRY" else "")
-        )
-    }
+    extValidateFun.invoke(listOf("dockerRegistry", "octopusGithubDockerRegistry"))
 }
 
 dockerCompose {
@@ -94,23 +82,14 @@ dockerCompose {
     waitForTcpPorts = true
     captureContainersOutputToFiles = File("$buildDir/docker_logs")
     environment.putAll(mapOf(
-        "DOCKER_REGISTRY" to dockerRegistry,
-        "OCTOPUS_GITHUB_DOCKER_REGISTRY" to octopusGithubDockerRegistry,
+        "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
+        "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
         "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"]
     ))
 }
 
 tasks.getByName("composeUp").doFirst {
-    if (dockerRegistry.isNullOrBlank() || octopusGithubDockerRegistry.isNullOrBlank()) {
-        throw IllegalArgumentException(
-            "Start gradle build with" +
-                    (if (dockerRegistry.isNullOrBlank()) " -Pdocker.registry=..." else "") +
-                    (if (octopusGithubDockerRegistry.isNullOrBlank()) " -Poctopus.github.docker.registry=..." else "") +
-                    " or set env variable(s):" +
-                    (if (dockerRegistry.isNullOrBlank()) " DOCKER_REGISTRY" else "") +
-                    (if (octopusGithubDockerRegistry.isNullOrBlank()) " OCTOPUS_GITHUB_DOCKER_REGISTRY" else "")
-        )
-    }
+    extValidateFun.invoke(listOf("dockerRegistry", "octopusGithubDockerRegistry"))
 }
 
 dockerCompose.isRequiredBy(tasks["test"])
@@ -127,20 +106,11 @@ tasks.withType<Test> {
     dependsOn("importArtifactoryDump")
     dependsOn("configureMockServer")
     doFirst {
-        if (authServerUrl.isNullOrBlank() || authServerRealm.isNullOrBlank()) {
-            throw IllegalArgumentException(
-                "Start gradle build with" +
-                        (if (authServerUrl.isNullOrBlank()) " -Pauth-server.url=..." else "") +
-                        (if (authServerRealm.isNullOrBlank()) " -Pauth-server.realm=..." else "") +
-                        " or set env variable(s):" +
-                        (if (authServerUrl.isNullOrBlank()) " AUTH_SERVER_URL" else "") +
-                        (if (authServerRealm.isNullOrBlank()) " AUTH_SERVER_REALM" else "")
-            )
-        }
+        extValidateFun.invoke(listOf("authServerUrl", "authServerRealm"))
     }
     environment.putAll(mapOf(
-        "AUTH_SERVER_URL" to authServerUrl,
-        "AUTH_SERVER_REALM" to authServerRealm
+        "AUTH_SERVER_URL" to "authServerUrl".getExt(),
+        "AUTH_SERVER_REALM" to "authServerRealm".getExt()
     ))
 }
 

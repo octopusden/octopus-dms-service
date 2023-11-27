@@ -45,10 +45,8 @@ gradlePlugin {
     }
 }
 
-val skipSigning = (System.getenv().getOrDefault("SKIP_SIGNING", project.properties["skip.signing"]) as? String).toBoolean()
-
 signing {
-    isRequired = !skipSigning
+    isRequired = project.ext["signingRequired"] as Boolean
     val signingKey: String? by project
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
