@@ -39,6 +39,7 @@ gradlePlugin {
         create(project.name) {
             id = pluginId
             displayName = "Octopus DMS plugin"
+            description = "Octopus module: ${project.name}"
             implementationClass = "org.octopusden.octopus.dms.client.DmsPlugin"
         }
     }
