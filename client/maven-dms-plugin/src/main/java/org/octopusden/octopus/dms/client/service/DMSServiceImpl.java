@@ -82,6 +82,7 @@ public class DMSServiceImpl implements DMSService {
                 }
                 throw new RuntimeMojoExecutionException(String.format("Failed to validate artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
+            Utils.writeToFile(new ByteArrayInputStream(String.format("Artifact '%s' is validated.", coordinates).getBytes(StandardCharsets.UTF_8)), validationLog);
             log.info(String.format("Validated artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()));
         }
     }
