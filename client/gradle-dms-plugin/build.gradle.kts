@@ -4,12 +4,11 @@ plugins {
     `maven-publish`
 }
 
-val pluginId = "org.octopusden.octopus-dms-plugin"
+val pluginId = "org.octopusden.octopus-dms"
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
+        withType(MavenPublication::class.java) {
             pom {
                 name.set(pluginId)
                 description.set("Octopus module: ${project.name}")
@@ -50,7 +49,7 @@ signing {
     val signingKey: String? by project
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications["maven"])
+    sign(publishing.publications)
 }
 
 dependencies {
