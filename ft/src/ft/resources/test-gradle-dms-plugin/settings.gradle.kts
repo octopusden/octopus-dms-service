@@ -1,6 +1,6 @@
 pluginManagement {
     plugins {
-        id("org.octopusden.octopus-dms-plugin") version (extra["dms-service.version"] as String)
+        id("org.octopusden.octopus-dms") version (extra["dms-service.version"] as String)
     }
     repositories {
         mavenCentral()

@@ -68,11 +68,12 @@ public class DMSServiceImpl implements DMSService {
                         artifactTempFile
                 );
                 if (validationErrors.size() > 0) {
-                    StringBuilder message = new StringBuilder(String.format("Artifact '%s' is invalidated.", coordinates));
+                    StringBuilder message = new StringBuilder(String.format("Artifact '%s' validation errors:", coordinates));
                     for (String validationError : validationErrors) {
                         message.append('\n').append(validationError);
                     }
                     log.error(message.toString());
+                    Utils.writeToFile(new ByteArrayInputStream(message.toString().getBytes(StandardCharsets.UTF_8)), validationLog);
                     throw new Exception(String.format("Artifact '%s' is invalidated.", coordinates));
                 }
             } catch (Exception e) {
