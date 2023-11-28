@@ -1,5 +1,6 @@
 package org.octopusden.octopus.dms.client.util;
 
+import java.nio.charset.StandardCharsets;
 import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class Utils {
     private Utils() {
     }
 
-    public static void writeToFile(InputStream source, Path target) {
+    public static synchronized void writeToFile(InputStream source, Path target) {
         if (target != null) {
             try (OutputStream outputStream = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
                 byte[] buffer = new byte[4096];
@@ -21,6 +22,7 @@ public class Utils {
                 while (-1 != (size = source.read(buffer))) {
                     outputStream.write(buffer, 0, size);
                 }
+                outputStream.write("\n---\n".getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeMojoExecutionException(e.getMessage(), e);
             }
