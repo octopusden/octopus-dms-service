@@ -150,9 +150,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates.rpm=$devRpmDistributionCoordinates,$releaseRpmDistributionCoordinates"
         ))) {
             assertEquals(1, this.first)
-            assertTrue(this.second.contains("[ERROR] Artifact '$devMavenDistributionCoordinates' is invalidated."))
+            assertTrue(this.second.contains("[ERROR] Artifact '$devMavenDistributionCoordinates' validation errors:"))
             assertTrue(this.second.contains("${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found"))
-            assertTrue(this.second.contains("[ERROR] Artifact '$releaseMavenDistributionCoordinates' is invalidated."))
+            assertTrue(this.second.contains("[ERROR] Artifact '$releaseMavenDistributionCoordinates' validation errors:"))
             assertTrue(this.second.contains("${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found"))
             assertTrue(this.second.contains("[INFO] Validated artifact '$devDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
             assertTrue(this.second.contains("[INFO] Validated artifact '$releaseDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
@@ -169,7 +169,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates=file:///${File("").absolutePath}/\${env.DMS_FT_RESOURCES_PATH}/test-maven-dms-plugin/\${component}-0\${major}.\${minor}.\${service}.\${fix}-\${build}.zip?artifactId=distribution"
         ))) {
             assertEquals(1, this.first)
-            assertTrue(this.second.contains("[ERROR] Artifact 'corp.domain.dms.ee-component.distribution:distribution:03.54.30.64-1:zip' is invalidated."))
+            assertTrue(this.second.contains("[ERROR] Artifact 'corp.domain.dms.ee-component.distribution:distribution:03.54.30.64-1:zip' validation errors:"))
             assertTrue(this.second.contains("distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'"))
             assertTrue(this.second.contains("distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'"))
         }
