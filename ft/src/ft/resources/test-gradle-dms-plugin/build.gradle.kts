@@ -1,5 +1,5 @@
 plugins {
-    id("org.octopusden.octopus-dms-plugin")
+    id("org.octopusden.octopus-dms")
 }
 
 dms {
