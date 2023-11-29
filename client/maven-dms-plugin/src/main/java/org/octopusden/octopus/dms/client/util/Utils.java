@@ -1,5 +1,6 @@
 package org.octopusden.octopus.dms.client.util;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
@@ -14,18 +15,21 @@ public class Utils {
     private Utils() {
     }
 
-    public static synchronized void writeToFile(InputStream source, Path target) {
-        if (target != null) {
-            try (OutputStream outputStream = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
-                byte[] buffer = new byte[4096];
-                int size;
-                while (-1 != (size = source.read(buffer))) {
-                    outputStream.write(buffer, 0, size);
-                }
-                outputStream.write("\n---\n".getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new RuntimeMojoExecutionException(e.getMessage(), e);
+    public static synchronized void writeToLogFile(String message, Path log) {
+        if (log != null) {
+            writeToFile(new ByteArrayInputStream((message + "\n---\n").getBytes(StandardCharsets.UTF_8)), log);
+        }
+    }
+
+    public static void writeToFile(InputStream source, Path target) {
+        try (OutputStream outputStream = Files.newOutputStream(target, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
+            byte[] buffer = new byte[4096];
+            int size;
+            while (-1 != (size = source.read(buffer))) {
+                outputStream.write(buffer, 0, size);
             }
+        } catch (IOException e) {
+            throw new RuntimeMojoExecutionException(e.getMessage(), e);
         }
     }
 

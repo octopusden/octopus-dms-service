@@ -11,10 +11,8 @@ import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
 import org.octopusden.octopus.dms.client.validation.ArtifactValidator;
 import feign.Response;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -73,16 +71,16 @@ public class DMSServiceImpl implements DMSService {
                         message.append('\n').append(validationError);
                     }
                     log.error(message.toString());
-                    Utils.writeToFile(new ByteArrayInputStream(message.toString().getBytes(StandardCharsets.UTF_8)), validationLog);
+                    Utils.writeToLogFile(message.toString(), validationLog);
                     throw new Exception(String.format("Artifact '%s' is invalidated.", coordinates));
                 }
             } catch (Exception e) {
                 if (e.getMessage() != null) {
-                    Utils.writeToFile(new ByteArrayInputStream(e.getMessage().getBytes(StandardCharsets.UTF_8)), validationLog);
+                    Utils.writeToLogFile(e.getMessage(), validationLog);
                 }
                 throw new RuntimeMojoExecutionException(String.format("Failed to validate artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
-            Utils.writeToFile(new ByteArrayInputStream(String.format("Artifact '%s' is validated.", coordinates).getBytes(StandardCharsets.UTF_8)), validationLog);
+            Utils.writeToLogFile(String.format("Artifact '%s' is validated.", coordinates), validationLog);
             log.info(String.format("Validated artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()));
         }
     }
@@ -118,7 +116,7 @@ public class DMSServiceImpl implements DMSService {
                 );
             } catch (Exception e) {
                 if (e.getMessage() != null) {
-                    Utils.writeToFile(new ByteArrayInputStream(e.getMessage().getBytes(StandardCharsets.UTF_8)), validationLog);
+                    Utils.writeToLogFile(e.getMessage(), validationLog);
                 }
                 throw new RuntimeMojoExecutionException(String.format("Failed to upload %s artifact '%s' for component '%s' version '%s'", type.value(), coordinates, componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
