@@ -33,6 +33,8 @@ class ComponentsRegistryServiceImpl(
             ComponentDTO(
                 it.id, // Component name
                 it.name ?: it.id, // Component display name
+                it.clientCode,
+                it.parentComponent,
                 SecurityGroupsDTO(it.distribution?.securityGroups?.read ?: emptyList())
             )
         }

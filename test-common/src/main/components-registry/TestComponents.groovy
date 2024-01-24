@@ -19,6 +19,29 @@
     }
 }
 
+"ee-component-client-specific" {
+    system = "CLASSIC"
+    componentDisplayName = "EE Component Client Specific"
+    componentOwner = "EE Component Owner"
+    releaseManager = "EE Component Release Manager"
+    clientCode = "CLIENT_CODE"
+    parentComponent = "ee-component"
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ee/ee-component-client-specific.git"
+    jira {
+        projectKey = 'EEC'
+        lineVersionFormat = '$major02.$minor02'
+        majorVersionFormat = '$major02.$minorC.$serviceC'
+        releaseVersionFormat = '$major02.$minor02.$service02.$fix02'
+        buildVersionFormat = '$major02.$minor02.$service02.$fix02-$build'
+        displayName = 'EEC Component'
+    }
+    distribution {
+        external = true
+        explicit = true
+    }
+}
+
 "ie-component" {
     componentDisplayName = "IE Component"
     componentOwner = "IE Component Owner"
