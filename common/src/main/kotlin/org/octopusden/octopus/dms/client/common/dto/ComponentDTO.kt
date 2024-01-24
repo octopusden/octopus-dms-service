@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Schema(
     description = "Component info",
     example = "{\n" +
-            "  \"id\": \"ee-component-client-specific\",\n" +
-            "  \"name\": \"EE Component Client Specific\",\n" +
+            "  \"id\": \"ee-client-specific-component\",\n" +
+            "  \"name\": \"EE Client Specific Component\",\n" +
             "  \"clientCode\": \"CLIENT_CODE\",\n" +
             "  \"parentComponent\": \"ee-component\",\n" +
             "  \"securityGroups\": {\n" +

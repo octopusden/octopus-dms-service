@@ -19,15 +19,15 @@
     }
 }
 
-"ee-component-client-specific" {
+"ee-client-specific-component" {
     system = "CLASSIC"
-    componentDisplayName = "EE Component Client Specific"
+    componentDisplayName = "EE Client Specific Component"
     componentOwner = "EE Component Owner"
     releaseManager = "EE Component Release Manager"
     clientCode = "CLIENT_CODE"
     parentComponent = "ee-component"
     groupId = "corp.domain"
-    vcsUrl = "ssh://git@git.domain.corp/ee/ee-component-client-specific.git"
+    vcsUrl = "ssh://git@git.domain.corp/ee/ee-client-specific-component.git"
     jira {
         projectKey = 'EEC'
         lineVersionFormat = '$major02.$minor02'
