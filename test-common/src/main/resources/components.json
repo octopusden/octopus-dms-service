@@ -1,8 +1,21 @@
 {
   "components": [
     {
+      "id": "ee-client-specific-component",
+      "name": "EE Client Specific Component",
+      "clientCode": "CLIENT_CODE",
+      "parentComponent": "ee-component",
+      "securityGroups": {
+        "read": [
+          "Production Security"
+        ]
+      }
+    },
+    {
       "id": "ee-component",
       "name": "EE Component",
+      "clientCode": null,
+      "parentComponent": null,
       "securityGroups": {
         "read": [
           "Production Security"
