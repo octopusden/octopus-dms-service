@@ -16,6 +16,7 @@ import feign.Headers
 import feign.Param
 import feign.RequestLine
 import feign.Response
+import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
 
 interface DmsServiceFeignClient {
     @RequestLine("GET rest/api/3/components")
@@ -80,6 +81,13 @@ interface DmsServiceFeignClient {
         @Param("version") version: String,
         @Param("artifact-id") artifactId: Long
     )
+
+    @RequestLine("POST rest/api/3/components/{component-name}")
+    @Headers("Content-Type: application/json")
+    fun updateComponentName(
+        @Param("component-name") componentName: String,
+        newComponentName: ComponentNameDTO
+    ): ComponentNameDTO
 
     @RequestLine("GET rest/api/3/configuration")
     fun getConfiguration(): PropertiesDTO

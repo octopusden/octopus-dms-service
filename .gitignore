@@ -16,3 +16,4 @@ out/
 .gradle
 build
 test_db.mv.db
+.env

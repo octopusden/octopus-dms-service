@@ -51,6 +51,34 @@ class ComponentServiceImpl(
         }
     }
 
+    /**
+     * Update component name and return new component name
+     * @param componentName - old component name
+     * @param newComponentName - new component name
+     * @return new component name
+     * @throws NotFoundException if component with name [componentName] not found in releng
+     * @throws NoSuchElementException if component with name [componentName] not found in database
+     */
+    @Transactional(readOnly = false)
+    override fun updateComponentName(componentName: String, newComponentName: String): String {
+        var result = componentName
+        log.debug("Update component name from '$componentName' to '$newComponentName'")
+        componentRepository.lock(componentName.hashCode())
+
+        relengService.getComponentBuilds(
+            newComponentName,
+            arrayOf(),
+            arrayOf(),
+            VersionField.VERSION
+        )
+        componentRepository.findByName(componentName)?.let {
+            val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
+            log.debug("${it.name} updated to ${newComponent.name}")
+            result = newComponent.name
+        } ?: throw NoSuchElementException("Component with name $componentName not found")
+        return result
+    }
+
     @Transactional(readOnly = true)
     override fun getComponentMinorVersions(componentName: String): Set<String> {
         log.info("Get minor versions of component '$componentName'")

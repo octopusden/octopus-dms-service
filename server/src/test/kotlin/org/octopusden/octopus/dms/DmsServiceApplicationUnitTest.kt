@@ -23,6 +23,7 @@ import java.io.InputStream
 import org.apache.http.entity.ContentType
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
+import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -129,6 +130,13 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 MockMvcRequestBuilders.delete("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId?dry-run=false")
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
             ).andReturn().response.processError()
+
+        override fun updateComponentName(componentName: String, newComponentName: ComponentNameDTO): ComponentNameDTO = mockMvc.perform(
+            MockMvcRequestBuilders.post("/rest/api/3/components/$componentName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(newComponentName))
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andReturn().response.toObject(object : TypeReference<ComponentNameDTO>() {})
 
         override fun getConfiguration() = mockMvc.perform(
             MockMvcRequestBuilders.get("/rest/api/3/configuration")

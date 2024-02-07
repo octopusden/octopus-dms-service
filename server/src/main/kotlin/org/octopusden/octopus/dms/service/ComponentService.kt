@@ -11,6 +11,7 @@ import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 interface ComponentService {
     fun getComponents(): List<ComponentDTO>
     fun deleteComponent(componentName: String, dryRun: Boolean)
+    fun updateComponentName(componentName: String, newComponentName: String): String
     fun getComponentMinorVersions(componentName: String): Set<String>
     fun getComponentVersions(componentName: String, minorVersions: List<String>, includeRc: Boolean): List<ComponentVersionStatusWithInfoDTO>
     fun deleteComponentVersion(componentName: String, version: String, dryRun: Boolean)

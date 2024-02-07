@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class DmsServiceApplicationBaseTest {
@@ -235,6 +236,23 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersions(component, eeComponentBuildVersion0356.minorVersion)
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("releaseArtifacts")
+    fun testUpdateComponentName(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = client.addArtifact(artifactCoordinates)
+        assertEquals(0, client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION).artifacts.size)
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
+        }
+        val componentVersionArtifact = client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+        val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
+        assertEquals(1, componentVersionArtifacts.artifacts.size)
+        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
+        assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
+        var newComponent = client.updateComponentName(eeComponent, ComponentNameDTO("new-$eeComponent"))
+        assertEquals("new-$eeComponent", newComponent.componentName)
     }
 
     @Test
