@@ -5,4 +5,5 @@ interface AdminService {
     fun deleteInvalidComponentsVersions(dryRun: Boolean)
     fun recalculateMinorVersions(dryRun: Boolean)
     fun deleteOrphanedArtifacts(dryRun: Boolean)
+    fun renameComponent(name: String, newName: String, dryRun: Boolean)
 }

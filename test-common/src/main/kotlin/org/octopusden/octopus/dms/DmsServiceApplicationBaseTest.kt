@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class DmsServiceApplicationBaseTest {
@@ -68,6 +69,15 @@ abstract class DmsServiceApplicationBaseTest {
         it.executeUpdate("INSERT INTO component_version(component_id, minor_version, version)" +
                 " SELECT id, '${version.minorVersion}', '${version.buildVersion}'" +
                 " FROM component WHERE name = '$component'")
+    }
+
+    /**
+     * Internal method to update component name in the database
+     * @param name the old name
+     * @param newName the new name
+     */
+    private fun updateName(name: String, newName: String) = dmsDbConnection.createStatement().use {
+        it.executeUpdate("UPDATE component SET name = '$newName' WHERE name = '$name'")
     }
 
     fun getResource(path: String) = this.javaClass.classLoader.getResource(path)!!
@@ -234,6 +244,40 @@ abstract class DmsServiceApplicationBaseTest {
     fun testGetComponentVersionsForNonEEComponent(component: String) {
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersions(component, eeComponentBuildVersion0356.minorVersion)
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("releaseArtifacts")
+    fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = client.addArtifact(artifactCoordinates)
+        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+        val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
+        assertEquals(1, componentVersionArtifacts.artifacts.size)
+        updateName(eeComponent, "some-$eeComponent")
+        assertThrows(NotFoundException::class.java) {
+            client.getComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        }
+        client.renameComponent("some-$eeComponent", eeComponent)
+        client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+        // Check that the operation(renaming) is idempotent
+        client.renameComponent("some-$eeComponent", eeComponent)
+        // Check exception to rename unexisting component
+        assertThrowsExactly(IllegalComponentRenamingException::class.java) {
+            client.renameComponent(eeComponent, eeComponent)
+        }
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.renameComponent("some-$eeComponent", "some-$eeComponent")
+        }
+        // Check an exception, when both old and new component names exist in the system
+        val artifact2 = client.addArtifact(artifactCoordinates)
+        client.registerComponentVersionArtifact(eeClientSpecificComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        assertThrows(IllegalComponentRenamingException::class.java) {
+            client.renameComponent(eeComponent, eeClientSpecificComponent)
+        }
+        // Check that artifact with new component name is available
+        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
+            assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
         }
     }
 
@@ -406,6 +450,7 @@ abstract class DmsServiceApplicationBaseTest {
     companion object {
         data class Version(val minorVersion: String, val buildVersion: String, val releaseVersion: String)
         const val eeComponent = "ee-component"
+        const val eeClientSpecificComponent = "ee-client-specific-component"
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
         val eeComponentRCVersion0353 = Version("03.53.31", "03.53.30.53-1", "03.53.30.53")
