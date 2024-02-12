@@ -49,7 +49,7 @@ class ComponentController(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
     ) = componentService.deleteComponent(componentName, dryRun)
 
-    @Operation(summary = "Update Component name")
+    @Operation(summary = "Rename a component")
     @PostMapping("{component-name}")
     @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
     fun renameComponent(

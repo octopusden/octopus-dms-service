@@ -57,7 +57,6 @@ class ComponentServiceImpl(
      * @param newComponentName - new component name
      * @return new component name
      * @throws NotFoundException if component with name [componentName] not found in releng
-     * @throws NoSuchElementException if component with name [componentName] not found in database
      */
     @Transactional(readOnly = false)
     override fun renameComponent(componentName: String, newComponentName: String): String {
@@ -65,18 +64,27 @@ class ComponentServiceImpl(
         log.debug("Update component name from '$componentName' to '$newComponentName'")
         componentRepository.lock(componentName.hashCode())
 
-        relengService.getComponentBuilds(
-            newComponentName,
-            arrayOf(),
-            arrayOf(),
-            VersionField.VERSION
-        )
+        checkComponentExists(newComponentName)
         componentRepository.findByName(componentName)?.let {
             val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
             log.debug("${it.name} updated to ${newComponent.name}")
             result = newComponent.name
-        } ?: throw NoSuchElementException("Component with name $componentName not found")
+        } ?: throw NotFoundException("Component with name $componentName not found in DMS")
         return result
+    }
+
+    /**
+     * Check if component with name [componentName] exists in releng
+     * @param componentName - new component name
+     * @throws NotFoundException if component with name [componentName] not found in releng
+     */
+    private fun checkComponentExists(componentName: String) {
+        relengService.getComponentBuilds(
+            componentName,
+            arrayOf(),
+            arrayOf(),
+            VersionField.VERSION
+        )
     }
 
     @Transactional(readOnly = true)
