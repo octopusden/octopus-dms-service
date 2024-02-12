@@ -131,7 +131,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
             ).andReturn().response.processError()
 
-        override fun updateComponentName(componentName: String, newComponentName: ComponentNameDTO): ComponentNameDTO = mockMvc.perform(
+        override fun renameComponent(componentName: String, newComponentName: ComponentNameDTO): ComponentNameDTO = mockMvc.perform(
             MockMvcRequestBuilders.post("/rest/api/3/components/$componentName")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(newComponentName))
