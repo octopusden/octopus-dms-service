@@ -46,6 +46,28 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/components/new-ee-component")
+                .withQueryStringParameter("build_whitelist", "status,version,release_version")
+        ).respond {
+            val versions = it.getFirstQueryStringParameter("versions").split(',')
+            val versionsField = it.getFirstQueryStringParameter("versions_field")
+            val versionStatuses = it.getFirstQueryStringParameter("version_statuses").split(',')
+            val builds = eeComponentBuilds.filter { build ->
+                build as JSONObject
+                versionStatuses.contains(build.getString("status")) && when (versionsField) {
+                    "VERSION" -> versions.contains(build.getString("version"))
+                    "RELEASE_VERSION" -> versions.contains(build.getString("release_version"))
+                    else -> false
+                }
+            }
+            HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+                .withBody(
+                    JSONObject().put("name", "new-ee-component")
+                        .put("builds", builds)
+                        .toString(2)
+                ).withStatusCode(200)
+        }
+        mockServerClient.`when`(
             HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/ee-component/version/{version}/status")
                 .withPathParameter("version")
         ).respond {
