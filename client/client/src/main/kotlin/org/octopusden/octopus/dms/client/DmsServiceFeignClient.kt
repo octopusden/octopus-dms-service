@@ -84,7 +84,7 @@ interface DmsServiceFeignClient {
 
     @RequestLine("POST rest/api/3/components/{component-name}")
     @Headers("Content-Type: application/json")
-    fun updateComponentName(
+    fun renameComponent(
         @Param("component-name") componentName: String,
         newComponentName: ComponentNameDTO
     ): ComponentNameDTO
