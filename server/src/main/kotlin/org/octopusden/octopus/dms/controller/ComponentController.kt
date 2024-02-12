@@ -52,10 +52,10 @@ class ComponentController(
     @Operation(summary = "Update Component name")
     @PostMapping("{component-name}")
     @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
-    fun updateComponent(
+    fun renameComponent(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
         @RequestBody newComponentName: ComponentNameDTO
-    ): ComponentNameDTO = ComponentNameDTO(componentService.updateComponentName(componentName, newComponentName.componentName))
+    ): ComponentNameDTO = ComponentNameDTO(componentService.renameComponent(componentName, newComponentName.componentName))
 
     @Operation(
         summary = "List of Component Minor Versions",

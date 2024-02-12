@@ -60,7 +60,7 @@ class ComponentServiceImpl(
      * @throws NoSuchElementException if component with name [componentName] not found in database
      */
     @Transactional(readOnly = false)
-    override fun updateComponentName(componentName: String, newComponentName: String): String {
+    override fun renameComponent(componentName: String, newComponentName: String): String {
         var result = componentName
         log.debug("Update component name from '$componentName' to '$newComponentName'")
         componentRepository.lock(componentName.hashCode())
