@@ -240,7 +240,7 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("releaseArtifacts")
-    fun testUpdateComponentName(artifactCoordinates: ArtifactCoordinatesDTO) {
+    fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertEquals(0, client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION).artifacts.size)
         assertThrowsExactly(NotFoundException::class.java) {
