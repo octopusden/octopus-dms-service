@@ -251,7 +251,7 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
         assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
-        var newComponent = client.updateComponentName(eeComponent, ComponentNameDTO("new-$eeComponent"))
+        var newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
         assertEquals("new-$eeComponent", newComponent.componentName)
     }
 
