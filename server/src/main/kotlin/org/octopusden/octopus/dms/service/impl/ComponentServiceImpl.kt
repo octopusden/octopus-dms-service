@@ -62,14 +62,13 @@ class ComponentServiceImpl(
     override fun renameComponent(componentName: String, newComponentName: String): String {
         var result = componentName
         log.debug("Update component name from '$componentName' to '$newComponentName'")
-        componentRepository.lock(componentName.hashCode())
 
         checkComponentExists(newComponentName)
         componentRepository.findByName(componentName)?.let {
             val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
-            log.debug("${it.name} updated to ${newComponent.name}")
+            log.info("${it.name} updated to ${newComponent.name}")
             result = newComponent.name
-        } ?: throw NotFoundException("Component with name $componentName not found in DMS")
+        } ?: log.warn("Component with name $componentName not found in DMS")
         return result
     }
 

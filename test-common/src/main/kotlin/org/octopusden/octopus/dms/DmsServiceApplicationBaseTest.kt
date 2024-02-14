@@ -253,6 +253,10 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
         var newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
         assertEquals("new-$eeComponent", newComponent.componentName)
+        // Check that the operation(renaming) is idempotent
+        newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
+        assertEquals("new-$eeComponent", newComponent.componentName)
+        // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.componentName, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
             assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
         }
