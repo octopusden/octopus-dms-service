@@ -68,7 +68,11 @@ class ComponentServiceImpl(
             val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
             log.info("${it.name} updated to ${newComponent.name}")
             result = newComponent.name
-        } ?: log.warn("Component with name $componentName not found in DMS")
+        } ?: run {
+            log.warn("Component with name $componentName not found in DMS")
+            // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
+            result = newComponentName
+        }
         return result
     }
 
