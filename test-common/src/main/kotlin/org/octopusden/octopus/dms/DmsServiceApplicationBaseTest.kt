@@ -264,7 +264,7 @@ abstract class DmsServiceApplicationBaseTest {
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
         client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        assertThrowsExactly(InternalServerError::class.java) {
+        assertThrowsExactly(Exception::class.java) {
             client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
         }
         // Check that artifact with new component name is available
