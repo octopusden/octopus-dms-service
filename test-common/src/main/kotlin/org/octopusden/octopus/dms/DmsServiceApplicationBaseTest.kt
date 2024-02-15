@@ -36,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class DmsServiceApplicationBaseTest {
@@ -264,9 +265,9 @@ abstract class DmsServiceApplicationBaseTest {
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
         client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        assertThrows(Exception::class.java,  {
+        assertThrows(IllegalComponentRenamingException::class.java) {
             client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
-        }, "could not execute statement; SQL [n/a]; constraint [component_name_key]; nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement")
+        }
         // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.componentName, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
             assertTrue(response.body().asInputStream().readBytes().isNotEmpty())

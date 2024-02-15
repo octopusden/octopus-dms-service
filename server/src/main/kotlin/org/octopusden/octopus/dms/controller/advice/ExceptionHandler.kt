@@ -14,6 +14,7 @@ import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
 import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import feign.FeignException
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
@@ -41,7 +42,8 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         PackagingIsNotSpecifiedException::class,
         DownloadResultFailureException::class,
         VersionFormatIsNotValidException::class,
-        IllegalVersionStatusException::class
+        IllegalVersionStatusException::class,
+        IllegalComponentRenamingException::class
     )
     @Order(5)
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: DMSException) =

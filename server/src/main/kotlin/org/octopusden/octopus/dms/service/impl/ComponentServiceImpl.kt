@@ -10,6 +10,7 @@ import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
@@ -64,15 +65,22 @@ class ComponentServiceImpl(
         log.debug("Update component name from '$componentName' to '$newComponentName'")
 
         checkComponentExists(newComponentName)
-        componentRepository.findByName(componentName)?.let {
+        val newComponent = componentRepository.findByName(newComponentName)
+        val oldComponent = componentRepository.findByName(componentName)
+
+        if (oldComponent != null && newComponent != null) {
+            log.info("Component with name $componentName and component with name $newComponentName exists in DMS")
+            throw IllegalComponentRenamingException("Component with name $newComponentName already exists in DMS")
+        }
+
+        oldComponent?.let {
             val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
             log.info("${it.name} updated to ${newComponent.name}")
             result = newComponent.name
         } ?: run {
             log.warn("Component with name $componentName not found in DMS")
             // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
-            val component = componentRepository.findByName(newComponentName)
-                ?: throw NotFoundException("Component with name $newComponentName not found in DMS")
+            val component = newComponent?: throw NotFoundException("Component with name $newComponentName not found in DMS")
             log.info("Component with name $newComponentName found in DMS")
             result = component.name
         }

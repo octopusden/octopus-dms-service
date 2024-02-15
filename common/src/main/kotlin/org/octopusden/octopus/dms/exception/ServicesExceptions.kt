@@ -12,7 +12,8 @@ abstract class DMSException(message: String, val code: String) : RuntimeExceptio
             "DMS-40008" to { message: String -> DownloadResultFailureException(message) },
             "DMS-40010" to { message: String -> VersionFormatIsNotValidException(message) },
             "DMS-40011" to { message: String -> NotFoundException(message) },
-            "DMS-40012" to { message: String -> IllegalVersionStatusException(message) }
+            "DMS-40012" to { message: String -> IllegalVersionStatusException(message) },
+            "DMS-40013" to { message: String -> IllegalComponentRenamingException(message) }
         )
     }
 }
@@ -27,3 +28,4 @@ class DownloadResultFailureException(message: String) : DMSException(message, "D
 class VersionFormatIsNotValidException(message: String) : DMSException(message, "DMS-40010")
 class NotFoundException(message: String) : DMSException(message, "DMS-40011")
 class IllegalVersionStatusException(message: String) : DMSException(message, "DMS-40012")
+class IllegalComponentRenamingException(message: String) : DMSException(message, "DMS-40013")
