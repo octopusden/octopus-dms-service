@@ -79,7 +79,10 @@ class ComponentServiceImpl(
             result = newComponent.name
         } ?: run {
             log.warn("Component with name $componentName not found in DMS")
-            result = newComponentName
+            // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
+            val component = newComponent?: throw NotFoundException("Component with name $componentName not found in DMS")
+            log.info("Component with name $newComponentName found in DMS")
+            result = newComponent.name
         }
         return result
     }
