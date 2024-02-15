@@ -256,6 +256,10 @@ abstract class DmsServiceApplicationBaseTest {
         // Check that the operation(renaming) is idempotent
         newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
         assertEquals("new-$eeComponent", newComponent.componentName)
+        // Check exception to rename unexisting component
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.renameComponent(eeComponent, ComponentNameDTO(eeComponent))
+        }
         // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.componentName, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
             assertTrue(response.body().asInputStream().readBytes().isNotEmpty())

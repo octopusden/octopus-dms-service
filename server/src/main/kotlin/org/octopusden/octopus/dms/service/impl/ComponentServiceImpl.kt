@@ -72,7 +72,8 @@ class ComponentServiceImpl(
             log.warn("Component with name $componentName not found in DMS")
             // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
             val component = componentRepository.findByName(newComponentName)
-                ?: throw NotFoundException("Component with new name $newComponentName not found in DMS")
+                ?: throw NotFoundException("Component with name $newComponentName not found in DMS")
+            log.info("Component with name $newComponentName found in DMS")
             result = component.name
         }
         return result
