@@ -69,7 +69,7 @@ class ComponentServiceImpl(
         val oldComponent = componentRepository.findByName(componentName)
 
         if (oldComponent != null && newComponent != null) {
-            log.info("Component with name $componentName and component with name $newComponentName exists in DMS")
+            log.error("Component with name $componentName and component with name $newComponentName exists in DMS")
             throw IllegalComponentRenamingException("Component with name $newComponentName already exists in DMS")
         }
 
@@ -79,10 +79,7 @@ class ComponentServiceImpl(
             result = newComponent.name
         } ?: run {
             log.warn("Component with name $componentName not found in DMS")
-            // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
-            val component = newComponent?: throw NotFoundException("Component with name $newComponentName not found in DMS")
-            log.info("Component with name $newComponentName found in DMS")
-            result = component.name
+            result = newComponentName
         }
         return result
     }
