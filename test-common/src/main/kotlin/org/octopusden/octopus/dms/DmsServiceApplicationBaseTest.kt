@@ -260,6 +260,10 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrowsExactly(NotFoundException::class.java) {
             client.renameComponent(eeComponent, ComponentNameDTO(eeComponent))
         }
+
+        val artifact2 = client.addArtifact(artifactCoordinates)
+        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
         // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.componentName, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
             assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
