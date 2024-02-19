@@ -53,7 +53,8 @@ class ComponentServiceImpl(
     }
 
     /**
-     * Update component name and return new component name
+     * Update component name and return new component name.
+     * By this point, the component should have already been renamed in 'releng'.
      * @param componentName - old component name
      * @param newComponentName - new component name
      * @return new component name
