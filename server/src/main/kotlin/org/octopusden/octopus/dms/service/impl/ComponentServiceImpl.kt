@@ -64,7 +64,7 @@ class ComponentServiceImpl(
         var result = componentName
         log.debug("Update component name from '$componentName' to '$newComponentName'")
 
-        checkComponentExists(newComponentName)
+        checkComponentExistsInReleng(newComponentName)
         val newComponent = componentRepository.findByName(newComponentName)
         val oldComponent = componentRepository.findByName(componentName)
 
@@ -92,7 +92,7 @@ class ComponentServiceImpl(
      * @param componentName - new component name
      * @throws NotFoundException if component with name [componentName] not found in releng
      */
-    private fun checkComponentExists(componentName: String) {
+    private fun checkComponentExistsInReleng(componentName: String) {
         relengService.getComponentBuilds(
             componentName,
             arrayOf(),
