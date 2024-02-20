@@ -3,9 +3,13 @@ package org.octopusden.octopus.dms.controller
 import org.octopusden.octopus.dms.service.AdminService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
+import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -40,4 +44,13 @@ class AdminController(
     fun deleteOrphanedArtifacts(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
     ) = adminService.deleteOrphanedArtifacts(dryRun)
+
+    @Operation(summary = "Rename a component")
+    @PostMapping("rename-component/{component-name}", consumes = [MediaType.TEXT_PLAIN_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun renameComponent(
+        @PathVariable(name = "component-name") componentName: String,
+        @RequestParam("dry-run", defaultValue = "false", required = false) dryRun: Boolean,
+        @RequestBody newComponentName: String
+    ): ComponentDTO = adminService.renameComponent(componentName, newComponentName, dryRun)
+
 }

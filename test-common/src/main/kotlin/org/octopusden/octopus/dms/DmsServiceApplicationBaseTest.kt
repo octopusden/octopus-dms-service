@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import feign.FeignException.InternalServerError
 import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
@@ -35,7 +34,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -253,23 +251,23 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
         assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
-        var newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
-        assertEquals("new-$eeComponent", newComponent.componentName)
+        var newComponent = client.renameComponent(eeComponent, "new-$eeComponent")
+        assertEquals("new-$eeComponent", newComponent.name)
         // Check that the operation(renaming) is idempotent
-        newComponent = client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
-        assertEquals("new-$eeComponent", newComponent.componentName)
+        newComponent = client.renameComponent(eeComponent, "new-$eeComponent")
+        assertEquals("new-$eeComponent", newComponent.name)
         // Check exception to rename unexisting component
         assertThrowsExactly(NotFoundException::class.java) {
-            client.renameComponent(eeComponent, ComponentNameDTO(eeComponent))
+            client.renameComponent(eeComponent, eeComponent)
         }
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
         client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
         assertThrows(IllegalComponentRenamingException::class.java) {
-            client.renameComponent(eeComponent, ComponentNameDTO("new-$eeComponent"))
+            client.renameComponent(eeComponent, "new-$eeComponent")
         }
         // Check that artifact with new component name is available
-        client.downloadComponentVersionArtifact(newComponent.componentName, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
+        client.downloadComponentVersionArtifact(newComponent.name, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
             assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
         }
     }

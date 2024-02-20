@@ -10,7 +10,6 @@ import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
-import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
@@ -50,56 +49,6 @@ class ComponentServiceImpl(
             if (!dryRun) componentRepository.delete(it)
             log.info("$it deleted")
         }
-    }
-
-    /**
-     * Update component name and return new component name.
-     * By this point, the component should have already been renamed in 'releng'.
-     * @param componentName - old component name
-     * @param newComponentName - new component name
-     * @return new component name
-     * @throws NotFoundException if component with name [componentName] not found in releng
-     */
-    @Transactional(readOnly = false)
-    override fun renameComponent(componentName: String, newComponentName: String): String {
-        var result = componentName
-        log.debug("Update component name from '$componentName' to '$newComponentName'")
-
-        checkComponentExistsInReleng(newComponentName)
-        val newComponent = componentRepository.findByName(newComponentName)
-        val oldComponent = componentRepository.findByName(componentName)
-
-        if (oldComponent != null && newComponent != null) {
-            log.error("Component with name $componentName and component with name $newComponentName exists in DMS")
-            throw IllegalComponentRenamingException("Component with name $newComponentName already exists in DMS")
-        }
-
-        oldComponent?.let {
-            val newComponent = componentRepository.save(Component(name = newComponentName, id = it.id))
-            log.info("${it.name} updated to ${newComponent.name}")
-            result = newComponent.name
-        } ?: run {
-            log.warn("Component with name $componentName not found in DMS")
-            // Let's assume that component with name [componentName] has been renamed to [newComponentName] yet
-            val component = newComponent?: throw NotFoundException("Component with name $componentName not found in DMS")
-            log.info("Component with name $newComponentName found in DMS")
-            result = newComponent.name
-        }
-        return result
-    }
-
-    /**
-     * Check if component with name [componentName] exists in releng
-     * @param componentName - new component name
-     * @throws NotFoundException if component with name [componentName] not found in releng
-     */
-    private fun checkComponentExistsInReleng(componentName: String) {
-        relengService.getComponentBuilds(
-            componentName,
-            arrayOf(),
-            arrayOf(),
-            VersionField.VERSION
-        )
     }
 
     @Transactional(readOnly = true)

@@ -33,7 +33,7 @@ import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.StringBody
 import org.apache.http.impl.client.HttpClientBuilder
-import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 
 class ClassicDmsServiceClient(
     private val parametersProvider: DmsServiceClientParametersProvider, private val objectMapper: ObjectMapper
@@ -89,7 +89,7 @@ class ClassicDmsServiceClient(
         componentName: String, version: String, artifactId: Long
     ) = client.deleteComponentVersionArtifact(componentName, version, artifactId)
 
-    override fun renameComponent(componentName: String, newComponentName: ComponentNameDTO): ComponentNameDTO =
+    override fun renameComponent(componentName: String, newComponentName: String): ComponentDTO =
         client.renameComponent(componentName, newComponentName)
 
     override fun getConfiguration() = client.getConfiguration()

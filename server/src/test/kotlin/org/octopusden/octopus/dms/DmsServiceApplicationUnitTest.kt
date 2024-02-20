@@ -23,7 +23,7 @@ import java.io.InputStream
 import org.apache.http.entity.ContentType
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -131,12 +131,12 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
             ).andReturn().response.processError()
 
-        override fun renameComponent(componentName: String, newComponentName: ComponentNameDTO): ComponentNameDTO = mockMvc.perform(
-            MockMvcRequestBuilders.post("/rest/api/3/components/$componentName")
+        override fun renameComponent(componentName: String, newComponentName: String): ComponentDTO = mockMvc.perform(
+            MockMvcRequestBuilders.post("/rest/api/3/admin/rename-component/$componentName")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsBytes(newComponentName))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<ComponentNameDTO>() {})
+        ).andReturn().response.toObject(object : TypeReference<ComponentDTO>() {})
 
         override fun getConfiguration() = mockMvc.perform(
             MockMvcRequestBuilders.get("/rest/api/3/configuration")

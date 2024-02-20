@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.octopusden.octopus.dms.client.common.dto.ComponentNameDTO
 import javax.servlet.http.HttpServletResponse
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PostAuthorize
@@ -48,14 +47,6 @@ class ComponentController(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
     ) = componentService.deleteComponent(componentName, dryRun)
-
-    @Operation(summary = "Rename a component")
-    @PostMapping("{component-name}")
-    @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
-    fun renameComponent(
-        @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
-        @RequestBody newComponentName: ComponentNameDTO
-    ): ComponentNameDTO = ComponentNameDTO(componentService.renameComponent(componentName, newComponentName.componentName))
 
     @Operation(
         summary = "List of Component Minor Versions",
