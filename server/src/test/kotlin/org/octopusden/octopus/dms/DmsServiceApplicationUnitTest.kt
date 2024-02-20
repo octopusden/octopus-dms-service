@@ -133,7 +133,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
 
         override fun renameComponent(componentName: String, newComponentName: String): ComponentDTO = mockMvc.perform(
             MockMvcRequestBuilders.post("/rest/api/3/admin/rename-component/$componentName")
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.TEXT_PLAIN_VALUE)
                 .content(objectMapper.writeValueAsBytes(newComponentName))
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andReturn().response.toObject(object : TypeReference<ComponentDTO>() {})
