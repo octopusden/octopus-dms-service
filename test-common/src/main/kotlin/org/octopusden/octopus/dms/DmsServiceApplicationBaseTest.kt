@@ -264,14 +264,17 @@ abstract class DmsServiceApplicationBaseTest {
         newComponent = client.renameComponent("some-$eeComponent", eeComponent)
         assertEquals(eeComponent, newComponent.name)
         // Check exception to rename unexisting component
-        assertThrowsExactly(NotFoundException::class.java) {
+        assertThrowsExactly(IllegalComponentRenamingException::class.java) {
             client.renameComponent(eeComponent, eeComponent)
+        }
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.renameComponent("some-$eeComponent", "some-$eeComponent")
         }
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(eeClientSpecificComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
         assertThrows(IllegalComponentRenamingException::class.java) {
-            client.renameComponent(eeComponent, "some-$eeComponent")
+            client.renameComponent(eeComponent, eeClientSpecificComponent)
         }
         // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.name, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
@@ -448,6 +451,7 @@ abstract class DmsServiceApplicationBaseTest {
     companion object {
         data class Version(val minorVersion: String, val buildVersion: String, val releaseVersion: String)
         const val eeComponent = "ee-component"
+        const val eeClientSpecificComponent = "ee-client-specific-component"
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
         val eeComponentRCVersion0353 = Version("03.53.31", "03.53.30.53-1", "03.53.30.53")

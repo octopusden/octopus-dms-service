@@ -95,7 +95,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         }
         if (!checkComponentExistsInRS(newName)) {
             log.error("Component with name $newName not found in components registry")
-            throw IllegalComponentRenamingException("Component with name $newName not found in components registry")
+            throw NotFoundException("Component with name $newName not found in components registry")
         }
         checkComponentExistsInReleng(newName)
         val component = componentRepository.findByName(newName)

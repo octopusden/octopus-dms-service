@@ -67,10 +67,12 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/ee-component/version/{version}/status")
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}/version/{version}/status")
                 .withPathParameter("version")
+                .withPathParameter("component-name")
         ).respond {
             val version = it.getFirstPathParameter("version")
+            val component = it.getFirstPathParameter("component-name")
             val build = eeComponentBuilds.firstOrNull { build ->
                 build as JSONObject
                 version == build.getString("version")
@@ -78,7 +80,7 @@ abstract class ConfigureMockServer : DefaultTask() {
             if (build != null) {
                 HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
                     .withBody(
-                        JSONObject().put("component", "ee-component")
+                        JSONObject().put("component", component)
                             .put("version", build.getString("version"))
                             .put("buildVersion", build.getString("version"))
                             .put("releaseVersion", build.getString("release_version"))
