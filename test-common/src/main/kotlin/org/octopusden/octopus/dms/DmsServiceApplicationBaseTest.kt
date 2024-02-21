@@ -258,18 +258,18 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrows(NotFoundException::class.java) {
             client.getComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         }
-        var newComponent = client.renameComponent(eeComponent, "some-$eeComponent")
-        assertEquals("some-$eeComponent", newComponent.name)
+        var newComponent = client.renameComponent("some-$eeComponent", eeComponent)
+        assertEquals(eeComponent, newComponent.name)
         // Check that the operation(renaming) is idempotent
-        newComponent = client.renameComponent(eeComponent, "some-$eeComponent")
-        assertEquals("some-$eeComponent", newComponent.name)
+        newComponent = client.renameComponent("some-$eeComponent", eeComponent)
+        assertEquals(eeComponent, newComponent.name)
         // Check exception to rename unexisting component
         assertThrowsExactly(NotFoundException::class.java) {
             client.renameComponent(eeComponent, eeComponent)
         }
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
         assertThrows(IllegalComponentRenamingException::class.java) {
             client.renameComponent(eeComponent, "some-$eeComponent")
         }
