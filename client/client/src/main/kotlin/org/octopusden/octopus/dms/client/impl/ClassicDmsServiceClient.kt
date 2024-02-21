@@ -89,7 +89,7 @@ class ClassicDmsServiceClient(
         componentName: String, version: String, artifactId: Long
     ) = client.deleteComponentVersionArtifact(componentName, version, artifactId)
 
-    override fun renameComponent(componentName: String, newComponentName: String): ComponentDTO =
+    override fun renameComponent(componentName: String, newComponentName: String, dryRun: Boolean): ComponentDTO =
         client.renameComponent(componentName, newComponentName)
 
     override fun getConfiguration() = client.getConfiguration()
