@@ -18,6 +18,7 @@ import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException as ComponentsRegistryNotFoundException
 
 @Service
 @Transactional(readOnly = false)
@@ -133,7 +134,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         return try{
             componentsRegistryService.checkComponent(name)
             return true
-        } catch (e: org.octopusden.octopus.components.registry.core.exceptions.NotFoundException) {
+        } catch (e: ComponentsRegistryNotFoundException) {
             log.error("Component with name $name not found in components registry", e)
             return false
         }
