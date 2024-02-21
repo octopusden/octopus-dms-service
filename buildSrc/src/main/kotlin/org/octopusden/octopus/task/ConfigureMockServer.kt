@@ -10,7 +10,6 @@ import org.json.JSONObject
 import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
-import org.mockserver.model.Parameter.param
 
 
 abstract class ConfigureMockServer : DefaultTask() {
@@ -46,7 +45,7 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/components/new-ee-component")
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/components/some-ee-component")
                 .withQueryStringParameter("build_whitelist", "status,version,release_version")
         ).respond {
             val versions = it.getFirstQueryStringParameter("versions").split(',')
@@ -62,7 +61,7 @@ abstract class ConfigureMockServer : DefaultTask() {
             }
             HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
                 .withBody(
-                    JSONObject().put("name", "new-ee-component")
+                    JSONObject().put("name", "some-ee-component")
                         .put("builds", builds)
                         .toString(2)
                 ).withStatusCode(200)

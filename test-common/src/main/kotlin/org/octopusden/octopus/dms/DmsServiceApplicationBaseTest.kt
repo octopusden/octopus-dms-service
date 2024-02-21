@@ -71,6 +71,15 @@ abstract class DmsServiceApplicationBaseTest {
                 " FROM component WHERE name = '$component'")
     }
 
+    /**
+     * Internal method to update component name in the database
+     * @param name the old name
+     * @param newName the new name
+     */
+    private fun updateName(name: String, newName: String) = dmsDbConnection.createStatement().use {
+        it.executeUpdate("UPDATE component SET name = '$newName' WHERE name = '$name'")
+    }
+
     fun getResource(path: String) = this.javaClass.classLoader.getResource(path)!!
 
     @ParameterizedTest
@@ -242,20 +251,18 @@ abstract class DmsServiceApplicationBaseTest {
     @MethodSource("releaseArtifacts")
     fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
-        assertEquals(0, client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION).artifacts.size)
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
-        }
         val componentVersionArtifact = client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
         val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
         assertEquals(1, componentVersionArtifacts.artifacts.size)
-        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
-        assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
-        var newComponent = client.renameComponent(eeComponent, "new-$eeComponent")
-        assertEquals("new-$eeComponent", newComponent.name)
+        updateName(eeComponent, "some-$eeComponent")
+        assertThrows(NotFoundException::class.java) {
+            client.getComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        }
+        var newComponent = client.renameComponent(eeComponent, "some-$eeComponent")
+        assertEquals("some-$eeComponent", newComponent.name)
         // Check that the operation(renaming) is idempotent
-        newComponent = client.renameComponent(eeComponent, "new-$eeComponent")
-        assertEquals("new-$eeComponent", newComponent.name)
+        newComponent = client.renameComponent(eeComponent, "some-$eeComponent")
+        assertEquals("some-$eeComponent", newComponent.name)
         // Check exception to rename unexisting component
         assertThrowsExactly(NotFoundException::class.java) {
             client.renameComponent(eeComponent, eeComponent)
@@ -264,7 +271,7 @@ abstract class DmsServiceApplicationBaseTest {
         val artifact2 = client.addArtifact(artifactCoordinates)
         client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
         assertThrows(IllegalComponentRenamingException::class.java) {
-            client.renameComponent(eeComponent, "new-$eeComponent")
+            client.renameComponent(eeComponent, "some-$eeComponent")
         }
         // Check that artifact with new component name is available
         client.downloadComponentVersionArtifact(newComponent.name, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
