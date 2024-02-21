@@ -251,7 +251,7 @@ abstract class DmsServiceApplicationBaseTest {
     @MethodSource("releaseArtifacts")
     fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
-        val componentVersionArtifact = client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
         val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         updateName(eeComponent, "some-$eeComponent")

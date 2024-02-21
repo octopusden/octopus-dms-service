@@ -88,13 +88,13 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     override fun renameComponent(name: String, newName: String, dryRun: Boolean): ComponentDTO {
         log.debug("Update component name from '$name' to '$newName'")
 
-        if (checkComponentExistsInRS(name)) {
-            log.error("Component with name $name exists in components registry")
-            throw IllegalComponentRenamingException("Component with name $name exists in components registry")
+        if (checkComponentExistsInRS(newName)) {
+            log.error("Component with name $newName exists in components registry")
+            throw IllegalComponentRenamingException("Component with name $newName exists in components registry")
         }
-        if (!checkComponentExistsInRS(newName)) {
-            log.error("Component with name $newName not found in components registry")
-            throw IllegalComponentRenamingException("Component with name $newName not found in components registry")
+        if (!checkComponentExistsInRS(name)) {
+            log.error("Component with name $name not found in components registry")
+            throw IllegalComponentRenamingException("Component with name $name not found in components registry")
         }
         checkComponentExistsInReleng(newName)
         val component = componentRepository.findByName(newName)
@@ -133,7 +133,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         return try{
             componentsRegistryService.checkComponent(name)
             return true
-        } catch (e: NotFoundException) {
+        } catch (e: org.octopusden.octopus.components.registry.core.exceptions.NotFoundException) {
             log.error("Component with name $name not found in components registry", e)
             return false
         }
