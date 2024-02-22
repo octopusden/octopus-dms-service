@@ -82,11 +82,10 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param name - old component name
      * @param newName - new component name
      * @param dryRun - if true, do not update component name
-     * @return new component name
      * @throws NotFoundException if component with name [name] not found in releng
      */
     @Transactional(readOnly = false)
-    override fun renameComponent(name: String, newName: String, dryRun: Boolean): ComponentDTO {
+    override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
         log.debug("Update component name from '$name' to '$newName'")
 
         if (checkComponentExistsInRS(name)) {
@@ -106,14 +105,12 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             throw IllegalComponentRenamingException("Component with name $newName already exists in DMS")
         }
 
-        return existedComponent?.let {
-            return if (!dryRun) {
-                val component = componentRepository.save(Component(name = newName, id = it.id))
+        existedComponent?.let {
+            if (!dryRun) {
+                componentRepository.save(Component(name = newName, id = it.id))
                 log.info("Component with name $name updated to $newName")
-                return createComponentDTO(component.id.toString(), component.name)
             } else {
                 log.info("Component with name $name will be updated to $newName")
-                return createComponentDTO(it.id.toString(), newName)
             }
         } ?: run {
             log.warn("Component with name $name not found in DMS")
@@ -121,7 +118,6 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
                 throw NotFoundException("Component with name $name not found in DMS")
             }
             log.info("Component with name $newName found in DMS")
-            return createComponentDTO(component.id.toString(), component.name)
         }
     }
 

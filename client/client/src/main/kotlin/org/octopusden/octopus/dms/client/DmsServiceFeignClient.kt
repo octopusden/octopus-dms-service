@@ -82,13 +82,13 @@ interface DmsServiceFeignClient {
         @Param("artifact-id") artifactId: Long
     )
 
-    @RequestLine("POST /rest/api/3/admin/rename-component/{component-name}?dry-run={dry-run}")
+    @RequestLine("POST /rest/api/3/admin/rename-component/{component-name}/{new-component-name}?dry-run={dry-run}")
     @Headers("Accept: application/json")
     fun renameComponent(
         @Param("component-name") componentName: String,
-        newComponentName: String,
+        @Param("new-component-name") newComponentName: String,
         @Param("dry-run") dryRun: Boolean = false
-    ): ComponentDTO
+    )
 
     @RequestLine("GET rest/api/3/configuration")
     fun getConfiguration(): PropertiesDTO

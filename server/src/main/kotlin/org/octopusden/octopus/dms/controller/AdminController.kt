@@ -46,11 +46,11 @@ class AdminController(
     ) = adminService.deleteOrphanedArtifacts(dryRun)
 
     @Operation(summary = "Rename a component")
-    @PostMapping("rename-component/{component-name}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping("rename-component/{component-name}/{new-component-name}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun renameComponent(
         @PathVariable(name = "component-name") componentName: String,
+        @PathVariable(name = "new-component-name") newComponentName: String,
         @RequestParam("dry-run", defaultValue = "false", required = false) dryRun: Boolean,
-        @RequestBody newComponentName: String
-    ): ComponentDTO = adminService.renameComponent(componentName, newComponentName, dryRun)
+    ) = adminService.renameComponent(componentName, newComponentName, dryRun)
 
 }
