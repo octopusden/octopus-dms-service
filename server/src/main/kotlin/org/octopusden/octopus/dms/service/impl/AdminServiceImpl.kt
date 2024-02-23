@@ -1,7 +1,5 @@
 package org.octopusden.octopus.dms.service.impl
 
-import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
-import org.octopusden.octopus.dms.client.common.dto.SecurityGroupsDTO
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.NotFoundException
@@ -86,13 +84,13 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      */
     @Transactional(readOnly = false)
     override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
-        log.debug("Update component name from '$name' to '$newName'")
+        log.info("Update component name from '$name' to '$newName'")
 
-        if (checkComponentExistsInRS(name)) {
+        if (isComponentPresentInRegistry(name)) {
             log.error("Component with name $name exists in components registry")
             throw IllegalComponentRenamingException("Component with name $name exists in components registry")
         }
-        if (!checkComponentExistsInRS(newName)) {
+        if (!isComponentPresentInRegistry(newName)) {
             log.error("Component with name $newName not found in components registry")
             throw NotFoundException("Component with name $newName not found in components registry")
         }
@@ -126,24 +124,14 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param name - the component name
      * @return true if component with name [newName] exists in components registry
      */
-    private fun checkComponentExistsInRS(name: String): Boolean {
+    private fun isComponentPresentInRegistry(name: String): Boolean {
         return try{
-            componentsRegistryService.checkComponent(name)
+            componentsRegistryService.getComponent(name)
             return true
         } catch (e: ComponentsRegistryNotFoundException) {
             log.error("Component with name $name not found in components registry", e)
             return false
         }
-    }
-
-    private fun createComponentDTO(id: String, name: String): ComponentDTO {
-        return ComponentDTO(
-            id = id,
-            name = name,
-            clientCode = null,
-            parentComponent = null,
-            securityGroups = SecurityGroupsDTO(emptyList())
-        )
     }
 
     /**

@@ -27,6 +27,16 @@ class ComponentsRegistryServiceImpl(
         }
     )
 
+    override fun getComponent(name: String): ComponentDTO = client.getById(name).let { component ->
+        ComponentDTO(
+            component.id,
+            component.name ?: component.id,
+            component.clientCode,
+            component.parentComponent,
+            SecurityGroupsDTO(component.distribution?.securityGroups?.read ?: emptyList())
+        )
+    }
+
     override fun getComponents() = client.getAllComponents().components
         .filter { it.distribution?.let { d -> d.explicit && d.external } ?: false }
         .map {
@@ -38,7 +48,6 @@ class ComponentsRegistryServiceImpl(
                 SecurityGroupsDTO(it.distribution?.securityGroups?.read ?: emptyList())
             )
         }
-
     override fun getComponentReadSecurityGroups(component: String) =
         client.getById(component).distribution?.securityGroups?.read ?: emptyList()
 
