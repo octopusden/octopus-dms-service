@@ -99,8 +99,10 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         val existedComponent = componentRepository.findByName(name)
 
         if (existedComponent != null && component != null) {
-            log.error("Component with name $name and component with name $newName exists in DMS")
-            throw IllegalComponentRenamingException("Component with name $newName already exists in DMS")
+            with("Both component with name $name and name $newName exists in DMS") {
+                log.error(this)
+                throw IllegalComponentRenamingException(this)
+            }
         }
 
         existedComponent?.let {
@@ -113,9 +115,9 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         } ?: run {
             log.warn("Component with name $name not found in DMS")
             if (component == null) {
-                throw NotFoundException("Component with name $name not found in DMS")
+                throw NotFoundException("None of $name and $newName components were found in DMS")
             }
-            log.info("Component with name $newName found in DMS")
+            log.info("Component $name already renamed to $newName")
         }
     }
 
