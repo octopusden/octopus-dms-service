@@ -133,7 +133,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             componentsRegistryService.getComponent(name)
             return true
         } catch (e: ComponentsRegistryNotFoundException) {
-            log.error("Component with name $name not found in components registry", e)
+            log.info("Component with name $name not found in components registry", e)
             return false
         }
     }
