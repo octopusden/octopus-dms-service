@@ -32,7 +32,7 @@ class ComponentsRegistryServiceImpl(
         it.toComponentDTO()
     }
 
-    override fun getComponents() = client.getAllComponents().components
+    override fun getExplicitExternalComponents() = client.getAllComponents().components
         .filter { it.distribution?.let { d -> d.explicit && d.external } ?: false }
         .map {
             it.toComponentDTO()
