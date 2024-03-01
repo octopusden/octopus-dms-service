@@ -130,7 +130,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
             ).andReturn().response.processError()
 
-        override fun renameComponent(componentName: String, newComponentName: String, dryRun: Boolean) = mockMvc.perform(
+        override fun renameComponent(componentName: String, newComponentName: String) = mockMvc.perform(
             MockMvcRequestBuilders.post("/rest/api/3/admin/rename-component/$componentName/$newComponentName")
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andReturn().response.processError()
