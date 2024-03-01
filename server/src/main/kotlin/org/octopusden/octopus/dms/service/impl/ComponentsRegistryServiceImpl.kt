@@ -45,8 +45,6 @@ class ComponentsRegistryServiceImpl(
         parentComponent,
         SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
     )
-    override fun getComponentReadSecurityGroups(component: String) =
-        client.getById(component).distribution?.securityGroups?.read ?: emptyList()
 
     override fun checkComponent(component: String) {
         val distribution = client.getById(component).distribution

@@ -41,7 +41,7 @@ class PermissionEvaluator(
         securityService.getCurrentUser(),
         componentName,
         try {
-            componentsRegistryService.getComponentReadSecurityGroups(componentName)
+            componentsRegistryService.getComponent(componentName).securityGroups.read
         } catch (e: Exception) {
             log.warn("Unable to get read security groups for component '$componentName'", e)
             emptyList()

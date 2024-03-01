@@ -13,7 +13,6 @@ interface ComponentsRegistryService {
      */
     fun getComponent(name: String): ComponentDTO
     fun getComponents(): List<ComponentDTO>
-    fun getComponentReadSecurityGroups(component: String): List<String>
     fun checkComponent(component: String)
     fun getDetailedComponentVersion(component: String, version: String): DetailedComponentVersion
     fun getVersionNames(): VersionNames
