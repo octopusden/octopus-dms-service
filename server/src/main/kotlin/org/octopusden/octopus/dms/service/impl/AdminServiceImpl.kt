@@ -87,11 +87,9 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         log.info("Update component name from '$name' to '$newName'")
 
         if (isComponentPresentInRegistry(name)) {
-            log.error("Component with name $name exists in components registry")
             throw IllegalComponentRenamingException("Component with name $name exists in components registry")
         }
         if (!isComponentPresentInRegistry(newName)) {
-            log.error("Component with name $newName not found in components registry")
             throw NotFoundException("Component with name $newName not found in components registry")
         }
         if (!relengService.componentExists(newName)) {
@@ -102,7 +100,6 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
 
         if (existedComponent != null && component != null) {
             with("Both component with name $name and name $newName exists in DMS") {
-                log.error(this)
                 throw IllegalComponentRenamingException(this)
             }
         }

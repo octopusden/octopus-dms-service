@@ -48,7 +48,7 @@ class AdminController(
     fun renameComponent(
         @PathVariable(name = "component-name") componentName: String,
         @PathVariable(name = "new-component-name") newComponentName: String,
-        @RequestParam("dry-run", defaultValue = "false", required = false) dryRun: Boolean,
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.renameComponent(componentName, newComponentName, dryRun)
 
 }
