@@ -6,7 +6,6 @@ import org.octopusden.octopus.task.ConfigureMockServer
 
 plugins {
     java
-    `java-library`
     idea
     id("org.jetbrains.kotlin.jvm") apply (false)
     signing
@@ -74,8 +73,8 @@ subprojects {
         }
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot.version"]}"))
-        api(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
-        api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
+        implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
+        implementation(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
         implementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
         testImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
     }
