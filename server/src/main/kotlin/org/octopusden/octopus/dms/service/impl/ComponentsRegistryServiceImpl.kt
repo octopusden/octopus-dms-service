@@ -7,6 +7,7 @@ import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClient
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider
+import org.octopusden.octopus.components.registry.core.dto.Component
 import org.octopusden.octopus.components.registry.core.dto.DetailedComponentVersion
 import org.octopusden.octopus.components.registry.core.dto.VersionRequest
 import org.octopusden.releng.versions.NumericVersionFactory
@@ -27,20 +28,23 @@ class ComponentsRegistryServiceImpl(
         }
     )
 
-    override fun getComponents() = client.getAllComponents().components
+    override fun getComponent(name: String): ComponentDTO = client.getById(name).let {
+        it.toComponentDTO()
+    }
+
+    override fun getExplicitExternalComponents() = client.getAllComponents().components
         .filter { it.distribution?.let { d -> d.explicit && d.external } ?: false }
         .map {
-            ComponentDTO(
-                it.id, // Component name
-                it.name ?: it.id, // Component display name
-                it.clientCode,
-                it.parentComponent,
-                SecurityGroupsDTO(it.distribution?.securityGroups?.read ?: emptyList())
-            )
+            it.toComponentDTO()
         }
 
-    override fun getComponentReadSecurityGroups(component: String) =
-        client.getById(component).distribution?.securityGroups?.read ?: emptyList()
+    private fun Component.toComponentDTO() = ComponentDTO(
+        id,
+        name ?: id,
+        clientCode,
+        parentComponent,
+        SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
+    )
 
     override fun checkComponent(component: String) {
         val distribution = client.getById(component).distribution

@@ -11,6 +11,7 @@ import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.service.RelengService
 import khttp.get
 import khttp.responses.Response
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -30,6 +31,18 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
         ).toObject(object : TypeReference<VersionStatus>() {}).versionStatus
         if (!versionStatusesAllowedByArtifactType.getOrDefault(type, versionStatusesAllowedByDefault).contains(versionStatus)) {
             throw IllegalVersionStatusException("Status '$versionStatus' of version '$version' of component '$component' is illegal${type?.let { " for $it artifact" } ?: ""}")
+        }
+    }
+
+    override fun componentExists(component: String): Boolean = with(get(
+        url = "$baseURL/component/$component"
+    )) {
+        if (this.statusCode == 404) {
+            false
+        } else if (this.statusCode / 100 == 2) {
+            true
+        } else {
+            throw RuntimeException(this.text)
         }
     }
 
@@ -53,10 +66,13 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
         }
     }
 
-    private fun getComponentBuilds(component: String, params: Map<String, String>) = get(
-        url = "$baseURL/components/$component",
-        params = params
-    ).toObject(object : TypeReference<ComponentBuilds>() {}).builds
+    private fun getComponentBuilds(component: String, params: Map<String, String>): List<ComponentBuild> {
+       log.debug("GET \"$baseURL/components/$component\" params=$params")
+       return get(
+            url = "$baseURL/components/$component",
+            params = params
+        ).toObject(object : TypeReference<ComponentBuilds>() {}).builds
+    }
 
     private fun <T> Response.toObject(typeReference: TypeReference<T>): T {
         if (this.statusCode / 100 != 2) {
@@ -67,6 +83,10 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
             }
         }
         return objectMapper.readValue(this.text, typeReference)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(RelengServiceImpl::class.java)
     }
 }
 

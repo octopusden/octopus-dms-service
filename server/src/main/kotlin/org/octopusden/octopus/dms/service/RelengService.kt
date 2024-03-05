@@ -6,6 +6,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 
 interface RelengService {
+    fun componentExists(component: String): Boolean
     fun checkVersionStatus(component: String, version: String, type: ArtifactType? = null)
     fun getComponentBuilds(
         component: String,

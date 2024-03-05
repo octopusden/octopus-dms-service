@@ -5,8 +5,14 @@ import org.octopusden.octopus.components.registry.core.dto.DetailedComponentVers
 import org.octopusden.releng.versions.VersionNames
 
 interface ComponentsRegistryService {
-    fun getComponents(): List<ComponentDTO>
-    fun getComponentReadSecurityGroups(component: String): List<String>
+    /**
+     * Get component by name
+     * @param name component name
+     * @return component
+     * @throws NotFoundException if component not found
+     */
+    fun getComponent(name: String): ComponentDTO
+    fun getExplicitExternalComponents(): List<ComponentDTO>
     fun checkComponent(component: String)
     fun getDetailedComponentVersion(component: String, version: String): DetailedComponentVersion
     fun getVersionNames(): VersionNames

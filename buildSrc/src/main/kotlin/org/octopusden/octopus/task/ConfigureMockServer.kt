@@ -10,7 +10,6 @@ import org.json.JSONObject
 import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
-import org.mockserver.model.Parameter.param
 
 
 abstract class ConfigureMockServer : DefaultTask() {
@@ -46,10 +45,45 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/ee-component/version/{version}/status")
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/components/some-ee-component")
+                .withQueryStringParameter("build_whitelist", "status,version,release_version")
+        ).respond {
+            val versions = it.getFirstQueryStringParameter("versions").split(',')
+            val versionsField = it.getFirstQueryStringParameter("versions_field")
+            val versionStatuses = it.getFirstQueryStringParameter("version_statuses").split(',')
+            val builds = eeComponentBuilds.filter { build ->
+                build as JSONObject
+                versionStatuses.contains(build.getString("status")) && when (versionsField) {
+                    "VERSION" -> versions.contains(build.getString("version"))
+                    "RELEASE_VERSION" -> versions.contains(build.getString("release_version"))
+                    else -> false
+                }
+            }
+            HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+                .withBody(
+                    JSONObject().put("name", "some-ee-component")
+                        .put("builds", builds)
+                        .toString(2)
+                ).withStatusCode(200)
+        }
+        mockServerClient.`when`(
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}")
+                .withPathParameter("component-name")
+        ).respond {
+            val component = it.getFirstPathParameter("component-name")
+            if ("ee-component".equals(component, ignoreCase = true)) {
+                HttpResponse.response().withStatusCode(200)
+            } else {
+                HttpResponse.response().withStatusCode(404)
+            }
+        }
+        mockServerClient.`when`(
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}/version/{version}/status")
                 .withPathParameter("version")
+                .withPathParameter("component-name")
         ).respond {
             val version = it.getFirstPathParameter("version")
+            val component = it.getFirstPathParameter("component-name")
             val build = eeComponentBuilds.firstOrNull { build ->
                 build as JSONObject
                 version == build.getString("version")
@@ -57,7 +91,7 @@ abstract class ConfigureMockServer : DefaultTask() {
             if (build != null) {
                 HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
                     .withBody(
-                        JSONObject().put("component", "ee-component")
+                        JSONObject().put("component", component)
                             .put("version", build.getString("version"))
                             .put("buildVersion", build.getString("version"))
                             .put("releaseVersion", build.getString("release_version"))

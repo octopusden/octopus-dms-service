@@ -39,7 +39,7 @@ class ComponentServiceImpl(
 ) : ComponentService {
     override fun getComponents(): List<ComponentDTO> {
         log.info("Get components")
-        return componentsRegistryService.getComponents()
+        return componentsRegistryService.getExplicitExternalComponents()
     }
 
     @Transactional(readOnly = false)

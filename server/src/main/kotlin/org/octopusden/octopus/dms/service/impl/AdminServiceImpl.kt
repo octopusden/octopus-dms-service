@@ -1,5 +1,8 @@
 package org.octopusden.octopus.dms.service.impl
 
+import org.octopusden.octopus.dms.entity.Component
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
+import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentRepository
@@ -8,10 +11,12 @@ import org.octopusden.octopus.dms.service.AdminService
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
+import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException as ComponentsRegistryNotFoundException
 
 @Service
 @Transactional(readOnly = false)
@@ -22,7 +27,8 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     private val storageService: StorageService,
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
-    private val artifactRepository: ArtifactRepository
+    private val artifactRepository: ArtifactRepository,
+    private val relengService: RelengService
 ) : AdminService {
 
     override fun deleteInvalidComponents(dryRun: Boolean) {
@@ -65,6 +71,70 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             } catch (e: UnableToFindArtifactException) {
                 artifactService.delete(it.id, dryRun)
             }
+        }
+    }
+
+    /**
+     * Update component name and return new component name.
+     * By this point, the component should have already been renamed in 'releng'.
+     * @param name - old component name
+     * @param newName - new component name
+     * @param dryRun - if true, do not update component name
+     * @throws NotFoundException if component with name [name] not found in releng
+     */
+    @Transactional(readOnly = false)
+    override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
+        log.info("Update component name from '$name' to '$newName'")
+
+        if (isComponentPresentInRegistry(name)) {
+            log.error("Component with name $name exists in components registry")
+            throw IllegalComponentRenamingException("Component with name $name exists in components registry")
+        }
+        if (!isComponentPresentInRegistry(newName)) {
+            log.error("Component with name $newName not found in components registry")
+            throw NotFoundException("Component with name $newName not found in components registry")
+        }
+        if (!relengService.componentExists(newName)) {
+            throw NotFoundException("Component with name $newName not found in releng")
+        }
+        val component = componentRepository.findByName(newName)
+        val existedComponent = componentRepository.findByName(name)
+
+        if (existedComponent != null && component != null) {
+            with("Both component with name $name and name $newName exists in DMS") {
+                log.error(this)
+                throw IllegalComponentRenamingException(this)
+            }
+        }
+
+        existedComponent?.let {
+            if (!dryRun) {
+                componentRepository.save(Component(name = newName, id = it.id))
+                log.info("Component with name $name updated to $newName")
+            } else {
+                log.info("Component with name $name will be updated to $newName")
+            }
+        } ?: run {
+            log.warn("Component with name $name not found in DMS")
+            if (component == null) {
+                throw NotFoundException("None of $name and $newName components were found in DMS")
+            }
+            log.info("Component $name already renamed to $newName")
+        }
+    }
+
+    /**
+     * Check if component with name [newName] exists in components registry
+     * @param name - the component name
+     * @return true if component with name [newName] exists in components registry
+     */
+    private fun isComponentPresentInRegistry(name: String): Boolean {
+        return try{
+            componentsRegistryService.getComponent(name)
+            return true
+        } catch (e: ComponentsRegistryNotFoundException) {
+            log.info("Component with name $name not found in components registry")
+            return false
         }
     }
 
