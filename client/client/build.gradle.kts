@@ -49,6 +49,8 @@ dependencies {
     api("io.github.openfeign:feign-jackson")
     api("io.github.openfeign:feign-slf4j")
     api("io.github.openfeign.form:feign-form:3.8.0")
+    api(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
+    api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
     implementation("commons-logging:commons-logging:1.2")
     implementation("org.apache.httpcomponents:httpmime")
 }
