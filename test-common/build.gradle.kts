@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":common"))
-    implementation(project(":client"))
+    implementation("org.octopusden.octopus.dms:client:${project.version}")
     implementation("org.junit.jupiter:junit-jupiter-api")
     implementation("org.junit.jupiter:junit-jupiter-params")
     implementation("com.fasterxml.jackson.core:jackson-databind")
