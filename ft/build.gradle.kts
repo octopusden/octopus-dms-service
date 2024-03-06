@@ -91,8 +91,8 @@ idea.module {
 dependencies {
     ftImplementation(project(":common"))
     ftImplementation(project(":test-common"))
+    ftImplementation(project(":client"))
     ftImplementation(gradleTestKit())
-    ftImplementation("org.octopusden.octopus.dms:client:${project.version}")
     ftImplementation("org.junit.jupiter:junit-jupiter-engine")
     ftImplementation("org.junit.jupiter:junit-jupiter-params")
 }
