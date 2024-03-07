@@ -41,14 +41,16 @@ signing {
 
 dependencies {
     api(project(":common"))
-    implementation("com.fasterxml.jackson.core:jackson-annotations")
-    implementation("com.fasterxml.jackson.core:jackson-core")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    api("com.fasterxml.jackson.core:jackson-annotations")
+    api("com.fasterxml.jackson.core:jackson-core")
+    api("com.fasterxml.jackson.module:jackson-module-kotlin")
     api("io.github.openfeign:feign-core")
-    implementation("io.github.openfeign:feign-httpclient")
-    implementation("io.github.openfeign:feign-jackson")
-    implementation("io.github.openfeign:feign-slf4j")
-    implementation("io.github.openfeign.form:feign-form:3.8.0")
+    api("io.github.openfeign:feign-httpclient")
+    api("io.github.openfeign:feign-jackson")
+    api("io.github.openfeign:feign-slf4j")
+    api("io.github.openfeign.form:feign-form:3.8.0")
+    api(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
+    api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
     implementation("commons-logging:commons-logging:1.2")
     implementation("org.apache.httpcomponents:httpmime")
 }
