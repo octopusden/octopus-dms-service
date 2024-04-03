@@ -35,7 +35,8 @@ class ArtifactValidator private constructor(
         val licenseValidatorProperties: LicenseValidatorPropertiesDTO
     ) {
         fun validate(path: String, file: Path) =
-            if (file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
+            if (licenseValidatorProperties.enabled &&
+                file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
                 !ZipFile(file.toFile()).stream()
                     .filter { entry -> !entry.isDirectory && licenseValidatorProperties.pattern.matches(entry.name) }
                     .map { entry -> entry.name }
@@ -190,6 +191,7 @@ class ArtifactValidator private constructor(
 
     companion object {
         private const val BUFFER_SIZE = 524288
+
         private enum class FileType {
             PLAIN, ZIP, AR, TAR, TARGZ, TARXZ, RPM
         }
