@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.ConfigureMockServer
+import java.time.Duration
 
 plugins {
     java
