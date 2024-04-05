@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.ConfigureMockServer
+import java.time.Duration
 
 plugins {
     java
@@ -24,6 +25,10 @@ nexusPublishing {
             username.set(System.getenv("MAVEN_USERNAME"))
             password.set(System.getenv("MAVEN_PASSWORD"))
         }
+    }
+    transitionCheckOptions {
+        maxRetries.set(60)
+        delayBetween.set(Duration.ofSeconds(30))
     }
 }
 
