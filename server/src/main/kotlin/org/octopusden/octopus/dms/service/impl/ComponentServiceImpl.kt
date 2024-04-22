@@ -11,6 +11,8 @@ import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
+import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
+import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactsEvent
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
@@ -49,7 +51,18 @@ class ComponentServiceImpl(
     override fun deleteComponent(componentName: String, dryRun: Boolean) {
         log.info("Delete component '$componentName'")
         componentRepository.findByName(componentName)?.let {
-            if (!dryRun) componentRepository.delete(it)
+            if (!dryRun) {
+                componentVersionRepository.findByComponent(it).forEach { componentVersion ->
+                    applicationEventPublisher.publishEvent(DeleteComponentVersionArtifactsEvent(
+                        componentName,
+                        componentVersion.version,
+                        componentVersionArtifactRepository.findByComponentVersion(componentVersion)
+                            .map { componentVersionArtifact -> componentVersionArtifact.toShortDTO() }
+                    ))
+
+                }
+                componentRepository.delete(it)
+            }
             log.info("$it deleted")
         }
     }
@@ -104,14 +117,21 @@ class ComponentServiceImpl(
     @Transactional(readOnly = false)
     override fun deleteComponentVersion(componentName: String, version: String, dryRun: Boolean) {
         log.info("Delete version '$version' of component '$componentName'")
-        componentVersionRepository.findByComponentNameAndVersion(componentName, version)?.let {
-            if (!dryRun) componentVersionRepository.delete(it)
-            log.info("$it deleted")
-        } ?: with(normalizeComponentVersion(componentName, version)) {
-            componentVersionRepository.findByComponentNameAndVersion(componentName, this.second)?.let {
-                if (!dryRun) componentVersionRepository.delete(it)
-                log.info("$it deleted")
+        val componentVersion = componentVersionRepository.findByComponentNameAndVersion(componentName, version)
+            ?: with(normalizeComponentVersion(componentName, version)) {
+                componentVersionRepository.findByComponentNameAndVersion(componentName, this.second)
             }
+        componentVersion?.let {
+            if (!dryRun) {
+                applicationEventPublisher.publishEvent(DeleteComponentVersionArtifactsEvent(
+                    componentName,
+                    it.version,
+                    componentVersionArtifactRepository.findByComponentVersion(it)
+                        .map { componentVersionArtifact -> componentVersionArtifact.toShortDTO() }
+                ))
+                componentVersionRepository.delete(it)
+            }
+            log.info("$it deleted")
         }
     }
 
@@ -239,9 +259,14 @@ class ComponentServiceImpl(
                     type = registerArtifactDTO.type
                 )
             )
-        return componentVersionArtifact.toFullDTO().also {
-            applicationEventPublisher.publishEvent(RegisterComponentVersionArtifactEvent(componentName, version, it))
-        }
+        applicationEventPublisher.publishEvent(
+            RegisterComponentVersionArtifactEvent(
+                componentName,
+                buildVersion,
+                componentVersionArtifact.toShortDTO()
+            )
+        )
+        return componentVersionArtifact.toFullDTO()
     }
 
     @Transactional(readOnly = false)
@@ -256,7 +281,16 @@ class ComponentServiceImpl(
         componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
             componentName, buildVersion, artifactId
         )?.let {
-            if (!dryRun) componentVersionArtifactRepository.delete(it)
+            if (!dryRun) {
+                applicationEventPublisher.publishEvent(
+                    DeleteComponentVersionArtifactEvent(
+                        componentName,
+                        buildVersion,
+                        it.toShortDTO()
+                    )
+                )
+                componentVersionArtifactRepository.delete(it)
+            }
             log.info("$it deleted")
         }
     }
