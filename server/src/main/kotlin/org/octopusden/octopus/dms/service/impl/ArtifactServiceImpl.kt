@@ -6,6 +6,7 @@ import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
@@ -14,7 +15,6 @@ import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.StorageService
-import org.octopusden.octopus.dms.service.impl.dto.DownloadArtifactDTO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

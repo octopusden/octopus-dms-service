@@ -1,12 +1,12 @@
 package org.octopusden.octopus.dms.service
 
-import org.octopusden.octopus.dms.service.impl.dto.ComponentVersionStatusWithInfoDTO
-import org.octopusden.octopus.dms.service.impl.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
+import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 
 interface ComponentService {
     fun getComponents(): List<ComponentDTO>

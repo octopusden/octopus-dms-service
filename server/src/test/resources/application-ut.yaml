@@ -17,6 +17,10 @@ auth-server:
   url: # set via env
   realm: # set via env
 
+dms-service:
+  webhook:
+    enabled: false
+
 storage:
   maven-group-prefix: corp.domain.dms
   artifactory:

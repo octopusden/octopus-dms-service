@@ -1,4 +1,4 @@
-package org.octopusden.octopus.dms.service.impl.dto
+package org.octopusden.octopus.dms.dto
 
 import java.io.InputStream
 

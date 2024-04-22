@@ -21,6 +21,10 @@ auth-server:
 server:
   forward-headers-strategy: framework
 
+dms-service:
+  webhook:
+    url: http://mockserver:1080/webhook
+
 storage:
   maven-group-prefix: corp.domain.dms
   artifactory:

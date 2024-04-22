@@ -6,9 +6,12 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
+import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
+import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
@@ -20,10 +23,9 @@ import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
-import org.octopusden.octopus.dms.service.impl.dto.ComponentVersionStatusWithInfoDTO
-import org.octopusden.octopus.dms.service.impl.dto.DownloadArtifactDTO
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,7 +37,8 @@ class ComponentServiceImpl(
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val artifactRepository: ArtifactRepository
+    private val artifactRepository: ArtifactRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) : ComponentService {
     override fun getComponents(): List<ComponentDTO> {
         log.info("Get components")
@@ -236,7 +239,9 @@ class ComponentServiceImpl(
                     type = registerArtifactDTO.type
                 )
             )
-        return componentVersionArtifact.toFullDTO()
+        return componentVersionArtifact.toFullDTO().also {
+            applicationEventPublisher.publishEvent(RegisterComponentVersionArtifactEvent(componentName, version, it))
+        }
     }
 
     @Transactional(readOnly = false)

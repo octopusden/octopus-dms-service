@@ -3,7 +3,7 @@ package org.octopusden.octopus.dms.service
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
-import org.octopusden.octopus.dms.service.impl.dto.DownloadArtifactDTO
+import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.springframework.web.multipart.MultipartFile
 
 interface ArtifactService {
