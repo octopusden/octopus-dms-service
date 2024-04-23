@@ -16,6 +16,8 @@ interface ComponentVersionRepository : JpaRepository<ComponentVersion, Long> {
         @Param("minorVersions") minorVersions: List<String>
     ): List<ComponentVersion>
 
+    fun findByComponent(component: Component): List<ComponentVersion>
+
     fun findByComponentName(componentName: String): List<ComponentVersion>
 
     fun findByComponentAndVersion(component: Component, version: String): ComponentVersion?

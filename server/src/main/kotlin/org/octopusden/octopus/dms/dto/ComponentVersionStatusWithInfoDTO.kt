@@ -1,4 +1,4 @@
-package org.octopusden.octopus.dms.service.impl.dto
+package org.octopusden.octopus.dms.dto
 
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatusDTO

@@ -102,5 +102,14 @@ abstract class ConfigureMockServer : DefaultTask() {
                 HttpResponse.response().withStatusCode(404)
             }
         }
+        mockServerClient.`when`(
+            HttpRequest.request().withMethod("POST").withPath("/webhook")
+        ).respond {
+            if (it.bodyAsString?.contains("ee-component") == true) {
+                HttpResponse.response().withStatusCode(200)
+            } else {
+                HttpResponse.response().withStatusCode(500)
+            }
+        }
     }
 }

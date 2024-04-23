@@ -1,6 +1,9 @@
 package org.octopusden.octopus.dms.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
@@ -8,6 +11,7 @@ import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.legacy.LegacyArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.legacy.LegacyArtifactsDTO
+import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
 import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
@@ -17,10 +21,6 @@ import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
 import org.octopusden.octopus.dms.service.impl.VersionField
-import org.octopusden.octopus.dms.service.impl.dto.ComponentVersionStatusWithInfoDTO
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.tags.Tag
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
