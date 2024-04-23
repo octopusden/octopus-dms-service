@@ -10,7 +10,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     visible = true
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(RegisterComponentVersionArtifactEvent::class, name = "REGISTER_COMPONENT_VERSION_ARTIFACT")
+    JsonSubTypes.Type(RegisterComponentVersionArtifactEvent::class, name = "REGISTER_COMPONENT_VERSION_ARTIFACT"),
+    JsonSubTypes.Type(DeleteComponentVersionArtifactEvent::class, name = "DELETE_COMPONENT_VERSION_ARTIFACT")
 )
 abstract class Event(
     val type: EventType

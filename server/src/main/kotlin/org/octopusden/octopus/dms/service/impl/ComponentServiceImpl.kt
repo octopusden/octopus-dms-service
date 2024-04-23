@@ -12,7 +12,6 @@ import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
 import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
-import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactsEvent
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
@@ -50,20 +49,20 @@ class ComponentServiceImpl(
     @Transactional(readOnly = false)
     override fun deleteComponent(componentName: String, dryRun: Boolean) {
         log.info("Delete component '$componentName'")
-        componentRepository.findByName(componentName)?.let {
+        componentRepository.findByName(componentName)?.let { component ->
             if (!dryRun) {
-                componentVersionRepository.findByComponent(it).forEach { componentVersion ->
-                    applicationEventPublisher.publishEvent(DeleteComponentVersionArtifactsEvent(
-                        componentName,
-                        componentVersion.version,
-                        componentVersionArtifactRepository.findByComponentVersion(componentVersion)
-                            .map { componentVersionArtifact -> componentVersionArtifact.toShortDTO() }
-                    ))
-
+                componentVersionRepository.findByComponent(component).forEach { componentVersion ->
+                    componentVersionArtifactRepository.findByComponentVersion(componentVersion).forEach {
+                        applicationEventPublisher.publishEvent(
+                            DeleteComponentVersionArtifactEvent(
+                                componentName, componentVersion.version, it.toFullDTO()
+                            )
+                        )
+                    }
                 }
-                componentRepository.delete(it)
+                componentRepository.delete(component)
             }
-            log.info("$it deleted")
+            log.info("$component deleted")
         }
     }
 
@@ -123,12 +122,13 @@ class ComponentServiceImpl(
             }
         componentVersion?.let {
             if (!dryRun) {
-                applicationEventPublisher.publishEvent(DeleteComponentVersionArtifactsEvent(
-                    componentName,
-                    it.version,
-                    componentVersionArtifactRepository.findByComponentVersion(it)
-                        .map { componentVersionArtifact -> componentVersionArtifact.toShortDTO() }
-                ))
+                componentVersionArtifactRepository.findByComponentVersion(it).forEach { componentVersionArtifact ->
+                    applicationEventPublisher.publishEvent(
+                        DeleteComponentVersionArtifactEvent(
+                            componentName, it.version, componentVersionArtifact.toFullDTO()
+                        )
+                    )
+                }
                 componentVersionRepository.delete(it)
             }
             log.info("$it deleted")
@@ -164,8 +164,7 @@ class ComponentServiceImpl(
         version: String,
         type: ArtifactType?
     ): ArtifactsDTO {
-        log.info("Get artifacts" + (type?.let { " with type '$it'" }
-            ?: "") + " for version '$version' of component '$componentName'")
+        log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         relengService.checkVersionStatus(componentName, buildVersion, type)
@@ -259,14 +258,11 @@ class ComponentServiceImpl(
                     type = registerArtifactDTO.type
                 )
             )
-        applicationEventPublisher.publishEvent(
-            RegisterComponentVersionArtifactEvent(
-                componentName,
-                buildVersion,
-                componentVersionArtifact.toShortDTO()
+        return componentVersionArtifact.toFullDTO().also {
+            applicationEventPublisher.publishEvent(
+                RegisterComponentVersionArtifactEvent(componentName, buildVersion, it)
             )
-        )
-        return componentVersionArtifact.toFullDTO()
+        }
     }
 
     @Transactional(readOnly = false)
@@ -283,11 +279,7 @@ class ComponentServiceImpl(
         )?.let {
             if (!dryRun) {
                 applicationEventPublisher.publishEvent(
-                    DeleteComponentVersionArtifactEvent(
-                        componentName,
-                        buildVersion,
-                        it.toShortDTO()
-                    )
+                    DeleteComponentVersionArtifactEvent(componentName, buildVersion, it.toFullDTO())
                 )
                 componentVersionArtifactRepository.delete(it)
             }
