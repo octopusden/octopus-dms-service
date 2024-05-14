@@ -214,6 +214,11 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
 
         private fun MockHttpServletResponse.processError() {
             if (this.status / 100 != 2) {
+                println("*****************************************")
+                println("Error response: ${this.contentAsString}")
+                println("Error message ${this.errorMessage}")
+                println("Status ${this.status}")
+                println("*****************************************")
                 throw try {
                     val error = objectMapper.readValue(this.contentAsByteArray, ApplicationErrorResponse::class.java)
                     DMSException.CODE_EXCEPTION_MAP[error.code]?.invoke(error.message)

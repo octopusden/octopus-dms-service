@@ -67,7 +67,7 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}")
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component-management/component/{component-name}")
                 .withPathParameter("component-name")
         ).respond {
             val component = it.getFirstPathParameter("component-name")
