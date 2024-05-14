@@ -78,7 +78,7 @@ abstract class ConfigureMockServer : DefaultTask() {
             }
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}/version/{version}/status")
+            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component-management/component/{component-name}/version/{version}/status")
                 .withPathParameter("version")
                 .withPathParameter("component-name")
         ).respond {
