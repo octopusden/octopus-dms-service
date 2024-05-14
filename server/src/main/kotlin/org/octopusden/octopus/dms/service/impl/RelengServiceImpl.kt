@@ -39,8 +39,6 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
             url = "$baseURL/component-management/component/$component",
             headers = mapOf("Accept" to "application/json")
         )
-        println("**********")
-        println(response.text)
         val statusCode = response.jsonObject.getInt("status-code")
         val msg = response.jsonObject.optString("message", "An error was returned by releng service")
 
