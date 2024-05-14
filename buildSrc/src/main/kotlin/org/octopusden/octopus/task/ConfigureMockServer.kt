@@ -72,9 +72,17 @@ abstract class ConfigureMockServer : DefaultTask() {
         ).respond {
             val component = it.getFirstPathParameter("component-name")
             if ("ee-component".equals(component, ignoreCase = true)) {
-                HttpResponse.response().withStatusCode(200)
+                HttpResponse.response().withStatusCode(200).withBody(
+                    JSONObject().put("status-code", 200)
+                        .put("message", "Component $component exists")
+                        .toString(2)
+                )
             } else {
-                HttpResponse.response().withStatusCode(404)
+                HttpResponse.response().withStatusCode(200).withBody(
+                    JSONObject().put("status-code", 404)
+                        .put("message", "Component $component not found")
+                        .toString(2)
+                )
             }
         }
         mockServerClient.`when`(
