@@ -35,7 +35,12 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
     }
 
     override fun componentExists(component: String): Boolean {
-        val response = get(url = "$baseURL/component-management/component/$component")
+        val response = get(
+            url = "$baseURL/component-management/component/$component",
+            headers = mapOf("Accept" to "application/json")
+        )
+        println("**********")
+        println(response.text)
         val statusCode = response.jsonObject.getInt("status-code")
         val msg = response.jsonObject.optString("message", "An error was returned by releng service")
 
