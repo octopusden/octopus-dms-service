@@ -34,15 +34,18 @@ class RelengServiceImpl( //TODO: reimplement using RelengClient
         }
     }
 
-    override fun componentExists(component: String): Boolean = with(get(
-        url = "$baseURL/component/$component"
-    )) {
-        if (this.statusCode == 404) {
-            false
-        } else if (this.statusCode / 100 == 2) {
-            true
-        } else {
-            throw RuntimeException(this.text)
+    override fun componentExists(component: String): Boolean {
+        val response = get(
+            url = "$baseURL/component-management/component/$component",
+            headers = mapOf("Accept" to "application/json")
+        )
+        val statusCode = response.jsonObject.getInt("status-code")
+        val msg = response.jsonObject.optString("message", "An error was returned by releng service")
+
+        return when {
+            statusCode == 404 -> false
+            statusCode / 100 == 2 -> true
+            else -> throw RuntimeException(msg)
         }
     }
 
