@@ -30,6 +30,7 @@ public class ArtifactDownloader {
     private final ClassicComponentsRegistryServiceClient cregClient;
 
     public ArtifactDownloader(String dmsUrl, String dmsToken, String dmsUser, String dmsPassword, String cregUrl) {
+        logger.info("Creating client dmsUrl={} user={} cregUrl={}", dmsUrl, dmsUser, cregUrl);
         dmsClient = new ClassicDmsServiceClient(new DmsServiceClientParametersProvider() {
             @NotNull
             @Override

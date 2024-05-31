@@ -38,4 +38,10 @@ open class ArtifactShortDTO(
         result = 31 * result + fileName.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "ArtifactShortDTO(id=$id, repositoryType=$repositoryType, type=$type, displayName='$displayName', fileName='$fileName')"
+    }
+
+
 }
