@@ -124,18 +124,16 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     }
 
     /**
-     * Check if component with name [newName] exists in components registry
+     * Check if component with name [name] exists in components registry
      * @param name - the component name
-     * @return true if component with name [newName] exists in components registry
+     * @return true if component with name [name] exists in components registry
      */
-    private fun isComponentPresentInRegistry(name: String): Boolean {
-        return try{
-            componentsRegistryService.getComponent(name)
-            return true
-        } catch (e: ComponentsRegistryNotFoundException) {
-            log.info("Component with name $name not found in components registry")
-            return false
-        }
+    private fun isComponentPresentInRegistry(name: String) = try {
+        componentsRegistryService.getComponent(name)
+        true
+    } catch (e: ComponentsRegistryNotFoundException) {
+        log.info("Component with name $name not found in components registry")
+        false
     }
 
     companion object {
