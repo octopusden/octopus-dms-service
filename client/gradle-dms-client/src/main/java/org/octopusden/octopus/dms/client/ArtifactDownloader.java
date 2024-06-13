@@ -30,6 +30,12 @@ public class ArtifactDownloader {
     private final ClassicComponentsRegistryServiceClient cregClient;
 
     public ArtifactDownloader(String dmsUrl, String dmsToken, String dmsUser, String dmsPassword, String cregUrl) {
+        if (dmsUrl == null) {
+            throw new IllegalArgumentException("dmsUrl must be set");
+        }
+        if (cregUrl == null) {
+            throw new IllegalArgumentException("cregUrl must be set");
+        }
         dmsClient = new ClassicDmsServiceClient(new DmsServiceClientParametersProvider() {
             @NotNull
             @Override
