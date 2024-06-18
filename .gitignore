@@ -17,3 +17,5 @@ out/
 build
 test_db.mv.db
 .env
+**/resources/public
+**/node_modules

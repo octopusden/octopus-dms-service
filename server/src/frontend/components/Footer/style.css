@@ -1,0 +1,18 @@
+.footer-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    
+    height: 26px;
+    width: 100%;
+
+    background: #D8E1E8;
+    color: #30404D;
+
+    padding-left: 15px;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+}

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 buildscript {
     dependencies {
         classpath("com.bmuschko:gradle-docker-plugin:3.6.2")
@@ -13,6 +15,7 @@ plugins {
     id("com.bmuschko.docker-spring-boot-application") version "6.4.0"
     id("com.avast.gradle.docker-compose") version "0.14.3"
     `maven-publish`
+    id("com.github.node-gradle.node") version "3.1.1"
 }
 
 tasks.getByName<Jar>("jar") {
@@ -116,6 +119,48 @@ tasks.withType<Test> {
 
 tasks.named("dockerBuildImage") {
     dependsOn("test")
+}
+
+val compileKotlin: KotlinCompile by tasks
+val compileTestKotlin: KotlinCompile by tasks
+
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+
+idea.module {
+    isDownloadJavadoc = true
+    isDownloadSources = true
+}
+
+val npmInstallTask = tasks.getByName<com.github.gradle.node.npm.task.NpmTask>("npm_install")
+
+val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
+    dependsOn(npmInstallTask)
+    npmCommand.set(listOf("run", "build"))
+}
+
+tasks.withType<ProcessResources> {
+    dependsOn(npmBuild)
+}
+
+node {
+    version.set("16.13.2")
+    download.set(true)
+    npmVersion.set("6.14.13")
+    npmWorkDir.set(file("${project.projectDir}/.gradle/npm"))
+}
+
+tasks.getByName<Delete>("clean") {
+    this.delete.add("$projectDir/node_modules")
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    args("--spring.profiles.active=dev")
+    sourceResources(sourceSets.main.get())
 }
 
 dependencies {

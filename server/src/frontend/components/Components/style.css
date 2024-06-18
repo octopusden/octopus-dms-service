@@ -1,0 +1,72 @@
+.components-page-wrapper {
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+
+    & .row {
+        display: flex;
+        direction: column;
+        height: 100%;
+        width: 100%;
+        padding-top: 60px;    
+        padding-bottom: 20px;    
+
+        & .left-column {
+            width: 380px;
+            min-width: 380px;
+            display: flex;
+            flex-direction: column;
+
+            background-color: #EBF1F5;
+
+
+            & .control-block {
+                padding: 10px;
+            }
+
+            & .components-tree {
+                padding-left: 10px;
+                padding-right: 10px;
+                flex-grow: 1;
+                overflow-y: auto;
+            }
+        }
+
+        & .right-column {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+
+            & .meta-block {
+                padding-top: 10px;
+                background-color: #F5F8FA;
+                height: 80px;
+                min-height: 80px;
+            }
+
+            & .artifacts-block {
+                display: flex;
+                flex-grow: 1;
+                overflow-y: auto;
+
+                & .artifacts-list-block {
+                    padding: 0 15px 0 15px; /* To support @blueprintjs headers */
+                    width: 300px;
+                    min-width: 300px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+
+                    background-color: #F5F8FA;
+                }
+                
+                & .preview-block {
+                    padding-top: 10px;
+                    padding-left: 10px;
+                    flex-grow: 1;
+                    overflow-y: auto;
+                }
+            }
+        }
+    }
+}
+

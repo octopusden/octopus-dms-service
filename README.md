@@ -38,3 +38,9 @@
 * Execute `chmod -R 777` for `test-common/src/main/artifactory/dump`
 * Remove old dump from `test-common/src/main/artifactory/dump`
 * Run `:dms-service:composeDown` gradle task
+
+## Frontend development in Idea
+start `DmsUiApplication (dev)` run configuration, wait for start app completely\
+start `Frontend (dev)` run configuration \
+`Frontend (dev)` profile uses `--watch` flag in package.json which enables watching of changes in frontend source code
+After frontend is rebuilt, refresh web page and test you changes
