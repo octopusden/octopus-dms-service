@@ -22,7 +22,7 @@ const getLoggedUser = () => (dispatch) => {
 
 const getComponents = () => (dispatch) => {
   dispatch(actions.requestComponents())
-  fetch('components')
+  fetch('ui/components')
     .then(handleErrors('Get components'))
     .then((response) => {
       response.json().then((data) => {

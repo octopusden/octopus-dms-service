@@ -33,7 +33,7 @@ services:
 
     api-gateway:
         container_name: dms-dev-api-gateway
-        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.1
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.9
         ports:
             - 8765:8765
         volumes:
@@ -46,3 +46,5 @@ services:
             - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
             - AUTH_SERVER_CLIENT_ID=${AUTH_SERVER_CLIENT_ID}
             - AUTH_SERVER_CLIENT_SECRET=${AUTH_SERVER_CLIENT_SECRET}
+        extra_hosts:
+            - "host.docker.internal:host-gateway"

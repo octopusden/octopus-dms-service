@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("ui/components")
-class ComponentController(
+class UiComponentController(
     private val componentService: ComponentService,
     private val securityService: SecurityService
 ) {

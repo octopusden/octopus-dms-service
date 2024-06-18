@@ -30,6 +30,10 @@ storage:
     upload-repositories:
       MAVEN: example-repo-local
 
+dms-service:
+  webhook:
+    url: http://localhost:1080/webhook
+
 components-registry-service:
   url: # set via env
 

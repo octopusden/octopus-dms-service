@@ -13,7 +13,7 @@ import org.octopusden.octopus.dms.service.ComponentService
 
 @RestController
 @RequestMapping("ui/artifacts")
-class ArtifactController(
+class UiArtifactController(
     private val artifactService: ArtifactService,
     private val componentService: ComponentService,
     private val artifactController: ArtifactController
