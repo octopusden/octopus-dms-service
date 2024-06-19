@@ -151,7 +151,7 @@ node {
     version.set("16.13.2")
     download.set(true)
     npmVersion.set("6.14.13")
-    npmWorkDir.set(file("${project.projectDir}/.gradle/npm"))
+//    npmWorkDir.set(file("${project.projectDir}/.gradle/npm/"))
 }
 
 tasks.getByName<Delete>("clean") {
