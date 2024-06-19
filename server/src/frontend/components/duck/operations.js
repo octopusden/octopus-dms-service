@@ -22,11 +22,12 @@ const getLoggedUser = () => (dispatch) => {
 
 const getComponents = () => (dispatch) => {
   dispatch(actions.requestComponents())
-  fetch('ui/components')
+  fetch('rest/api/3/components')
     .then(handleErrors('Get components'))
     .then((response) => {
       response.json().then((data) => {
-        let components = data.components
+        const componentIdComponents = new Map(data.components.map(c => { return [c.id, c]; }));
+        let components = Object.fromEntries(componentIdComponents)
         dispatch(actions.receiveComponents(components))
       })
     }).catch((err) => dispatch(actions.showError(err.message)))
@@ -57,7 +58,8 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
   fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
     response.json().then((data) => {
       if (response.ok) {
-        dispatch(actions.receiveComponentVersions(componentId, minorVersion, data))
+        let versions = data.versions
+        dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
         dispatch(actions.expandMinorVersion(componentId, minorVersion))
       } else {
         let {message} = data
