@@ -121,25 +121,8 @@ tasks.named("dockerBuildImage") {
     dependsOn("test")
 }
 
-val compileKotlin: KotlinCompile by tasks
-val compileTestKotlin: KotlinCompile by tasks
-
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-
-idea.module {
-    isDownloadJavadoc = true
-    isDownloadSources = true
-}
-
-val npmInstallTask = tasks.getByName<com.github.gradle.node.npm.task.NpmTask>("npm_install")
-
 val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
-    dependsOn(npmInstallTask)
+    dependsOn("npmInstall")
     npmCommand.set(listOf("run", "build"))
 }
 
@@ -148,10 +131,9 @@ tasks.withType<ProcessResources> {
 }
 
 node {
-    version.set("16.13.2")
+    version.set("16.20.2")
     download.set(true)
-    npmVersion.set("6.14.13")
-//    npmWorkDir.set(file("${project.projectDir}/.gradle/npm/"))
+    npmVersion.set("8.19.4")
 }
 
 tasks.getByName<Delete>("clean") {
