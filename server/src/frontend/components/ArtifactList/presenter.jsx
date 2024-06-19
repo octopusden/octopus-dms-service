@@ -46,12 +46,12 @@ function ArtifactLabel (props) {
         }
 
         <div className='artifact-label-right'>
-            <a href={`ui/artifacts/component/${selectedComponent}/version/${selectedVersion}/${id}`}
+            <a href={`rest/api/3/artifacts/${id}/download`}
                download={fileName}>
                 <Icon icon='import'/>
             </a>
             {isPrintable &&
-            <a href={`ui/artifacts/component/${selectedComponent}/version/${selectedVersion}/${id}`}
+            <a href={`rest/api/3/artifacts/${id}/download`}
                target="_blank" hidden={!isPrintable}>
                 <Icon icon='share'/>
             </a>
