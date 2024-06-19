@@ -13,8 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @Configuration
 class WebConfig : WebMvcConfigurer {
     override fun addViewControllers(registry: ViewControllerRegistry) {
-//        registry.addRedirectViewController("/", "swagger-ui/index.html")
-        registry.addRedirectViewController("/", "index.html")
+        registry.addRedirectViewController("/", "swagger-ui/index.html")
     }
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
