@@ -70,7 +70,7 @@ services:
 
     api-gateway:
         container_name: dms-ft-api-gateway
-        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.1
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.9
         ports:
             - "8765:8765"
         volumes:

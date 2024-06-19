@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 buildscript {
     dependencies {
         classpath("com.bmuschko:gradle-docker-plugin:3.6.2")
@@ -14,8 +12,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.noarg")
     id("com.bmuschko.docker-spring-boot-application") version "6.4.0"
     id("com.avast.gradle.docker-compose") version "0.14.3"
+    id("com.github.node-gradle.node") version "7.0.2"
     `maven-publish`
-    id("com.github.node-gradle.node") version "3.1.1"
 }
 
 tasks.getByName<Jar>("jar") {

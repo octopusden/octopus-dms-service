@@ -1,4 +1,4 @@
-package org.octopusden.octopus.dms.controller.ui
+package org.octopusden.octopus.dms.controller
 
 import org.octopusden.cloud.commons.security.SecurityService
 import org.octopusden.cloud.commons.security.dto.User
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@RequestMapping("ui/auth")
+@RequestMapping("auth")
 @RestController
 class AuthController(private val securityService: SecurityService) {
     @GetMapping("me")

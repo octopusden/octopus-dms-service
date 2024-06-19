@@ -11,7 +11,7 @@ const handleErrors = (operation) => (response) => {
 
 const getLoggedUser = () => (dispatch) => {
   dispatch(actions.requestLoggedUser())
-  fetch('ui/auth/me')
+  fetch('auth/me')
       .then(handleErrors('Get logged user'))
       .then((response) => {
         response.json().then((data) => {
@@ -34,7 +34,7 @@ const getComponents = () => (dispatch) => {
 
 const getComponentMinorVersions = (componentId) => (dispatch) => {
   dispatch(actions.requestComponentMinorVersions(componentId))
-  fetch(`ui/components/${componentId}/minor-versions`).then((response) => {
+  fetch(`/rest/api/3/components/${componentId}/minor-versions`).then((response) => {
     response.json().then((data) => {
       if (response.ok) {
         let versions = data.reduce((map, e) => {
@@ -54,11 +54,10 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
 
 const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
   dispatch(actions.requestComponentVersions(componentId, minorVersion))
-  fetch(`ui/components/${componentId}/minor-versions/${minorVersion}/versions`).then((response) => {
+  fetch(`/rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
     response.json().then((data) => {
       if (response.ok) {
-        let versions = data.versions
-        dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
+        dispatch(actions.receiveComponentVersions(componentId, minorVersion, data))
         dispatch(actions.expandMinorVersion(componentId, minorVersion))
       } else {
         let {message} = data
@@ -91,10 +90,11 @@ const selectVersion = (componentId, minorVersion, version) => (dispatch) => {
 
 const getArtifactsList = (componentId, minorVersion, version) => (dispatch) => {
   dispatch(actions.requestArtifactsList(componentId, minorVersion, version))
-  fetch(`ui/artifacts/component/${componentId}/version/${version}`).then((response) => {
+  fetch(`/rest/api/3/components/${componentId}/versions/${version}/artifacts`).then((response) => {
     response.json().then((data) => {
       if (response.ok) {
-        dispatch(actions.receiveArtifactsList(componentId, minorVersion, version, data))
+        let artifacts = data.artifacts
+        dispatch(actions.receiveArtifactsList(componentId, minorVersion, version, artifacts))
       } else {
         dispatch(actions.showError(data.message))
       }
@@ -104,7 +104,7 @@ const getArtifactsList = (componentId, minorVersion, version) => (dispatch) => {
 
 const getDocumentArtifact = (componentId, version, id, displayName) => (dispatch) => {
   dispatch(actions.requestDocumentArtifact(id))
-  fetch(`ui/artifacts/component/${componentId}/version/${version}/${id}`).then((response) => {
+  fetch(`/rest/api/3/artifacts/${id}/download`).then((response) => {
     response.text().then((data) => {
       dispatch(actions.receiveDocumentArtifact(id, displayName, true, data))
     })
@@ -116,8 +116,8 @@ const deleteArtifact = (componentId, minorVersion, version, id) => (dispatch) =>
   const options = {
     method: 'DELETE'
   }
-  fetch(`ui/artifacts/component/${componentId}/version/${version}/${id}`, options)
-      .then(handleErrors(`Delete ${componentId}:${version}:${id}`))
+  fetch(`/rest/api/3/artifacts/${id}?dry-run=false`, options)
+      .then(handleErrors(`Delete artifact '${id}'`))
       .then((_) => {
         dispatch(actions.successDeleteArtifact(id))
         dispatch(getArtifactsList(componentId, minorVersion, version))
