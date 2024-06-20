@@ -3,10 +3,21 @@ import {checkQuery} from '../common.js'
 
 const handleErrors = (operation) => (response) => {
   if (!response.ok) {
-    console.log(response)
+    console.error(response)
     throw Error(`"${operation}" failed with error code ${response.status}:${response.statusText}`)
   }
   return response
+}
+
+const getBuildInfo = () => (dispatch) => {
+  dispatch(actions.requestBuildInfo())
+  fetch('actuator/info')
+      .then(handleErrors('Get Build Info'))
+      .then((response) => {
+        response.json().then((data) => {
+          dispatch(actions.receiveBuildInfo(data))
+        })
+      }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
 const getLoggedUser = () => (dispatch) => {
@@ -183,6 +194,7 @@ const requestSearch = (query) => (dispatch) => {
 }
 
 export default {
+  getBuildInfo,
   getLoggedUser,
   getComponents,
   getComponentVersions,

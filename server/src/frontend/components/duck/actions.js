@@ -1,5 +1,14 @@
 import types from './types'
 
+const requestBuildInfo = () => ({
+  type: types.REQUEST_BUILD_INFO
+})
+
+const receiveBuildInfo = (buildInfo) => ({
+  type: types.RECEIVE_BUILD_INFO,
+  buildInfo: buildInfo
+})
+
 const requestLoggedUser = () => ({
   type: types.REQUEST_LOGGED_USER
 })
@@ -166,6 +175,8 @@ const changeSearchQueryValid = (isQueryValid) => ({
 })
 
 export default {
+  requestBuildInfo,
+  receiveBuildInfo,
   requestLoggedUser,
   receiveLoggedUser,
   requestComponents,

@@ -5,13 +5,16 @@ import {componentsOperations} from './duck'
 import get from "lodash/get";
 
 const mapStateToProps = (state) => {
-  const loggedUser = get(state, "components.loggedUser")
+  const {buildInfo, loggedUser} = get(state, "components")
   return {
-    loggedUser
+    buildInfo, loggedUser
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
+  const fetchBuildInfo = () => {
+    dispatch(componentsOperations.getBuildInfo())
+  }
   const fetchLoggedUser = () => {
     dispatch(componentsOperations.getLoggedUser())
   }
@@ -32,6 +35,7 @@ const mapDispatchToProps = (dispatch) => {
   }
 
   return {
+    fetchBuildInfo,
     fetchLoggedUser,
     showError,
     hideError,
@@ -44,7 +48,8 @@ const mapDispatchToProps = (dispatch) => {
 class App extends Component {
 
   componentDidMount () {
-    const {fetchLoggedUser} = this.props
+    const {fetchBuildInfo, fetchLoggedUser} = this.props
+    fetchBuildInfo()
     fetchLoggedUser()
   }
 

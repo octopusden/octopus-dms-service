@@ -1,13 +1,12 @@
 import React, {Component} from 'react'
-import version from '../../../../version.json'
 import footer from "./presenter.jsx";
 import {connect} from "react-redux";
 import get from "lodash/get"
 
 const mapStateToProps = (state) => {
-  const {loggedUser} = get(state, "components")
+  const {buildInfo, loggedUser} = get(state, "components")
   return {
-    loggedUser
+    buildInfo, loggedUser
   }
 }
 
@@ -20,7 +19,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    version: version.version
   }
 }
 

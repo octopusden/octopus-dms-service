@@ -95,14 +95,14 @@ class ArtifactsList extends Component {
         return artifact.id === selectedDocument.id
       })
       let isPrintable = isPrintableArtifact(artifact)
-      console.debug('selectedDocument:', selectedDocument, ', artifacts:', artifactsList, ', artifact:', artifact)
+      console.trace('selectedDocument:', selectedDocument, ', artifacts:', artifactsList, ', artifact:', artifact)
       fetchDocumentArtifact(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
     }
   }
 
   componentDidMount() {
     const urlProps = queryString.parse(history.location.search)
-    console.debug('urlProps', urlProps)
+    console.trace('urlProps', urlProps)
     const {component, minor, version, id} = urlProps
     const {fetchArtifactList, fetchDocumentArtifact} = this.props
 

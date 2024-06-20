@@ -1,6 +1,7 @@
 import types from './types'
 
 const INITIAL_STATE = {
+  buildInfo: {},
   loggedUser: {},
 
   components: {},
@@ -36,6 +37,14 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         loggedUser: loggedUser
+      }
+    }
+
+    case types.RECEIVE_BUILD_INFO: {
+      const {buildInfo} = action
+      return {
+        ...state,
+        buildInfo: buildInfo
       }
     }
 
