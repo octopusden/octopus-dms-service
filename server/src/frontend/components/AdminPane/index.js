@@ -1,6 +1,6 @@
 import {connect} from "react-redux";
 import {componentsOperations} from "../duck";
-import React, {Component} from "react";
+import {Component} from "react";
 import adminPane from "./presenter.jsx"
 
 const mapStateToProps = (state) => {
@@ -36,4 +36,4 @@ class AdminPane extends Component {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps) (AdminPane)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(AdminPane)

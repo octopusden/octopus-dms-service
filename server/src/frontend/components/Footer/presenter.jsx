@@ -10,7 +10,7 @@ export default function footer(props) {
     return <div className="footer-wrapper">
         <div className="version-wrapper">DMS Portal by F1 team ({version})</div>
         {hasPermission(loggedUser, "DELETE_DATA") &&
-        <AdminPane/>
+            <AdminPane/>
         }
     </div>
 }

@@ -24,7 +24,7 @@ export default function artifactList(props) {
     }
 }
 
-function ArtifactLabel (props) {
+function ArtifactLabel(props) {
     const {
         fetchDocument, selectedComponent, selectedMinor, selectedVersion,
         selectedDocument, id, displayName, fileName, isPrintable, isDeletable,
@@ -51,24 +51,24 @@ function ArtifactLabel (props) {
                 <Icon icon='import'/>
             </a>
             {isPrintable &&
-            <a href={`rest/api/3/artifacts/${id}/download`}
-               target="_blank" hidden={!isPrintable}>
-                <Icon icon='share'/>
-            </a>
+                <a href={`rest/api/3/artifacts/${id}/download`}
+                   target="_blank" hidden={!isPrintable}>
+                    <Icon icon='share'/>
+                </a>
             }
             {isDeletable &&
-            <a href="#" onClick={() =>
-                showConfirmation(`Delete artifact ${selectedComponent}:${selectedVersion} ${displayName}?`,
-                    () => deleteArtifact(selectedComponent, selectedMinor, selectedVersion, id))
-            }>
-                <Icon icon='trash' style={{color: "red"}}/>
-            </a>
+                <a href="#" onClick={() =>
+                    showConfirmation(`Delete artifact ${selectedComponent}:${selectedVersion} ${displayName}?`,
+                        () => deleteArtifact(selectedComponent, selectedMinor, selectedVersion, id))
+                }>
+                    <Icon icon='trash' style={{color: "red"}}/>
+                </a>
             }
         </div>
     </div>
 }
 
-function artifactBlock (artifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
+function artifactBlock(artifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
     console.debug('artifactBlock', selectedComponent, selectedVersion, artifacts)
     return artifacts.map(artifact => {
         const {fileName, id, displayName} = artifact

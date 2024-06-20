@@ -19,7 +19,7 @@ export function isPrintableArtifact(artifact) {
     return !!artifact && printableArtifactTypes.includes(artifact.type)
 }
 
-export function isHtml (fileName) {
-  console.debug('isHtml', fileName, htmlRegex.test(fileName))
-  return htmlRegex.test(fileName)
+export function isHtml(fileName) {
+    console.debug('isHtml', fileName, htmlRegex.test(fileName))
+    return htmlRegex.test(fileName)
 }

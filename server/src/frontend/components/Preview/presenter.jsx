@@ -3,7 +3,7 @@ import React from "react";
 import {isHtml} from '../common'
 
 export default function preview(props) {
-    const { selectedDocument, loadingDocumentArtifact } = props
+    const {selectedDocument, loadingDocumentArtifact} = props
     if (loadingDocumentArtifact) {
         return <div className='preview-wrapper'>
             <Spinner
@@ -24,7 +24,7 @@ export default function preview(props) {
     }
 
     if (selectedDocument && selectedDocument.documentText) {
-        const { documentText } = selectedDocument
+        const {documentText} = selectedDocument
         if (isHtml(selectedDocument.displayName)) {
             return <div dangerouslySetInnerHTML={{__html: documentText}}/>
         } else {

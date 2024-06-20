@@ -19,13 +19,13 @@ export default function components(props) {
         <Header/>
         <div className="row">
             {errorMessage &&
-            <Alert
-                confirmButtonText="Hide"
-                icon="error"
-                intent="danger"
-                isOpen={errorMessage}
-                onConfirm={hideError}
-            > {errorMessage} </Alert>
+                <Alert
+                    confirmButtonText="Hide"
+                    icon="error"
+                    intent="danger"
+                    isOpen={errorMessage}
+                    onConfirm={hideError}
+                > {errorMessage} </Alert>
             }
             {confirmation && <Alert
                 icon="trash"
@@ -57,9 +57,9 @@ export default function components(props) {
                 </div>}
                 <div className='artifacts-block'>
                     {versionSelected &&
-                    <div className='artifacts-list-block'>
-                        <ArtifactList showConfirmation={showConfirmation}/>
-                    </div>}
+                        <div className='artifacts-list-block'>
+                            <ArtifactList showConfirmation={showConfirmation}/>
+                        </div>}
                     <div className='preview-block'>
                         <Preview/>
                     </div>

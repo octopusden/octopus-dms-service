@@ -1,8 +1,8 @@
-import { combineReducers } from 'redux'
+import {combineReducers} from 'redux'
 import componentsReducer from './components/duck/reducers'
 
 const rootReducer = combineReducers({
-  components: componentsReducer
+    components: componentsReducer
 })
 
 export default rootReducer

@@ -1,7 +1,8 @@
 .admin-pane-wrapper {
     display: flex;
     align-items: baseline;
+
     & .bp3-control {
-          margin-bottom: 0;
+        margin-bottom: 0;
     }
 }

@@ -2,6 +2,7 @@
     width: 100%;
     padding: 10px;
     display: flex;
+
     & .meta-column: {
         display: flex;
         flex-direction: column;
@@ -11,9 +12,11 @@
 .meta-item {
     display: flex;
     align-items: center;
+
     & > .meta-icon {
         margin-right: 8px;
     }
+
     & > .meta-item-key {
         margin-right: 5px;
     }

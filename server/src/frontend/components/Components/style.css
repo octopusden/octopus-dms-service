@@ -8,8 +8,8 @@
         direction: column;
         height: 100%;
         width: 100%;
-        padding-top: 60px;    
-        padding-bottom: 20px;    
+        padding-top: 60px;
+        padding-bottom: 20px;
 
         & .left-column {
             width: 380px;
@@ -58,7 +58,7 @@
 
                     background-color: #F5F8FA;
                 }
-                
+
                 & .preview-block {
                     padding-top: 10px;
                     padding-left: 10px;

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import {Component} from 'react'
 import header from "./presenter.jsx";
 import {connect} from "react-redux";
 import get from "lodash/get";
