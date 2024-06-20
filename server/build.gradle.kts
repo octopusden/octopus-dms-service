@@ -139,7 +139,7 @@ tasks.getByName<Delete>("clean") {
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    args("--spring.profiles.active=dev")
+    args("--spring.cloud.config.enabled=false", "--spring.profiles.active=dev", "--spring.config.additional-location=dev/")
     sourceResources(sourceSets.main.get())
 }
 
