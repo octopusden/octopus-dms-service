@@ -93,6 +93,7 @@ management:
 
 logging.level:
   ROOT: INFO
+  org.springframework.security: DEBUG
   org.octopusden.octopus.platform.commons.http.client: ERROR
   org.octopusden.cloud.commons.security: TRACE
   org.octopusden.octopus.dms.security: TRACE
