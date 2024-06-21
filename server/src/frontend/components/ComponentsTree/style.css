@@ -1,0 +1,19 @@
+.components_tree_wrapper {
+    width: 100%;
+}
+
+.error-icon-components-tree-wrap {
+    padding-top: 15px;
+}
+
+.load-components-wrapper {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-block {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
