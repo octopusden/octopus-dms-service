@@ -24,7 +24,7 @@ auth-server:
 storage:
   maven-group-prefix: corp.domain.dms
   artifactory:
-    host: http://localhost:8081
+    host: http://localhost:18081
     user: admin
     password: password
     upload-repositories:

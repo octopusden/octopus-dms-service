@@ -57,6 +57,11 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.RECEIVE_COMPONENTS: {
             const {components} = action
+            Object.values(components).forEach(c => {
+                c.minorVersions = {
+                    versions: []
+                }
+            })
             return {
                 ...state,
                 components: components,
@@ -141,7 +146,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                         ...components[componentId],
                         loadingMinorVersions: true,
                         loadingError: false,
-                        minorVersions: []
+                        minorVersions: {}
                     }
                 }
             }

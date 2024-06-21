@@ -37,10 +37,10 @@ const getComponents = () => (dispatch) => {
         .then(handleErrors('Get components'))
         .then((response) => {
             response.json().then((data) => {
-                const componentIdComponents = new Map(data.components.map(c => {
-                    return [c.id, c];
-                }));
-                let components = Object.fromEntries(componentIdComponents)
+                const components = data.components.reduce((map, c) => {
+                    map[c.id] = c
+                    return map
+                }, {});
                 dispatch(actions.receiveComponents(components))
             })
         }).catch((err) => dispatch(actions.showError(err.message)))
@@ -52,9 +52,10 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
         response.json().then((data) => {
             if (response.ok) {
                 let versions = data.reduce((map, e) => {
-                    map[e] = {name: e}
+                    map[e] = {}
                     return map
                 }, {})
+                console.debug("minorVersions", versions)
                 dispatch(actions.receiveComponentMinorVersions(componentId, versions))
                 dispatch(actions.expandComponent(componentId))
             } else {

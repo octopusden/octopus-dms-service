@@ -92,7 +92,7 @@ function renderComponentMinorVersions(versions, currentComponent, props) {
         return {
             level: treeLevel.MINOR,
             id: versionId,
-            label: v.name,
+            label: versionId,
             version: versionId,
             componentId: currentComponent,
             icon: v.expand ? 'folder-open' : 'folder-close',
