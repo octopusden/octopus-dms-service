@@ -120,7 +120,7 @@ const getArtifactsList = (componentId, minorVersion, version) => (dispatch) => {
 
 const getDocumentArtifact = (componentId, version, id, displayName) => (dispatch) => {
     dispatch(actions.requestDocumentArtifact(id))
-    fetch(`rest/api/3/artifacts/${id}/download`).then((response) => {
+    fetch(`rest/api/3/components/${componentId}/versions/${version}/artifacts/${id}/download`).then((response) => {
         response.text().then((data) => {
             dispatch(actions.receiveDocumentArtifact(id, displayName, true, data))
         })
