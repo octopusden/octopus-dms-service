@@ -1,12 +1,12 @@
 import Header from "../Header";
 import {Alert, Spinner} from "@blueprintjs/core";
-import ComponentsTree from "../ComponentsTree";
 import Meta from "../Meta";
 import ArtifactList from "../ArtifactList";
 import Preview from "../Preview";
 import Footer from "../Footer";
 import React from "react";
 import './style.css'
+import ComponentGroupPane from "../ComponentGroupPane";
 
 export default function components(props) {
     const {
@@ -43,9 +43,7 @@ export default function components(props) {
             > {confirmation.message} </Alert>
             }
             <div className="left-column">
-                <div className='components-tree'>
-                    <ComponentsTree/>
-                </div>
+                <ComponentGroupPane/>
             </div>
             <div className='right-column'>
                 {selectedComponent && <div className='meta-block'>

@@ -1,5 +1,10 @@
-.components_tree_wrapper {
-    width: 100%;
+.components-tree {
+    flex-grow: 1;
+    overflow-y: auto;
+
+    & .components-tree-wrapper {
+        width: 100%;
+    }
 }
 
 .error-icon-components-tree-wrap {

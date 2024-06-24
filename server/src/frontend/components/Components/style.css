@@ -23,13 +23,6 @@
             & .control-block {
                 padding: 10px;
             }
-
-            & .components-tree {
-                padding-left: 10px;
-                padding-right: 10px;
-                flex-grow: 1;
-                overflow-y: auto;
-            }
         }
 
         & .right-column {

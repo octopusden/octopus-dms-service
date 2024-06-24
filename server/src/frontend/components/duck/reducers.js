@@ -370,6 +370,14 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
+        case types.HANDLE_COMPONENT_GROUP_TAB_CHANGE: {
+            const {selectedComponentGroupTab} = action
+            return {
+                ...state,
+                selectedComponentGroupTab: selectedComponentGroupTab
+            }
+        }
+
         case types.SHOW_CONFIRMATION: {
             const {message, onConfirm} = action
             return {

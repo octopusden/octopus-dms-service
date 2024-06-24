@@ -20,24 +20,26 @@ function componentsTree(props) {
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        return <div className="components_tree_wrapper">
-            <div className='search-block'>
-                <Search
-                    toggleRc={toggleRc}
-                    showRc={showRc}
-                    requestSearch={requestSearch}
-                    selectVersion={selectVersion}
-                    fetchComponentVersions={fetchComponentVersions}
-                    searchResult={searchResult}
-                    searchQueryValid={searchQueryValid}
-                    searching={searching}/>
+        return <div className="components-tree">
+            <div className="components-tree-wrapper">
+                <div className='search-block'>
+                    <Search
+                        toggleRc={toggleRc}
+                        showRc={showRc}
+                        requestSearch={requestSearch}
+                        selectVersion={selectVersion}
+                        fetchComponentVersions={fetchComponentVersions}
+                        searchResult={searchResult}
+                        searchQueryValid={searchQueryValid}
+                        searching={searching}/>
+                </div>
+                <Tree
+                    contents={nodes}
+                    onNodeClick={handleNodeClick}
+                    onNodeCollapse={handleNodeClick}
+                    onNodeExpand={handleNodeClick}
+                />
             </div>
-            <Tree
-                contents={nodes}
-                onNodeClick={handleNodeClick}
-                onNodeCollapse={handleNodeClick}
-                onNodeExpand={handleNodeClick}
-            />
         </div>
     }
 }

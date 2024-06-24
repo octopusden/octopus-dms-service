@@ -139,6 +139,11 @@ const toggleAdminMode = () => ({
     type: types.TOGGLE_ADMIN_MODE
 })
 
+const handleComponentGroupTabChange = (selectedComponentGroupTab) => ({
+    type: types.HANDLE_COMPONENT_GROUP_TAB_CHANGE,
+    selectedComponentGroupTab: selectedComponentGroupTab
+})
+
 const deleteArtifact = (id) => ({
     type: types.DELETE_ARTIFACT,
     id: id
@@ -198,6 +203,7 @@ export default {
     hideError,
     toggleRc,
     toggleAdminMode,
+    handleComponentGroupTabChange,
     requestSearch,
     receiveSearch,
     changeSearchQueryValid,

@@ -161,6 +161,10 @@ const toggleAdminMode = () => (dispatch) => {
     dispatch(actions.toggleAdminMode())
 }
 
+const handleComponentGroupTabChange = (selectedComponentGroupTab) => (dispatch) => {
+    dispatch(actions.handleComponentGroupTabChange(selectedComponentGroupTab))
+}
+
 const showConfirmation = (message, onConfirm) => (dispatch) => {
     dispatch(actions.showConfirmation(message, onConfirm))
 }
@@ -210,6 +214,7 @@ export default {
     hideError,
     toggleRc,
     toggleAdminMode,
+    handleComponentGroupTabChange,
     requestSearch,
     getComponentMinorVersions,
     expandMinorVersion,
