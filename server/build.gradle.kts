@@ -168,6 +168,7 @@ dependencies {
     implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:2.0.10")
     implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
+    implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["release-management-service-client.version"]}")
     testImplementation(project(":test-common"))
     testImplementation(project(":client"))
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

@@ -81,6 +81,7 @@ class ArtifactControllerV2(
                 )
                 componentVersionEntities.map { cv ->
                     ComponentVersionStatusWithInfoDTO(
+                        component,
                         cv.version,
                         componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS,
                         numericVersionFactory.create(cv.version)

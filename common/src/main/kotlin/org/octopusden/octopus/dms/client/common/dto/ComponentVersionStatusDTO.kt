@@ -10,19 +10,22 @@ import io.swagger.v3.oas.annotations.media.Schema
                 "}"
 )
 open class ComponentVersionStatusDTO(
+        val component: String,
         val version: String,
         val status: BuildStatus
 ) {
         override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (other !is ComponentVersionStatusDTO) return false
+                if (component != other.component) return false
                 if (version != other.version) return false
                 if (status != other.status) return false
                 return true
         }
 
         override fun hashCode(): Int {
-                var result = version.hashCode()
+                var result = component.hashCode()
+                result = 31 * result + version.hashCode()
                 result = 31 * result + status.hashCode()
                 return result
         }

@@ -175,7 +175,7 @@ class ArtifactControllerV1(
         @Parameter(
             description = "Packaging",
             required = false,
-            allowEmptyValue = !false,
+            allowEmptyValue = true,
             example = "txt"
         )
         @RequestParam("packaging", required = false, defaultValue = "") packaging: String,

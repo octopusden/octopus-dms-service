@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
     example = "{\n" +
             "  \"id\": \"ee-client-specific-component\",\n" +
             "  \"name\": \"EE Client Specific Component\",\n" +
+            "  \"solution\": false,\n" +
             "  \"clientCode\": \"CLIENT_CODE\",\n" +
             "  \"parentComponent\": \"ee-component\",\n" +
             "  \"securityGroups\": {\n" +
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class ComponentDTO(
     val id: String,
     val name: String,
+    val solution: Boolean,
     val clientCode: String?,
     val parentComponent: String?,
     val securityGroups: SecurityGroupsDTO

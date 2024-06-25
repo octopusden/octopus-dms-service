@@ -10,6 +10,7 @@ import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsR
 import org.octopusden.octopus.components.registry.core.dto.Component
 import org.octopusden.octopus.components.registry.core.dto.DetailedComponentVersion
 import org.octopusden.octopus.components.registry.core.dto.VersionRequest
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.octopusden.releng.versions.ReversedVersionComparator
 import org.octopusden.releng.versions.VersionNames
@@ -28,11 +29,9 @@ class ComponentsRegistryServiceImpl(
         }
     )
 
-    override fun getComponent(name: String): ComponentDTO = client.getById(name).let {
-        it.toComponentDTO()
-    }
+    override fun getComponent(name: String): ComponentDTO = client.getById(name).toComponentDTO()
 
-    override fun getExplicitExternalComponents() = client.getAllComponents().components
+    override fun getExplicitExternalComponents(filter: ComponentRequestFilter?) = client.getAllComponents(solution = filter?.solution).components
         .filter { it.distribution?.let { d -> d.explicit && d.external } ?: false }
         .map {
             it.toComponentDTO()
@@ -41,6 +40,8 @@ class ComponentsRegistryServiceImpl(
     private fun Component.toComponentDTO() = ComponentDTO(
         id,
         name ?: id,
+        //ToDo Add field to CRS
+        false,
         clientCode,
         parentComponent,
         SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())

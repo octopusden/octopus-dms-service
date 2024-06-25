@@ -1,17 +1,18 @@
 package org.octopusden.octopus.dms.controller
 
-import org.octopusden.octopus.dms.service.ComponentService
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
-import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import javax.servlet.http.HttpServletResponse
+import org.octopusden.octopus.dms.client.common.dto.ArtifactType
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
+import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
+import org.octopusden.octopus.dms.service.ComponentService
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
@@ -34,8 +35,8 @@ class ComponentController(
     @GetMapping
     @PostAuthorize("@permissionEvaluator.hasPermission('ACCESS_META') or " +
             "@permissionEvaluator.filterComponents(returnObject)")
-    fun getComponents() = ComponentsDTO(
-        componentService.getComponents()
+    fun getComponents(filter: ComponentRequestFilter) = ComponentsDTO(
+        componentService.getComponents(filter)
             .sortedWith(compareBy { it.name })
             .toMutableList() //Required for PostAuthorize
     )
@@ -83,6 +84,11 @@ class ComponentController(
         @Parameter(description = "Build version") @PathVariable("version") version: String,
         @RequestParam(defaultValue = "true", required = false) dryRun: Boolean
     ) = componentService.deleteComponentVersion(componentName, version, dryRun)
+
+    @GetMapping("{component-name}/versions/{version}/dependencies")
+    fun getComponentDependencies(@PathVariable("component-name") componentName: String, @PathVariable("version") version: String) = ComponentVersionsStatusesDTO(
+        componentService.getDependencies(componentName, version).sortedWith(compareByDescending { it.versionInfo })
+    )
 
     @Operation(summary = "List of Component Previous Lines Versions")
     @GetMapping("{component-name}/versions/{version}/previous-lines-latest-versions")

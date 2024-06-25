@@ -33,6 +33,7 @@ services:
 
     api-gateway:
         container_name: dms-dev-api-gateway
+        restart: always
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.9
         ports:
             - 8765:8765

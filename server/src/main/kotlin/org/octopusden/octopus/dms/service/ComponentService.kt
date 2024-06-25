@@ -4,12 +4,14 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 
 interface ComponentService {
-    fun getComponents(): List<ComponentDTO>
+    fun getComponents(filter: ComponentRequestFilter? = null): List<ComponentDTO>
+    fun getDependencies(componentName: String, version: String): List<ComponentVersionStatusWithInfoDTO>
     fun deleteComponent(componentName: String, dryRun: Boolean)
     fun getComponentMinorVersions(componentName: String): Set<String>
     fun getComponentVersions(componentName: String, minorVersions: List<String>, includeRc: Boolean): List<ComponentVersionStatusWithInfoDTO>

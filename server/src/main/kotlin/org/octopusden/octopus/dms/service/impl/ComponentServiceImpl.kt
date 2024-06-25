@@ -5,6 +5,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
@@ -24,6 +25,7 @@ import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
+import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -39,11 +41,26 @@ class ComponentServiceImpl(
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val releaseManagementServiceClient: ReleaseManagementServiceClient
 ) : ComponentService {
-    override fun getComponents(): List<ComponentDTO> {
+
+    override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
         log.info("Get components")
-        return componentsRegistryService.getExplicitExternalComponents()
+        return componentsRegistryService.getExplicitExternalComponents(filter)
+    }
+
+    override fun getDependencies(componentName: String, version: String): List<ComponentVersionStatusWithInfoDTO> {
+        log.info("Get dependencies of '$componentName:$version'")
+        return componentVersionRepository.findByComponentNameAndVersion(componentName, version)
+            ?.let { componentVersion ->
+                return releaseManagementServiceClient.getBuild(
+                    componentVersion.component.name,
+                    componentVersion.version
+                ).dependencies.mapNotNull { (component, version, _) ->
+                    componentVersionRepository.findByComponentNameAndVersion(component, version)
+                }.toComponentVersionStatusWithInfoDTO(true)
+            } ?: throw NotFoundException("Version '$version' is not found for component '$componentName'")
     }
 
     @Transactional(readOnly = false)
@@ -86,31 +103,33 @@ class ComponentServiceImpl(
         } else {
             componentVersionRepository.findByComponentNameAndMinorVersions(componentName, minorVersions)
         }
+        return componentVersionEntities.toComponentVersionStatusWithInfoDTO(includeRc)
+    }
+
+    fun Collection<ComponentVersion>.toComponentVersionStatusWithInfoDTO(includeRc: Boolean): List<ComponentVersionStatusWithInfoDTO> {
         val allowedStatuses = if (includeRc) {
             arrayOf(BuildStatus.RELEASE, BuildStatus.RC)
         } else {
             arrayOf(BuildStatus.RELEASE)
         }
         val numericVersionFactory = NumericVersionFactory(componentsRegistryService.getVersionNames())
-        return if (componentVersionEntities.isEmpty()) {
-            emptyList()
-        } else {
+        return firstOrNull()?.component?.name?.let { componentName ->
             val componentBuilds = relengService.getComponentBuilds(
                 componentName,
                 allowedStatuses,
-                componentVersionEntities.map { it.version }.toTypedArray(),
+                this.map { it.version }.toTypedArray(),
                 VersionField.VERSION
             )
-            componentVersionEntities.map { cv ->
+            map { cv ->
+                val component = cv.component.name
                 ComponentVersionStatusWithInfoDTO(
+                    component,
                     cv.version,
                     componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS,
                     numericVersionFactory.create(cv.version)
                 )
-            }.filter {
-                allowedStatuses.contains(it.status)
             }
-        }
+        } ?: emptyList()
     }
 
     @Transactional(readOnly = false)
