@@ -13,6 +13,7 @@ const INITIAL_STATE = {
         selectedComponent: null,
         selectedMinor: null,
         selectedVersion: null,
+        selectedDependency: null,
         selectedDocument: {},
         artifactsList: []
     },
@@ -64,7 +65,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
-        case types.REQUEST_COMPONENT_VERSIONS: {
+        case types.REQUEST_VERSIONS: {
             const {componentId, minorVersion} = action
             const {components} = state
             return {
@@ -78,7 +79,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                             [minorVersion]: {
                                 ...components[componentId].minorVersions[minorVersion],
                                 loadingVersions: true,
-                                versions: []
+                                versions: {}
                             }
                         }
                     }
@@ -86,7 +87,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
-        case types.RECEIVE_COMPONENT_VERSIONS: {
+        case types.RECEIVE_VERSIONS: {
             const {componentId, minorVersion, versions} = action
             const {components} = state
             return {
@@ -108,7 +109,109 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
-        case types.RECEIVE_COMPONENT_VERSIONS_ERROR: {
+        case types.REQUEST_DEPENDENCIES: {
+            const {componentId, minorVersion, version} = action
+            console.log("action", action)
+            const {components} = state
+            console.log("components", components)
+            return {
+                ...state,
+                components: {
+                    ...components,
+                    [componentId]: {
+                        ...components[componentId],
+                        minorVersions: {
+                            ...components[componentId].minorVersions,
+                            [minorVersion]: {
+                                ...components[componentId].minorVersions[minorVersion],
+                                versions: {
+                                    ...components[componentId].minorVersions[minorVersion].versions,
+                                    [version]: {
+                                        ...components[componentId].minorVersions[minorVersion].versions[version],
+                                        loadingDependencies: true,
+                                        dependencies: []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        case types.RECEIVE_DEPENDENCIES: {
+            const {componentId, minorVersion, version, dependencies} = action
+            const {components} = state
+            return {
+                ...state,
+                components: {
+                    ...components,
+                    [componentId]: {
+                        ...components[componentId],
+                        minorVersions: {
+                            ...components[componentId].minorVersions,
+                            [minorVersion]: {
+                                ...components[componentId].minorVersions[minorVersion],
+                                versions: {
+                                    ...components[componentId].minorVersions[minorVersion].versions,
+                                    [version]: {
+                                        ...components[componentId].minorVersions[minorVersion].versions[version],
+                                        loadingDependencies: false,
+                                        dependencies: dependencies
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        case types.EXPAND_VERSION: {
+            const {componentId, minorVersion, version} = action
+            const {components} = state
+            return {
+                ...state,
+                components: {
+                    ...components,
+                    [componentId]: {
+                        ...components[componentId],
+                        minorVersions: {
+                            ...components[componentId].minorVersions,
+                            [minorVersion]: {
+                                ...components[componentId].minorVersions[minorVersion],
+                                versions: {
+                                    ...components[componentId].minorVersions[minorVersion].versions,
+                                    [version]: {
+                                        ...components[componentId].minorVersions[minorVersion].versions[version],
+                                        expand: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        case types.SELECT_DEPENDENCY: {
+            const {componentId, minorVersion, version, dependency} = action
+            return {
+                ...state,
+                loadingArtifactsList: false,
+                currentArtifacts: {
+                    loadingDocumentArtifact: false,
+                    selectedComponent: componentId,
+                    selectedMinor: minorVersion,
+                    selectedVersion: version,
+                    selectedDependency: dependency,
+                    selectedDocument: {},
+                    artifactsList: []
+                }
+            }
+        }
+
+        case types.RECEIVE_VERSIONS_ERROR: {
             const {componentId, errorMessage, minorVersion} = action
             const {components} = state
             return {

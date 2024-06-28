@@ -31,9 +31,9 @@ const getLoggedUser = () => (dispatch) => {
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
-const getComponents = () => (dispatch) => {
+const getComponents = (solution) => (dispatch) => {
     dispatch(actions.requestComponents())
-    fetch('rest/api/3/components')
+    fetch(`rest/api/3/components?solution=${solution}`)
         .then(handleErrors('Get components'))
         .then((response) => {
             response.json().then((data) => {
@@ -72,7 +72,11 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let versions = data.versions
+                let versions = data.versions.reduce((map, e) => {
+                    map[e.version] = e
+                    return map
+                }, {})
+                console.debug("versions", versions)
                 dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
                 dispatch(actions.expandMinorVersion(componentId, minorVersion))
             } else {
@@ -84,8 +88,36 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
     })
 }
 
+const getDependencies = (componentId, minorVersion, version) => (dispatch) => {
+    dispatch(actions.requestDependencies(componentId, minorVersion, version))
+    fetch(`rest/api/3/components/${componentId}/versions/${version}/dependencies`).then((response) => {
+        response.json().then((data) => {
+            if (response.ok) {
+                dispatch(actions.receiveDependencies(componentId, minorVersion, version, data))
+                dispatch(actions.expandVersion(componentId, minorVersion, version))
+            } else {
+                let {message} = data
+                dispatch(actions.receiveDependenciesError(componentId, minorVersion, version, message))
+                dispatch(actions.showError(message))
+            }
+        })
+    })
+}
+
 const expandComponent = (componentId) => (dispatch) => {
     dispatch(actions.expandComponent(componentId))
+}
+
+const expandVersion = (componentId, minorVersion, version) => (dispatch) => {
+    dispatch(actions.expandVersion(componentId, minorVersion, version))
+}
+
+const closeVersion = (componentId, minorVersion, version) => (dispatch) => {
+    dispatch(actions.closeVersion(componentId, minorVersion, version))
+}
+
+const selectDependency = (componentId, minorVersion, version, dependency) => (dispatch) => {
+    dispatch(actions.selectDependency(componentId, minorVersion, version, dependency))
 }
 
 const closeComponent = (componentId) => (dispatch) => {
@@ -205,7 +237,12 @@ export default {
     getLoggedUser,
     getComponents,
     getComponentVersions,
+    getDependencies,
     expandComponent,
+    expandMinorVersion,
+    expandVersion,
+    closeVersion,
+    selectDependency,
     closeComponent,
     getArtifactsList,
     getDocumentArtifact,
@@ -217,7 +254,6 @@ export default {
     handleComponentGroupTabChange,
     requestSearch,
     getComponentMinorVersions,
-    expandMinorVersion,
     closeMinorVersion,
     selectVersion,
     deleteArtifact,

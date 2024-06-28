@@ -3,7 +3,7 @@
     padding: 10px;
     display: flex;
 
-    & .meta-column: {
+    & .meta-column {
         display: flex;
         flex-direction: column;
     }

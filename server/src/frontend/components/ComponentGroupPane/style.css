@@ -1,4 +1,8 @@
 .component-group-pane-wrapper {
     padding-left: 10px;
     padding-right: 10px;
+
+    & .bp3-tab-panel {
+        display: flex;
+    }
 }

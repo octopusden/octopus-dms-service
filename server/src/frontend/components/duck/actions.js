@@ -22,19 +22,19 @@ const requestComponents = () => ({
     type: types.REQUEST_COMPONENTS
 })
 
-const requestComponentVersions = (componentId, minorVersion) => ({
-    type: types.REQUEST_COMPONENT_VERSIONS,
-    componentId: componentId,
-    minorVersion: minorVersion
-})
-
 const receiveComponents = (components) => ({
     type: types.RECEIVE_COMPONENTS,
     components: components
 })
 
+const requestComponentVersions = (componentId, minorVersion) => ({
+    type: types.REQUEST_VERSIONS,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
 const receiveComponentVersionsError = (componentId, minorVersion, errorMessage) => ({
-    type: types.RECEIVE_COMPONENT_VERSIONS_ERROR,
+    type: types.RECEIVE_VERSIONS_ERROR,
     componentId: componentId,
     minorVersion: minorVersion,
     errorMessage: errorMessage,
@@ -42,10 +42,34 @@ const receiveComponentVersionsError = (componentId, minorVersion, errorMessage) 
 })
 
 const receiveComponentVersions = (componentId, minorVersion, versions) => ({
-    type: types.RECEIVE_COMPONENT_VERSIONS,
+    type: types.RECEIVE_VERSIONS,
     componentId: componentId,
     minorVersion: minorVersion,
     versions: versions
+})
+
+const requestDependencies = (componentId, minorVersion, version) => ({
+    type: types.REQUEST_DEPENDENCIES,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version,
+})
+
+const receiveDependencies = (componentId, minorVersion, version, dependencies) => ({
+    type: types.RECEIVE_DEPENDENCIES,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version,
+    dependencies: dependencies
+})
+
+const receiveDependenciesError = (componentId, minorVersion, version, errorMessage) => ({
+    type: types.RECEIVE_DEPENDENCIES_ERROR,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    errorMessage: errorMessage,
+    version: version,
+    loadingError: true
 })
 
 const expandComponent = (componentId) => ({
@@ -68,6 +92,28 @@ const closeMinorVersion = (componentId, minorVersion) => ({
     type: types.CLOSE_MINOR_VERSION,
     componentId: componentId,
     minorVersion: minorVersion
+})
+
+const expandVersion = (componentId, minorVersion, version) => ({
+    type: types.EXPAND_VERSION,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
+const closeVersion = (componentId, minorVersion, version) => ({
+    type: types.CLOSE_VERSION,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
+const selectDependency = (componentId, minorVersion, version, dependency) => ({
+    type: types.SELECT_DEPENDENCY,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version,
+    dependency: dependency
 })
 
 const selectVersion = (componentId, minorVersion, version) => ({
@@ -189,6 +235,11 @@ export default {
     receiveComponents,
     receiveComponentVersionsError,
     receiveComponentVersions,
+    closeVersion,
+    requestDependencies,
+    receiveDependencies,
+    receiveDependenciesError,
+    selectDependency,
     expandComponent,
     closeComponent,
     requestArtifactsList,
@@ -211,6 +262,7 @@ export default {
     receiveComponentMinorVersions,
     receiveComponentMinorVersionsError,
     expandMinorVersion,
+    expandVersion,
     closeMinorVersion,
     selectVersion
 }
