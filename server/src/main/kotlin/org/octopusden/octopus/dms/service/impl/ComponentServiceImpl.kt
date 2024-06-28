@@ -6,6 +6,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
@@ -26,6 +27,7 @@ import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
 import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
+import org.octopusden.releng.versions.IVersionInfo
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -50,16 +52,19 @@ class ComponentServiceImpl(
         return componentsRegistryService.getExplicitExternalComponents(filter)
     }
 
-    override fun getDependencies(componentName: String, version: String): List<ComponentVersionStatusWithInfoDTO> {
+    override fun getDependencies(componentName: String, version: String): List<DependencyDTO> {
         log.info("Get dependencies of '$componentName:$version'")
         return componentVersionRepository.findByComponentNameAndVersion(componentName, version)
             ?.let { componentVersion ->
+                val components = componentsRegistryService.getExplicitExternalComponents(null).associateBy { c -> c.id }
                 return releaseManagementServiceClient.getBuild(
                     componentVersion.component.name,
                     componentVersion.version
                 ).dependencies.mapNotNull { (component, version, _) ->
                     componentVersionRepository.findByComponentNameAndVersion(component, version)
-                }.toComponentVersionStatusWithInfoDTO(true)
+                }.convert(true) { cv, _, buildStatus ->
+                    DependencyDTO(components[cv.component.name]!!, cv.version, buildStatus)
+                }
             } ?: throw NotFoundException("Version '$version' is not found for component '$componentName'")
     }
 
@@ -103,10 +108,20 @@ class ComponentServiceImpl(
         } else {
             componentVersionRepository.findByComponentNameAndMinorVersions(componentName, minorVersions)
         }
-        return componentVersionEntities.toComponentVersionStatusWithInfoDTO(includeRc)
+        return componentVersionEntities.convert(includeRc) { cv, numericVersionFactory, buildStatus ->
+            ComponentVersionStatusWithInfoDTO(
+                cv.component.name,
+                cv.version,
+                buildStatus,
+                numericVersionFactory
+            )
+        }
     }
 
-    fun Collection<ComponentVersion>.toComponentVersionStatusWithInfoDTO(includeRc: Boolean): List<ComponentVersionStatusWithInfoDTO> {
+    fun <T> Collection<ComponentVersion>.convert(
+        includeRc: Boolean,
+        mapFunction: (ComponentVersion, IVersionInfo, BuildStatus) -> T
+    ): List<T> {
         val allowedStatuses = if (includeRc) {
             arrayOf(BuildStatus.RELEASE, BuildStatus.RC)
         } else {
@@ -121,13 +136,8 @@ class ComponentServiceImpl(
                 VersionField.VERSION
             )
             map { cv ->
-                val component = cv.component.name
-                ComponentVersionStatusWithInfoDTO(
-                    component,
-                    cv.version,
-                    componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS,
-                    numericVersionFactory.create(cv.version)
-                )
+                val status = componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS
+                mapFunction(cv, numericVersionFactory.create(cv.version), status)
             }
         } ?: emptyList()
     }
@@ -333,7 +343,7 @@ class ComponentServiceImpl(
                         throw VersionFormatIsNotValidException("Version '$version' of component '$componentName' does not fit RELEASE or BUILD format")
                     }
                 }
-        )
+                )
     }
 
     companion object {

@@ -86,9 +86,8 @@ class ComponentController(
     ) = componentService.deleteComponentVersion(componentName, version, dryRun)
 
     @GetMapping("{component-name}/versions/{version}/dependencies")
-    fun getComponentDependencies(@PathVariable("component-name") componentName: String, @PathVariable("version") version: String) = ComponentVersionsStatusesDTO(
-        componentService.getDependencies(componentName, version).sortedWith(compareByDescending { it.versionInfo })
-    )
+    fun getComponentDependencies(@PathVariable("component-name") componentName: String, @PathVariable("version") version: String) =
+        componentService.getDependencies(componentName, version)
 
     @Operation(summary = "List of Component Previous Lines Versions")
     @GetMapping("{component-name}/versions/{version}/previous-lines-latest-versions")
