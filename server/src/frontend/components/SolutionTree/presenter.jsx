@@ -10,10 +10,7 @@ const treeLevel = {
 }
 
 function solutionTree(props) {
-    const {
-        toggleRc, showRc, requestSearch, selectVersion, fetchComponentVersions, searchResult, searchQueryValid,
-        searching, loadingComponents, handleNodeClick
-    } = props
+    const {loadingComponents, handleNodeClick} = props
 
     const nodes = solutionsToNodes(props)
 
@@ -38,43 +35,37 @@ function solutionTree(props) {
 function solutionsToNodes(props) {
     const {components} = props
 
-    return Object.entries(components).map(entry => {
-        const [key, cur] = entry
+    return Object.values(components).map(solution => {
         let childNodes = []
-        let component = components[key]
-        if (component.minorVersions) {
-            let versions = component.minorVersions
-            childNodes = renderMinors(versions, key, props)
+        let componentId = solution.id;
+        let minorVersions = solution.minorVersions;
+        if (minorVersions) {
+            childNodes = renderMinors(componentId, minorVersions, props)
         }
 
-        const isLoading = component && component.loadingMinorVersions
-        const isError = component && component.loadingError
-        const errorMessage = component.loadingErrorMessage
-
+        const isLoading = solution && solution.loadingMinorVersions
+        const isError = solution && solution.loadingError
+        const errorMessage = solution.loadingErrorMessage
         return {
-            id: key,
+            id: componentId,
             level: treeLevel.ROOT,
-            componentId: key,
-            isExpanded: cur.expand,
-            label: cur.name,
-            icon: cur.expand ? 'folder-open' : 'folder-close',
+            componentId: componentId,
+            isExpanded: solution.expand,
+            label: solution.name,
+            icon: solution.expand ? 'folder-open' : 'folder-close',
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
         }
     })
 }
 
-function renderMinors(versions, currentComponent, props) {
-    const {components, showRc, currentArtifacts} = props
-
-    return Object.entries(versions).map(entry => {
-        const [versionId, v] = entry
-
+function renderMinors(solutionId, minorVersions, props) {
+    return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
-        let minorVersion = components[currentComponent].minorVersions[versionId]
+        let minorVersionId = minorVersion.id;
         if (minorVersion.versions) {
             let versions = minorVersion.versions
-            childNodes = renderVersions(versions, currentComponent, versionId, props)
+            childNodes = renderVersions(solutionId, minorVersionId, versions, props)
         }
 
         const isLoading = minorVersion && minorVersion.loadingVersions
@@ -83,72 +74,72 @@ function renderMinors(versions, currentComponent, props) {
 
         return {
             level: treeLevel.MINOR,
-            id: versionId,
-            label: versionId,
-            version: versionId,
-            componentId: currentComponent,
-            icon: v.expand ? 'folder-open' : 'folder-close',
-            isExpanded: v.expand,
+            id: minorVersionId,
+            label: minorVersionId,
+            version: minorVersionId,
+            componentId: solutionId,
+            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
         }
     })
 }
 
-function renderVersions(versions, currentComponent, currentMinor, props) {
-    const {components, showRc} = props
+function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
+    const {showRc} = props
+    return Object.values(solutionVersions)
+        .filter(solutionVersion => {
+            return showRc || solutionVersion.status !== 'RC'
+        })
+        .map(solutionVersion => {
+            let childNodes = []
+            if (solutionVersion.dependencies) {
+                let dependencies = solutionVersion.dependencies
+                childNodes = renderDependencies(solutionId, solutionMinor, solutionVersion.version, dependencies, props)
+            }
 
-    return Object.entries(versions).filter(entry => {
-        const [versionId, v] = entry
-        return showRc || v.status !== 'RC'
-    }).map(entry => {
-        const [versionId, v] = entry
+            const isLoading = solutionVersion.loadingVersions
+            const isError = solutionVersion.loadingError
+            const errorMessage = solutionVersion.errorMessage
 
-        let childNodes = []
-        let version = components[currentComponent].minorVersions[currentMinor].versions[versionId]
-        if (version.dependencies) {
-            let dependencies = version.dependencies
-            childNodes = renderDependencies(dependencies, currentComponent, currentMinor, versionId, props)
-        }
-
-        // const isLoading = version && version.loadingVersions
-        // const isError = version && version.loadingError
-        // const errorMessage = version && version.errorMessage
-
-        const displayName = v.version + (v.status === 'RELEASE' ? '' : `-${v.status}`)
-        return {
-            level: treeLevel.VERSION,
-            id: versionId,
-            label: displayName,
-            version: v.version,
-            minorVersion: currentMinor,
-            componentId: currentComponent,
-            icon: 'box',
-            isExpanded: v.expand,
-            childNodes: childNodes,
-            // secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
-        }
-    })
+            const displayName = solutionVersion.version + (solutionVersion.status === 'RELEASE' ? '' : `-${solutionVersion.status}`)
+            return {
+                level: treeLevel.VERSION,
+                id: solutionVersion.id,
+                label: displayName,
+                solutionId: solutionId,
+                solutionMinor: solutionMinor,
+                solutionVersion: solutionVersion.version,
+                icon: 'box',
+                isExpanded: solutionVersion.expand,
+                childNodes: childNodes,
+                secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            }
+        })
 }
 
-function renderDependencies(dependencies, currentComponent, currentMinor, currentVersion, props) {
+function renderDependencies(solutionId, solutionMinor, solutionVersion, dependencies, props) {
     const {currentArtifacts} = props
-    const {selectedComponent, selectedVersion, selectedDependency } = currentArtifacts
-    console.log("selectedComponent currentComponent", selectedComponent, currentComponent)
-    console.log("selectedVersion currentVersion", selectedVersion, currentVersion)
-
-
-    return dependencies.map(d => {
-        let displayName = `${d.component.name}:${d.version}`;
-        console.log("selectedDependency displayName", selectedDependency, displayName)
+    const {selectedSolutionId, selectedSolutionVersion, selectedComponent, selectedVersion} = currentArtifacts
+    return Object.values(dependencies).map(dependency => {
+        let dependencyId = dependency.component.id;
+        let dependencyName = dependency.component.name;
+        let version = dependency.version;
+        let displayName = `${dependencyName}:${version}`;
         return {
             id: displayName,
             label: displayName,
-            version: currentVersion,
-            minorVersion: currentMinor,
-            componentId: currentComponent,
+            solutionId: solutionId,
+            solutionVersion: solutionVersion,
+            solutionMinor: solutionMinor,
+            componentId: dependencyId,
+            version: version,
             icon: 'box',
-            isSelected: selectedComponent === currentComponent && selectedVersion === currentVersion && selectedDependency === displayName
+            isSelected: selectedComponent === dependencyId
+                && selectedVersion === version
+                && selectedSolutionId === solutionId
+                && selectedSolutionVersion === solutionVersion
         }
     })
 }

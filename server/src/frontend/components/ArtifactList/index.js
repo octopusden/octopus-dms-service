@@ -29,8 +29,8 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const fetchArtifactList = (componentId, minorVersion, version) => {
-        dispatch(componentsOperations.getArtifactsList(componentId, minorVersion, version))
+    const fetchArtifactList = (componentId, version) => {
+        dispatch(componentsOperations.getArtifactsList(componentId, version))
     }
     const fetchDocumentArtifact = (componentId, version, id, isPrintable, displayName) => {
         console.debug('fetchDocumentArtifact', componentId, version, id, isPrintable, displayName)
@@ -62,15 +62,24 @@ const propsToUrl = (props) => {
     console.debug('currentUrlProps', currentUrlProps, 'selectedDocument', props.selectedDocument)
     return {
         ...currentUrlProps,
-        id: id
+        artifactId: id
     }
 }
 
 class ArtifactsList extends Component {
 
+    constructor(props, context) {
+        super(props, context);
+        const urlProps = queryString.parse(history.location.search)
+        const {fetchDocumentArtifact, selectedComponent, selectedVersion} = props
+        const {artifactId} = urlProps
+        if (artifactId) {
+            fetchDocumentArtifact(selectedComponent, selectedVersion, +artifactId, false, '')
+        }
+    }
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         const urlState = propsToUrl(this.props)
-        console.debug('urlState', urlState)
         history.push({search: queryString.stringify(urlState)})
 
         const {
@@ -96,21 +105,22 @@ class ArtifactsList extends Component {
                 return artifact.id === selectedDocument.id
             })
             let isPrintable = isPrintableArtifact(artifact)
-            console.trace('selectedDocument:', selectedDocument, ', artifacts:', artifactsList, ', artifact:', artifact)
             fetchDocumentArtifact(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
         }
     }
 
     componentDidMount() {
-        const urlProps = queryString.parse(history.location.search)
-        console.trace('urlProps', urlProps)
-        const {component, minor, version, id} = urlProps
-        const {fetchArtifactList, fetchDocumentArtifact} = this.props
-
-        if (component && minor && version) {
-            fetchArtifactList(component, minor, version)
-            if (id) {
-                fetchDocumentArtifact(component, version, +id, false, '')
+        const {
+            selectedComponent,
+            selectedVersion,
+            selectedDocument,
+            fetchArtifactList,
+            fetchDocumentArtifact
+        } = this.props
+        if (selectedComponent && selectedVersion) {
+            fetchArtifactList(selectedComponent, selectedVersion)
+            if (selectedDocument.id) {
+                fetchDocumentArtifact(selectedComponent, selectedVersion, +selectedDocument.id, false, '')
             }
         }
     }

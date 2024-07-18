@@ -52,10 +52,9 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
         response.json().then((data) => {
             if (response.ok) {
                 let versions = data.reduce((map, e) => {
-                    map[e] = {}
+                    map[e] = {id: e}
                     return map
                 }, {})
-                console.debug("minorVersions", versions)
                 dispatch(actions.receiveComponentMinorVersions(componentId, versions))
                 dispatch(actions.expandComponent(componentId))
             } else {
@@ -76,7 +75,6 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
                     map[e.version] = e
                     return map
                 }, {})
-                console.debug("versions", versions)
                 dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
                 dispatch(actions.expandMinorVersion(componentId, minorVersion))
             } else {
@@ -93,7 +91,11 @@ const getDependencies = (componentId, minorVersion, version) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/versions/${version}/dependencies`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                dispatch(actions.receiveDependencies(componentId, minorVersion, version, data))
+                let dependencies = data.reduce((map, d) => {
+                    map[`${d.component.id}:${d.version}`] = d
+                    return map
+                }, {})
+                dispatch(actions.receiveDependencies(componentId, minorVersion, version, dependencies))
                 dispatch(actions.expandVersion(componentId, minorVersion, version))
             } else {
                 let {message} = data
@@ -116,8 +118,8 @@ const closeVersion = (componentId, minorVersion, version) => (dispatch) => {
     dispatch(actions.closeVersion(componentId, minorVersion, version))
 }
 
-const selectDependency = (componentId, minorVersion, version, dependency) => (dispatch) => {
-    dispatch(actions.selectDependency(componentId, minorVersion, version, dependency))
+const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => (dispatch) => {
+    dispatch(actions.selectDependency(solutionId, solutionMinor, solutionVersion, componentId, version))
 }
 
 const closeComponent = (componentId) => (dispatch) => {
@@ -136,13 +138,13 @@ const selectVersion = (componentId, minorVersion, version) => (dispatch) => {
     dispatch(actions.selectVersion(componentId, minorVersion, version))
 }
 
-const getArtifactsList = (componentId, minorVersion, version) => (dispatch) => {
-    dispatch(actions.requestArtifactsList(componentId, minorVersion, version))
+const getArtifactsList = (componentId, version) => (dispatch) => {
+    dispatch(actions.requestArtifactsList(componentId, version))
     fetch(`rest/api/3/components/${componentId}/versions/${version}/artifacts`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
                 let artifacts = data.artifacts
-                dispatch(actions.receiveArtifactsList(componentId, minorVersion, version, artifacts))
+                dispatch(actions.receiveArtifactsList(artifacts))
             } else {
                 dispatch(actions.showError(data.message))
             }

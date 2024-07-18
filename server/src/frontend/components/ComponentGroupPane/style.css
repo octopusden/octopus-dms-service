@@ -1,8 +1,15 @@
 .component-group-pane-wrapper {
     padding-left: 10px;
     padding-right: 10px;
+    display: flex;
+    overflow-y: hidden;
 
-    & .bp3-tab-panel {
+    & .bp3-tabs {
         display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+
+        & .bp3-tab-panel {
+        }
     }
 }

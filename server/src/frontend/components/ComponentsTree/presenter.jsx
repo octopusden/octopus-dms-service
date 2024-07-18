@@ -47,14 +47,11 @@ function componentsTree(props) {
 
 function componentsToNodes(props) {
     const {components} = props
-
-    return Object.entries(components).map(entry => {
-        const [key, cur] = entry
+    return Object.values(components).map(component => {
         let childNodes = []
-        let component = components[key]
+        let componentId = component.id;
         if (component.minorVersions) {
-            let versions = component.minorVersions
-            childNodes = renderComponentMinorVersions(versions, key, props)
+            childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
         }
 
         const isLoading = component && component.loadingMinorVersions
@@ -62,30 +59,25 @@ function componentsToNodes(props) {
         const errorMessage = component.loadingErrorMessage
 
         return {
-            id: key,
+            id: componentId,
             level: treeLevel.ROOT,
-            componentId: key,
-            isExpanded: cur.expand,
-            label: cur.name,
-            icon: cur.expand ? 'folder-open' : 'folder-close',
+            componentId: componentId,
+            isExpanded: component.expand,
+            label: component.name,
+            icon: component.expand ? 'folder-open' : 'folder-close',
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
         }
     })
 }
 
-function renderComponentMinorVersions(versions, currentComponent, props) {
-    const {components, showRc, currentArtifacts} = props
-    const {selectedComponent, selectedVersion} = currentArtifacts
-
-    return Object.entries(versions).map(entry => {
-        const [versionId, v] = entry
-
+function renderComponentMinorVersions(componentId, minorVersions, props) {
+    return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
-        let minorVersion = components[currentComponent].minorVersions[versionId]
+        const minorVersionId = minorVersion.id
         if (minorVersion.versions) {
             let versions = minorVersion.versions
-            childNodes = renderComponentVersions(versions, currentComponent, versionId, showRc, selectedComponent, selectedVersion)
+            childNodes = renderComponentVersions(componentId, minorVersionId, versions, props)
         }
 
         const isLoading = minorVersion && minorVersion.loadingVersions
@@ -94,31 +86,34 @@ function renderComponentMinorVersions(versions, currentComponent, props) {
 
         return {
             level: treeLevel.MINOR,
-            id: versionId,
-            label: versionId,
-            version: versionId,
-            componentId: currentComponent,
-            icon: v.expand ? 'folder-open' : 'folder-close',
-            isExpanded: v.expand,
+            id: minorVersionId,
+            label: minorVersionId,
+            version: minorVersionId,
+            componentId: componentId,
+            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
         }
     })
 }
 
-function renderComponentVersions(versions, currentComponent, currentMinorVersion, showRc, selectedComponent, selectedVersion) {
+function renderComponentVersions(componentId, minorVersion, versions, props) {
+    const {showRc, currentArtifacts} = props
+    const {selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(versions).filter(version => {
         return showRc || version.status !== 'RC'
-    }).map(v => {
-        const displayName = v.version + (v.status === 'RELEASE' ? '' : `-${v.status}`)
+    }).map(version => {
+        let versionId = version.version;
+        const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
         return {
-            id: v.version,
+            id: versionId,
             label: displayName,
-            version: v.version,
-            minorVersion: currentMinorVersion,
-            componentId: currentComponent,
+            version: versionId,
+            minorVersion: minorVersion.id,
+            componentId: componentId,
             icon: 'box',
-            isSelected: selectedComponent === currentComponent && selectedVersion === v.version
+            isSelected: selectedComponent === componentId && selectedVersion === versionId
         }
     })
 }

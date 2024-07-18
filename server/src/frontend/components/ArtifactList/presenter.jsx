@@ -69,7 +69,6 @@ function ArtifactLabel(props) {
 }
 
 function artifactBlock(artifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
-    console.debug('artifactBlock', selectedComponent, selectedVersion, artifacts)
     return artifacts.map(artifact => {
         const {fileName, id, displayName} = artifact
         return <ArtifactLabel

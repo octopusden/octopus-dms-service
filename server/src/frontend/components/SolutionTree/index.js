@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch) => {
     const toggleRc = () => {
         dispatch(componentsOperations.toggleRc())
     }
-    const fetchComponents = () => {
+    const fetchSolutions = () => {
         dispatch(componentsOperations.getComponents(true))
     }
     const expandComponent = (componentId) => {
@@ -66,13 +66,13 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.getDependencies(componentId, minorVersion, version))
     }
 
-    const selectDependency = (componentId, minorVersion, version, dependency) => {
-        dispatch(componentsOperations.selectDependency(componentId, minorVersion, version, dependency))
+    const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => {
+        dispatch(componentsOperations.selectDependency(solutionId, solutionMinor, solutionVersion, componentId, version))
     }
 
     return {
         toggleRc,
-        fetchComponents,
+        fetchSolutions,
         expandComponent,
         closeComponent,
         fetchComponentMinorVersions,
@@ -96,18 +96,24 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
-    const {selectedComponent, selectedVersion, selectedMinor} = props.currentArtifacts
-
+    const {
+        selectedSolutionId,
+        selectedSolutionVersion,
+        selectedSolutionMinor,
+        selectedComponent,
+        selectedVersion
+    } = props.currentArtifacts
     return {
         ...currentUrlProps,
-        component: selectedComponent == null ? undefined : selectedComponent,
-        version: selectedVersion == null ? undefined : selectedVersion,
-        minor: selectedMinor == null ? undefined : selectedMinor,
+        solutionId: selectedSolutionId == null ? undefined : selectedSolutionId,
+        solutionVersion: selectedSolutionVersion == null ? undefined : selectedSolutionVersion,
+        solutionMinor: selectedSolutionMinor == null ? undefined : selectedSolutionMinor,
+        dependencyId: selectedComponent == null ? undefined : selectedComponent,
+        dependencyVersion: selectedVersion == null ? undefined : selectedVersion
     }
 }
 
-class ComponentsTree extends Component {
-
+class SolutionsTree extends Component {
     componentDidUpdate(prev) {
         const urlState = propsToUrl(this.props)
         history.push({search: queryString.stringify(urlState)})
@@ -115,19 +121,24 @@ class ComponentsTree extends Component {
 
     componentDidMount() {
         const urlProps = queryString.parse(history.location.search)
-        console.debug('urlProps', urlProps)
-        const {component, minor, version, dependency} = urlProps
-        const {fetchComponents, fetchComponentMinorVersions, fetchComponentVersions, fetchDependencies, selectDependency} = this.props
+        const {solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion} = urlProps
+        const {
+            fetchSolutions,
+            fetchComponentMinorVersions,
+            fetchComponentVersions,
+            fetchDependencies,
+            selectDependency
+        } = this.props
 
-        fetchComponents()
-        if (component) {
-            fetchComponentMinorVersions(component)
-            if (minor) {
-                fetchComponentVersions(component, minor)
-                if (version) {
-                    fetchDependencies(component, minor, version)
-                    if (dependency) {
-                        selectDependency(component, minor, version, dependency)
+        fetchSolutions()
+        if (solutionId) {
+            fetchComponentMinorVersions(solutionId)
+            if (solutionMinor) {
+                fetchComponentVersions(solutionId, solutionMinor)
+                if (solutionVersion) {
+                    fetchDependencies(solutionId, solutionMinor, solutionVersion)
+                    if (dependencyId && dependencyVersion) {
+                        selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
                     }
                 }
             }
@@ -140,7 +151,6 @@ class ComponentsTree extends Component {
 
     handleNodeClick = (nodeData, _nodePath, e) => {
         const {level} = nodeData
-
         switch (level) {
             case treeLevel.ROOT:
                 this.handleClickOnRoot(nodeData)
@@ -190,16 +200,16 @@ class ComponentsTree extends Component {
 
     handleVersionSelect = (nodeData) => {
         const {components, fetchDependencies, expandVersion, closeVersion} = this.props
-        const {componentId, minorVersion, version, isExpanded} = nodeData
+        const {solutionId, solutionMinor, solutionVersion, isExpanded} = nodeData
 
         if (isExpanded) {
-            closeVersion(componentId, minorVersion, version)
+            closeVersion(solutionId, solutionMinor, solutionVersion)
             return
         }
-        if (!components[componentId].minorVersions[minorVersion].versions[version].dependencies || components[componentId].minorVersions[minorVersion].versions.loadingError) {
-            fetchDependencies(componentId, minorVersion, version)
+        if (!components[solutionId].minorVersions[solutionMinor].versions[solutionVersion].dependencies || components[solutionId].minorVersions[solutionMinor].versions.loadingError) {
+            fetchDependencies(solutionId, solutionMinor, solutionVersion)
         } else {
-            expandVersion(componentId, minorVersion, version)
+            expandVersion(solutionId, solutionMinor, solutionVersion)
         }
     }
 
@@ -207,13 +217,11 @@ class ComponentsTree extends Component {
         const {
             selectDependency
         } = this.props
-
-        const {componentId, minorVersion, version, dependency, isSelected} = nodeData
+        const {solutionId, solutionMinor, solutionVersion, componentId, version, isSelected} = nodeData
         if (!isSelected) {
-            selectDependency(componentId, minorVersion, version, dependency)
+            selectDependency(solutionId, solutionMinor, solutionVersion, componentId, version)
         }
     }
-
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ComponentsTree)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SolutionsTree)

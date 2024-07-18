@@ -108,12 +108,13 @@ const closeVersion = (componentId, minorVersion, version) => ({
     version: version
 })
 
-const selectDependency = (componentId, minorVersion, version, dependency) => ({
+const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => ({
     type: types.SELECT_DEPENDENCY,
+    solutionId: solutionId,
+    solutionMinor: solutionMinor,
+    solutionVersion: solutionVersion,
     componentId: componentId,
-    minorVersion: minorVersion,
-    version: version,
-    dependency: dependency
+    version: version
 })
 
 const selectVersion = (componentId, minorVersion, version) => ({
@@ -123,18 +124,14 @@ const selectVersion = (componentId, minorVersion, version) => ({
     version: version
 })
 
-const requestArtifactsList = (componentId, minorVersion, version) => ({
+const requestArtifactsList = (componentId, version) => ({
     type: types.REQUEST_ARTIFACTS_LIST,
     componentId: componentId,
-    minorVersion: minorVersion,
     version: version
 })
 
-const receiveArtifactsList = (componentId, minorVersion, version, artifactsList) => ({
+const receiveArtifactsList = (artifactsList) => ({
     type: types.RECEIVE_ARTIFACTS_LIST,
-    componentId: componentId,
-    minorVersion: minorVersion,
-    version: version,
     artifactsList: artifactsList
 })
 

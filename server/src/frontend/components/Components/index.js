@@ -8,8 +8,7 @@ const mapStateToProps = (state) => {
         components, hideError, errorMessage,
         confirmation, hideConfirmation, showConfirmation, currentArtifacts
     } = get(state, "components")
-    const selectedComponent = get(currentArtifacts, "selectedComponent")
-    const selectedVersion = get(currentArtifacts, "selectedVersion")
+    const {selectedComponent, selectedVersion} = currentArtifacts
     return {
         components,
         hideError,

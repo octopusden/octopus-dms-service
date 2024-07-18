@@ -1,4 +1,5 @@
 import types from './types'
+import get from "lodash/get"
 
 const INITIAL_STATE = {
     buildInfo: {},
@@ -111,9 +112,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.REQUEST_DEPENDENCIES: {
             const {componentId, minorVersion, version} = action
-            console.log("action", action)
             const {components} = state
-            console.log("components", components)
             return {
                 ...state,
                 components: {
@@ -129,7 +128,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                                     [version]: {
                                         ...components[componentId].minorVersions[minorVersion].versions[version],
                                         loadingDependencies: true,
-                                        dependencies: []
+                                        dependencies: {}
                                     }
                                 }
                             }
@@ -170,41 +169,32 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         case types.EXPAND_VERSION: {
             const {componentId, minorVersion, version} = action
             const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                ...components[componentId].minorVersions[minorVersion],
-                                versions: {
-                                    ...components[componentId].minorVersions[minorVersion].versions,
-                                    [version]: {
-                                        ...components[componentId].minorVersions[minorVersion].versions[version],
-                                        expand: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            return expandSolutionVersion(state, components, componentId, minorVersion, version, true);
+        }
+
+        case types.CLOSE_VERSION: {
+            const {componentId, minorVersion, version} = action
+            const {components} = state
+            return expandSolutionVersion(state, components, componentId, minorVersion, version, false);
         }
 
         case types.SELECT_DEPENDENCY: {
-            const {componentId, minorVersion, version, dependency} = action
+            const {solutionId, solutionMinor, solutionVersion, componentId, version} = action
+            const {currentArtifacts, components} = state
+            let dependencyId = `${componentId}:${version}`;
+            const selectedComponentName = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component', 'name'])
             return {
                 ...state,
                 loadingArtifactsList: false,
                 currentArtifacts: {
+                    ...currentArtifacts,
                     loadingDocumentArtifact: false,
+                    selectedSolutionId: solutionId,
+                    selectedSolutionMinor: solutionMinor,
+                    selectedSolutionVersion: solutionVersion,
                     selectedComponent: componentId,
-                    selectedMinor: minorVersion,
+                    selectedComponentName: selectedComponentName,
                     selectedVersion: version,
-                    selectedDependency: dependency,
                     selectedDocument: {},
                     artifactsList: []
                 }
@@ -366,12 +356,16 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.SELECT_VERSION: {
             const {componentId, minorVersion, version} = action
+            const {currentArtifacts, components} = state
+            const selectedComponentName = get(components, [componentId, 'name'])
             return {
                 ...state,
                 loadingArtifactsList: false,
                 currentArtifacts: {
+                    ...currentArtifacts,
                     loadingDocumentArtifact: false,
                     selectedComponent: componentId,
+                    selectedComponentName: selectedComponentName,
                     selectedMinor: minorVersion,
                     selectedVersion: version,
                     selectedDocument: {},
@@ -381,31 +375,19 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         }
 
         case types.REQUEST_ARTIFACTS_LIST: {
-            const {componentId, minorVersion, version} = action
             return {
                 ...state,
-                loadingArtifactsList: true,
-                currentArtifacts: {
-                    loadingDocumentArtifact: false,
-                    selectedComponent: componentId,
-                    selectedMinor: minorVersion,
-                    selectedVersion: version,
-                    selectedDocument: {},
-                    artifactsList: []
-                }
+                loadingArtifactsList: true
             }
         }
 
         case types.RECEIVE_ARTIFACTS_LIST: {
-            const {componentId, minorVersion, version, artifactsList} = action
+            const {artifactsList} = action
             return {
                 ...state,
                 loadingArtifactsList: false,
                 currentArtifacts: {
                     ...state.currentArtifacts,
-                    selectedComponent: componentId,
-                    selectedMinor: minorVersion,
-                    selectedVersion: version,
                     artifactsList: artifactsList,
                     preview: {}
                 }
@@ -477,7 +459,9 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             const {selectedComponentGroupTab} = action
             return {
                 ...state,
-                selectedComponentGroupTab: selectedComponentGroupTab
+                currentArtifacts: {
+                    selectedComponentGroupTab: selectedComponentGroupTab
+                }
             }
         }
 
@@ -503,5 +487,31 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             return state
     }
 }
+
+function expandSolutionVersion(state, components, componentId, minorVersion, version, expand) {
+    return {
+        ...state,
+        components: {
+            ...components,
+            [componentId]: {
+                ...components[componentId],
+                minorVersions: {
+                    ...components[componentId].minorVersions,
+                    [minorVersion]: {
+                        ...components[componentId].minorVersions[minorVersion],
+                        versions: {
+                            ...components[componentId].minorVersions[minorVersion].versions,
+                            [version]: {
+                                ...components[componentId].minorVersions[minorVersion].versions[version],
+                                expand: expand
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 export default componentsReducer

@@ -10,8 +10,8 @@ import ComponentGroupPane from "../ComponentGroupPane";
 
 export default function components(props) {
     const {
-        components, selectedComponent, selectedVersion, hideError, errorMessage,
-        confirmation, hideConfirmation, showConfirmation,
+        selectedComponent, selectedVersion, hideError, errorMessage,
+        confirmation, hideConfirmation, showConfirmation
     } = props
     const versionSelected = !!(selectedComponent && selectedVersion)
 
@@ -43,15 +43,11 @@ export default function components(props) {
             > {confirmation.message} </Alert>
             }
             <div className="left-column">
-                <ComponentGroupPane/>
+                <ComponentGroupPane />
             </div>
             <div className='right-column'>
-                {selectedComponent && <div className='meta-block'>
-                    <Meta
-                        component={selectedComponent}
-                        componentName={components[selectedComponent] ? components[selectedComponent].name :
-                            <Spinner size={10}/>}
-                        version={selectedVersion}/>
+                {versionSelected && <div className='meta-block'>
+                    <Meta/>
                 </div>}
                 <div className='artifacts-block'>
                     {versionSelected &&
