@@ -20,6 +20,5 @@ data class ValidationProperties(
         val exclude: Set<String> = emptySet(),
         val forbiddenTokens: Set<String> = emptySet(),
         val forbiddenPatterns: Set<Regex> = emptySet()
-
     )
 }
