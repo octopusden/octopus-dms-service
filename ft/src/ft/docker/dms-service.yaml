@@ -24,6 +24,8 @@ server:
 dms-service:
   webhook:
     url: http://mockserver:1080/webhook
+    user: webhook-user
+    password: webhook-password
 
 storage:
   maven-group-prefix: corp.domain.dms
