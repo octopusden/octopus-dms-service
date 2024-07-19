@@ -38,7 +38,7 @@ const receiveComponentVersionsError = (componentId, minorVersion, errorMessage) 
     componentId: componentId,
     minorVersion: minorVersion,
     errorMessage: errorMessage,
-    loadingError: true
+    loadError: true
 })
 
 const receiveComponentVersions = (componentId, minorVersion, versions) => ({
@@ -69,7 +69,7 @@ const receiveDependenciesError = (componentId, minorVersion, version, errorMessa
     minorVersion: minorVersion,
     errorMessage: errorMessage,
     version: version,
-    loadingError: true
+    loadError: true
 })
 
 const expandComponent = (componentId) => ({

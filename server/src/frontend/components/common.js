@@ -26,9 +26,10 @@ export function isHtml(fileName) {
     return htmlRegex.test(fileName)
 }
 
-export function getSecondaryLabel(isLoading, isError, errorMessage) {
+export function getSecondaryLabel(object) {
+    const {loading, loadError, errorMessage} = object
     let secondaryLabel
-    if (isError) {
+    if (loadError) {
         secondaryLabel = <Tooltip
             content={errorMessage}
             position='top-right'
@@ -38,7 +39,7 @@ export function getSecondaryLabel(isLoading, isError, errorMessage) {
             </div>
         </Tooltip>
     }
-    if (isLoading) {
+    if (loading) {
         secondaryLabel = <Spinner size={16} intent="primary"/>
     }
     return secondaryLabel

@@ -5,6 +5,7 @@ import {solutionTree, treeLevel} from "./presenter.jsx";
 import {componentsOperations} from "../duck";
 import queryString from "query-string";
 import history from "../../utils/history";
+import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
@@ -98,16 +99,16 @@ const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
     const {
         selectedSolutionId,
-        selectedSolutionVersion,
         selectedSolutionMinor,
+        selectedSolutionVersion,
         selectedComponent,
         selectedVersion
     } = props.currentArtifacts
     return {
         ...currentUrlProps,
         solutionId: selectedSolutionId == null ? undefined : selectedSolutionId,
-        solutionVersion: selectedSolutionVersion == null ? undefined : selectedSolutionVersion,
         solutionMinor: selectedSolutionMinor == null ? undefined : selectedSolutionMinor,
+        solutionVersion: selectedSolutionVersion == null ? undefined : selectedSolutionVersion,
         dependencyId: selectedComponent == null ? undefined : selectedComponent,
         dependencyVersion: selectedVersion == null ? undefined : selectedVersion
     }
@@ -175,7 +176,8 @@ class SolutionsTree extends Component {
             return
         }
 
-        if (!components[componentId].minorVersions || components[componentId].loadingError) {
+        const component = components[componentId]
+        if (!component.minorVersions || component.loadError) {
             fetchComponentMinorVersions(componentId)
         } else {
             expandComponent(componentId)
@@ -190,8 +192,8 @@ class SolutionsTree extends Component {
             closeMinorVersion(componentId, version)
             return
         }
-
-        if (!components[componentId].minorVersions[version].versions || components[componentId].minorVersions.loadingError) {
+        const minorVersion = get(components, [componentId, 'minorVersions', version]);
+        if (!minorVersion.versions || minorVersion.loadError) {
             fetchComponentVersions(componentId, version)
         } else {
             expandMinorVersion(componentId, version)
@@ -206,7 +208,8 @@ class SolutionsTree extends Component {
             closeVersion(solutionId, solutionMinor, solutionVersion)
             return
         }
-        if (!components[solutionId].minorVersions[solutionMinor].versions[solutionVersion].dependencies || components[solutionId].minorVersions[solutionMinor].versions.loadingError) {
+        const version = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion]);
+        if (!version.dependencies || version.loadError) {
             fetchDependencies(solutionId, solutionMinor, solutionVersion)
         } else {
             expandVersion(solutionId, solutionMinor, solutionVersion)

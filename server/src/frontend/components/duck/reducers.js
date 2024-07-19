@@ -79,7 +79,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                             ...components[componentId].minorVersions,
                             [minorVersion]: {
                                 ...components[componentId].minorVersions[minorVersion],
-                                loadingVersions: true,
+                                loading: true,
                                 versions: {}
                             }
                         }
@@ -101,7 +101,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                             ...components[componentId].minorVersions,
                             [minorVersion]: {
                                 ...components[componentId].minorVersions[minorVersion],
-                                loadingVersions: false,
+                                loading: false,
                                 versions: versions
                             }
                         }
@@ -127,7 +127,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                                     ...components[componentId].minorVersions[minorVersion].versions,
                                     [version]: {
                                         ...components[componentId].minorVersions[minorVersion].versions[version],
-                                        loadingDependencies: true,
+                                        loading: true,
                                         dependencies: {}
                                     }
                                 }
@@ -155,7 +155,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                                     ...components[componentId].minorVersions[minorVersion].versions,
                                     [version]: {
                                         ...components[componentId].minorVersions[minorVersion].versions[version],
-                                        loadingDependencies: false,
+                                        loading: false,
                                         dependencies: dependencies
                                     }
                                 }
@@ -213,9 +213,9 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                         minorVersions: {
                             ...components[componentId].minorVersions,
                             [minorVersion]: {
-                                loadingVersions: false,
-                                loadingError: true,
-                                loadingErrorMessage: errorMessage
+                                loading: false,
+                                loadError: true,
+                                errorMessage: errorMessage
                             }
                         }
                     }
@@ -232,8 +232,8 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     ...components,
                     [componentId]: {
                         ...components[componentId],
-                        loadingMinorVersions: true,
-                        loadingError: false,
+                        loading: true,
+                        loadError: false,
                         minorVersions: {}
                     }
                 }
@@ -249,7 +249,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     ...components,
                     [componentId]: {
                         ...components[componentId],
-                        loadingMinorVersions: false,
+                        loading: false,
                         minorVersions: versions
                     }
                 }

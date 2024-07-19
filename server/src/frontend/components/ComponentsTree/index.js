@@ -5,6 +5,7 @@ import {componentsTree, treeLevel} from "./presenter.jsx";
 import {componentsOperations} from "../duck";
 import queryString from "query-string";
 import history from "../../utils/history";
+import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
@@ -81,18 +82,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
-    const {selectedComponent, selectedVersion, selectedMinor} = props.currentArtifacts
+    const {selectedComponent, selectedMinor, selectedVersion} = props.currentArtifacts
 
     return {
         ...currentUrlProps,
         component: selectedComponent == null ? undefined : selectedComponent,
-        version: selectedVersion == null ? undefined : selectedVersion,
         minor: selectedMinor == null ? undefined : selectedMinor,
+        version: selectedVersion == null ? undefined : selectedVersion,
     }
 }
 
 class ComponentsTree extends Component {
-
     componentDidUpdate(prev) {
         const urlState = propsToUrl(this.props)
         history.push({search: queryString.stringify(urlState)})
@@ -100,7 +100,6 @@ class ComponentsTree extends Component {
 
     componentDidMount() {
         const urlProps = queryString.parse(history.location.search)
-        console.debug('urlProps', urlProps)
         const {component, minor, version} = urlProps
         const {fetchComponents, fetchComponentMinorVersions, fetchComponentVersions, selectVersion} = this.props
 
@@ -144,7 +143,8 @@ class ComponentsTree extends Component {
             return
         }
 
-        if (!components[componentId].minorVersions || components[componentId].loadingError) {
+        const component = components[componentId];
+        if (!component.minorVersions || component.loadError) {
             fetchComponentMinorVersions(componentId)
         } else {
             expandComponent(componentId)
@@ -160,7 +160,8 @@ class ComponentsTree extends Component {
             return
         }
 
-        if (!components[componentId].minorVersions.versions || components[componentId].minorVersions.loadingError) {
+        const minorVersion = get(components, [componentId, 'minorVersions', version])
+        if (!minorVersion.versions || minorVersion.loadError) {
             fetchComponentVersions(componentId, version)
         } else {
             expandMinorVersion(componentId, version)

@@ -42,10 +42,6 @@ function solutionsToNodes(props) {
         if (minorVersions) {
             childNodes = renderMinors(componentId, minorVersions, props)
         }
-
-        const isLoading = solution && solution.loadingMinorVersions
-        const isError = solution && solution.loadingError
-        const errorMessage = solution.loadingErrorMessage
         return {
             id: componentId,
             level: treeLevel.ROOT,
@@ -54,7 +50,7 @@ function solutionsToNodes(props) {
             label: solution.name,
             icon: solution.expand ? 'folder-open' : 'folder-close',
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(solution)
         }
     })
 }
@@ -68,10 +64,6 @@ function renderMinors(solutionId, minorVersions, props) {
             childNodes = renderVersions(solutionId, minorVersionId, versions, props)
         }
 
-        const isLoading = minorVersion && minorVersion.loadingVersions
-        const isError = minorVersion && minorVersion.loadingError
-        const errorMessage = minorVersion && minorVersion.errorMessage
-
         return {
             level: treeLevel.MINOR,
             id: minorVersionId,
@@ -81,7 +73,7 @@ function renderMinors(solutionId, minorVersions, props) {
             icon: minorVersion.expand ? 'folder-open' : 'folder-close',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(minorVersion)
         }
     })
 }
@@ -99,10 +91,6 @@ function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
                 childNodes = renderDependencies(solutionId, solutionMinor, solutionVersion.version, dependencies, props)
             }
 
-            const isLoading = solutionVersion.loadingVersions
-            const isError = solutionVersion.loadingError
-            const errorMessage = solutionVersion.errorMessage
-
             const displayName = solutionVersion.version + (solutionVersion.status === 'RELEASE' ? '' : `-${solutionVersion.status}`)
             return {
                 level: treeLevel.VERSION,
@@ -114,7 +102,7 @@ function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
                 icon: 'box',
                 isExpanded: solutionVersion.expand,
                 childNodes: childNodes,
-                secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+                secondaryLabel: getSecondaryLabel(solutionVersion)
             }
         })
 }

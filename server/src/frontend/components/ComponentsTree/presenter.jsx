@@ -54,10 +54,6 @@ function componentsToNodes(props) {
             childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
         }
 
-        const isLoading = component && component.loadingMinorVersions
-        const isError = component && component.loadingError
-        const errorMessage = component.loadingErrorMessage
-
         return {
             id: componentId,
             level: treeLevel.ROOT,
@@ -66,7 +62,7 @@ function componentsToNodes(props) {
             label: component.name,
             icon: component.expand ? 'folder-open' : 'folder-close',
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(component)
         }
     })
 }
@@ -79,11 +75,6 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
             let versions = minorVersion.versions
             childNodes = renderComponentVersions(componentId, minorVersionId, versions, props)
         }
-
-        const isLoading = minorVersion && minorVersion.loadingVersions
-        const isError = minorVersion && minorVersion.loadingError
-        const errorMessage = minorVersion && minorVersion.errorMessage
-
         return {
             level: treeLevel.MINOR,
             id: minorVersionId,
@@ -93,7 +84,7 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
             icon: minorVersion.expand ? 'folder-open' : 'folder-close',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(minorVersion)
         }
     })
 }
