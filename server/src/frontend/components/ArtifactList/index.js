@@ -33,7 +33,6 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.getArtifactsList(componentId, version))
     }
     const fetchDocumentArtifact = (componentId, version, id, isPrintable, displayName) => {
-        console.debug('fetchDocumentArtifact', componentId, version, id, isPrintable, displayName)
         isPrintable
             ? dispatch(componentsOperations.getDocumentArtifact(componentId, version, id, displayName))
             : dispatch(componentsOperations.getEmptyDocumentArtifact(componentId, version, id))
@@ -59,7 +58,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
     const {id} = props.selectedDocument
-    console.debug('currentUrlProps', currentUrlProps, 'selectedDocument', props.selectedDocument)
     return {
         ...currentUrlProps,
         artifactId: id

@@ -24,22 +24,17 @@ const mapDispatchToProps = (dispatch) => {
     const hideError = () => {
         dispatch(componentsOperations.hideError())
     }
-    const requestSearch = (query) => {
-        dispatch(componentsOperations.requestSearch(query))
-    }
     const showConfirmation = (message, onConfirm) => {
         dispatch(componentsOperations.showConfirmation(message, onConfirm))
     }
     const hideConfirmation = () => {
         dispatch(componentsOperations.hideConfirmation())
     }
-
     return {
         fetchBuildInfo,
         fetchLoggedUser,
         showError,
         hideError,
-        requestSearch,
         showConfirmation,
         hideConfirmation
     }

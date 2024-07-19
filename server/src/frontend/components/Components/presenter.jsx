@@ -7,6 +7,7 @@ import Footer from "../Footer";
 import React from "react";
 import './style.css'
 import ComponentGroupPane from "../ComponentGroupPane";
+import Search from "./Search";
 
 export default function components(props) {
     const {
@@ -43,7 +44,10 @@ export default function components(props) {
             > {confirmation.message} </Alert>
             }
             <div className="left-column">
-                <ComponentGroupPane />
+                <div className='search-block'>
+                    <Search/>
+                </div>
+                <ComponentGroupPane/>
             </div>
             <div className='right-column'>
                 {versionSelected && <div className='meta-block'>

@@ -14,7 +14,12 @@
             width: 380px;
             min-width: 380px;
             display: flex;
+            flex-direction: column;
             background-color: #EBF1F5;
+
+            & .search-block {
+                padding: 10px;
+            }
 
             & .control-block {
                 padding: 10px;

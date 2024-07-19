@@ -396,7 +396,6 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.REQUEST_DOCUMENT_ARTIFACT: {
             const {id} = action
-            console.debug('REQUEST_DOCUMENT_ARTIFACT', id)
             return {
                 ...state,
                 currentArtifacts: {

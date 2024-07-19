@@ -1,6 +1,5 @@
 import React from 'react'
 import {Spinner, Tree} from "@blueprintjs/core";
-import Search from "./Search/Search.jsx";
 import {getSecondaryLabel} from "../common";
 
 const treeLevel = {
@@ -10,8 +9,7 @@ const treeLevel = {
 
 function componentsTree(props) {
     const {
-        toggleRc, showRc, requestSearch, selectVersion, fetchComponentVersions, searchResult, searchQueryValid,
-        searching, loadingComponents, handleNodeClick
+        loadingComponents, handleNodeClick
     } = props
 
     const nodes = componentsToNodes(props)
@@ -23,17 +21,6 @@ function componentsTree(props) {
     } else {
         return <div className="components-tree">
             <div className="components-tree-wrapper">
-                <div className='search-block'>
-                    <Search
-                        toggleRc={toggleRc}
-                        showRc={showRc}
-                        requestSearch={requestSearch}
-                        selectVersion={selectVersion}
-                        fetchComponentVersions={fetchComponentVersions}
-                        searchResult={searchResult}
-                        searchQueryValid={searchQueryValid}
-                        searching={searching}/>
-                </div>
                 <Tree
                     contents={nodes}
                     onNodeClick={handleNodeClick}
