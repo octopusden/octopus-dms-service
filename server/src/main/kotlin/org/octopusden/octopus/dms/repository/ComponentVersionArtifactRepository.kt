@@ -7,6 +7,8 @@ import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ComponentVersionArtifactRepository : JpaRepository<ComponentVersionArtifact, Long> {
+    fun findByArtifact(artifact: Artifact): List<ComponentVersionArtifact>
+
     fun findByComponentVersion(componentVersion: ComponentVersion): List<ComponentVersionArtifact>
 
     fun findByComponentVersionComponentNameAndComponentVersionVersion(

@@ -10,12 +10,15 @@ import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
+import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
+import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -23,7 +26,9 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ArtifactServiceImpl(
     private val storageService: StorageService,
-    private val artifactRepository: ArtifactRepository
+    private val artifactRepository: ArtifactRepository,
+    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -101,9 +106,18 @@ class ArtifactServiceImpl(
     @Transactional(readOnly = false)
     override fun delete(id: Long, dryRun: Boolean) {
         log.info("Delete artifact with ID '$id'")
-        artifactRepository.findById(id).ifPresent {
-            if (!dryRun) artifactRepository.delete(it)
-            log.info("$it deleted")
+        artifactRepository.findById(id).ifPresent { artifact ->
+            if (!dryRun) {
+                componentVersionArtifactRepository.findByArtifact(artifact).forEach {
+                    applicationEventPublisher.publishEvent(
+                        DeleteComponentVersionArtifactEvent(
+                            it.componentVersion.component.name, it.componentVersion.version, it.toFullDTO()
+                        )
+                    )
+                }
+                artifactRepository.delete(artifact)
+            }
+            log.info("$artifact deleted")
         }
     }
 
