@@ -49,14 +49,14 @@ class ComponentServiceImpl(
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
         log.info("Get components")
-        return componentsRegistryService.getExplicitExternalComponents(filter)
+        return componentsRegistryService.getExternalComponents(filter)
     }
 
     override fun getDependencies(componentName: String, version: String): List<DependencyDTO> {
         log.info("Get dependencies of '$componentName:$version'")
         return componentVersionRepository.findByComponentNameAndVersion(componentName, version)
             ?.let { componentVersion ->
-                val components = componentsRegistryService.getExplicitExternalComponents(null).associateBy { c -> c.id }
+                val components = componentsRegistryService.getExternalComponents(null).associateBy { c -> c.id }
                 return releaseManagementServiceClient.getBuild(
                     componentVersion.component.name,
                     componentVersion.version

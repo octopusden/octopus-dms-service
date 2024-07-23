@@ -9,31 +9,12 @@ import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
-        loggedUser, components, componentsVersions, loadingComponents, loadingArtifactsList, currentArtifacts,
-        errorMessage, showRc, searchQueryValid, searchResult, searching, toggleAdminMode, adminMode, confirmation
+        components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation
     } = state.components
-    return {
-        loggedUser,
-        components,
-        componentsVersions,
-        loadingComponents,
-        loadingArtifactsList,
-        currentArtifacts,
-        errorMessage,
-        showRc,
-        searchQueryValid,
-        searchResult,
-        searching,
-        toggleAdminMode,
-        adminMode,
-        confirmation
-    }
+    return {components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation}
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const toggleRc = () => {
-        dispatch(componentsOperations.toggleRc())
-    }
     const fetchSolutions = () => {
         dispatch(componentsOperations.getComponents(true))
     }
@@ -72,7 +53,6 @@ const mapDispatchToProps = (dispatch) => {
     }
 
     return {
-        toggleRc,
         fetchSolutions,
         expandComponent,
         closeComponent,

@@ -1,0 +1,19 @@
+.solution-tree {
+    flex-grow: 1;
+    overflow-y: auto;
+
+    & .solution-tree-wrapper {
+        width: 100%;
+    }
+}
+
+.error-icon-solution-tree-wrap {
+    padding-top: 15px;
+}
+
+.load-components-wrapper {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -17,9 +17,13 @@ const mapDispatchToProps = (dispatch) => {
     const handleComponentGroupTabChange = (selectedComponentGroupTab) => {
         dispatch(componentsOperations.handleComponentGroupTabChange(selectedComponentGroupTab))
     }
-    return {
-        handleComponentGroupTabChange
+    const getCustomComponents = () => {
+        dispatch(componentsOperations.getCustomComponents())
     }
+    const getClientsComponents = () => {
+        dispatch(componentsOperations.getClientComponents())
+    }
+    return {handleComponentGroupTabChange, getCustomComponents, getClientsComponents}
 }
 
 function mergeProps(stateProps, dispatchProps, ownProps) {

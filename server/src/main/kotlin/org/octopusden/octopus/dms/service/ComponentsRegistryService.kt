@@ -13,7 +13,7 @@ interface ComponentsRegistryService {
      * @throws NotFoundException if component not found
      */
     fun getComponent(name: String): ComponentDTO
-    fun getExplicitExternalComponents(filter: ComponentRequestFilter?): List<ComponentDTO>
+    fun getExternalComponents(filter: ComponentRequestFilter?): List<ComponentDTO>
     fun checkComponent(component: String)
     fun getDetailedComponentVersion(component: String, version: String): DetailedComponentVersion
     fun getVersionNames(): VersionNames

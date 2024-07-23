@@ -46,6 +46,60 @@ const getComponents = (solution) => (dispatch) => {
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
+const getClientComponents = () => (dispatch) => {
+    dispatch(actions.requestComponents())
+    fetch(`rest/api/3/components`)
+        .then(handleErrors('Get client components'))
+        .then((response) => {
+            response.json().then((data) => {
+                const parents = data.components
+                    .filter(c => c.clientCode)
+                    .reduce(function (acc, component) {
+                        const clientCode = component.clientCode
+                        if (!acc[clientCode]) {
+                            acc[clientCode] = {id: clientCode, name: clientCode}
+                            acc[clientCode].subComponents = {}
+                        }
+                        acc[clientCode].subComponents[component.id] = component;
+                        return acc;
+                    }, {})
+                dispatch(actions.receiveComponents(parents))
+            })
+        }).catch((err) => dispatch(actions.showError(err.message)))
+}
+
+const getCustomComponents = () => (dispatch) => {
+    dispatch(actions.requestComponents())
+    fetch(`rest/api/3/components`)
+        .then(handleErrors('Get custom components'))
+        .then((response) => {
+            response.json().then((data) => {
+                fetch(`rest/api/3/components?explicit=false`)
+                    .then(handleErrors('Get custom component parents'))
+                    .then((responseWithImplicit) => {
+                        responseWithImplicit.json().then((allData) => {
+                            const idComponents = allData.components.reduce((map, c) => {
+                                map[c.id] = c
+                                return map
+                            }, {})
+                            const parents = data.components
+                                .filter((c) => c.parentComponent)
+                                .reduce(function (acc, component) {
+                                    const parentComponentId = component.parentComponent
+                                    if (!acc[parentComponentId]) {
+                                        acc[parentComponentId] = idComponents[parentComponentId] ? idComponents[parentComponentId] : parentComponentId
+                                        acc[parentComponentId].subComponents = {}
+                                    }
+                                    acc[parentComponentId].subComponents[component.id] = component;
+                                    return acc;
+                                }, {})
+                            dispatch(actions.receiveComponents(parents))
+                        })
+                    }).catch((err) => dispatch(actions.showError(err.message)))
+            })
+        }).catch((err) => dispatch(actions.showError(err.message)))
+}
+
 const getComponentMinorVersions = (componentId) => (dispatch) => {
     dispatch(actions.requestComponentMinorVersions(componentId))
     fetch(`rest/api/3/components/${componentId}/minor-versions`).then((response) => {
@@ -124,6 +178,66 @@ const selectDependency = (solutionId, solutionMinor, solutionVersion, componentI
 
 const closeComponent = (componentId) => (dispatch) => {
     dispatch(actions.closeComponent(componentId))
+}
+
+const expandGroupedComponent = (groupId, componentId) => (dispatch) => {
+    dispatch(actions.expandGroupedComponent(groupId, componentId))
+}
+
+const closeGroupedComponent = (groupId, componentId) => (dispatch) => {
+    dispatch(actions.closeGroupedComponent(groupId, componentId))
+}
+
+const getGroupedComponentMinorVersions = (groupId, componentId) => (dispatch) => {
+    dispatch(actions.requestGroupedComponentMinorVersions(groupId, componentId))
+    fetch(`rest/api/3/components/${componentId}/minor-versions`).then((response) => {
+        response.json().then((data) => {
+            if (response.ok) {
+                const versions = data.reduce((map, e) => {
+                    map[e] = {id: e}
+                    return map
+                }, {});
+                dispatch(actions.receiveGroupedComponentMinorVersions(groupId, componentId, versions))
+                dispatch(actions.expandGroupedComponent(groupId, componentId))
+            } else {
+                const {message} = data
+                dispatch(actions.receiveGroupedComponentMinorVersionsError(groupId, componentId, message))
+                dispatch(actions.showError(message))
+            }
+        })
+    })
+}
+
+const expandGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => (dispatch) => {
+    dispatch(actions.expandGroupedComponentMinorVersion(groupId, componentId, minorVersion))
+}
+
+const closeGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => (dispatch) => {
+    dispatch(actions.closeGroupedComponentMinorVersion(groupId, componentId, minorVersion))
+}
+
+const getGroupedComponentVersions = (groupId, componentId, minorVersion) => (dispatch) => {
+    dispatch(actions.requestGroupedComponentVersions(groupId, componentId, minorVersion))
+    fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
+        response.json().then((data) => {
+            if (response.ok) {
+                let versions = data.versions.reduce((map, e) => {
+                    map[e.version] = e
+                    return map
+                }, {})
+                dispatch(actions.receiveGroupedComponentVersions(groupId, componentId, minorVersion, versions))
+                dispatch(actions.expandGroupedComponentMinorVersion(groupId, componentId, minorVersion))
+            } else {
+                let {message} = data
+                dispatch(actions.receiveGroupedComponentVersionsError(groupId, componentId, minorVersion, message))
+                dispatch(actions.showError(message))
+            }
+        })
+    })
+}
+
+const selectGroupedComponentVersion = (groupId, componentId, minorVersion, version) => (dispatch) => {
+    dispatch(actions.selectGroupedComponentVersion(groupId, componentId, minorVersion, version))
 }
 
 const expandMinorVersion = (componentId, minorVersion) => (dispatch) => {
@@ -238,6 +352,8 @@ export default {
     getBuildInfo,
     getLoggedUser,
     getComponents,
+    getClientComponents,
+    getCustomComponents,
     getComponentVersions,
     getDependencies,
     expandComponent,
@@ -258,6 +374,13 @@ export default {
     getComponentMinorVersions,
     closeMinorVersion,
     selectVersion,
+    expandGroupedComponent,
+    closeGroupedComponent,
+    getGroupedComponentMinorVersions,
+    expandGroupedComponentMinorVersion,
+    closeGroupedComponentMinorVersion,
+    getGroupedComponentVersions,
+    selectGroupedComponentVersion,
     deleteArtifact,
     showConfirmation,
     hideConfirmation

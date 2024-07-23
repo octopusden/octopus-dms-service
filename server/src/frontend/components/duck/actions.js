@@ -82,14 +82,91 @@ const closeComponent = (componentId) => ({
     componentId: componentId
 })
 
+const expandGroupedComponent = (groupId, componentId) => ({
+    type: types.EXPAND_GROUPED_COMPONENT,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const closeGroupedComponent = (groupId, componentId) => ({
+    type: types.CLOSE_GROUPED_COMPONENT,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const requestGroupedComponentMinorVersions = (groupId, componentId) => ({
+    type: types.REQUEST_GROUPED_COMPONENT_MINOR_VERSIONS,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const receiveGroupedComponentMinorVersions = (groupId, componentId, versions) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    versions: versions
+})
+
+const receiveGroupedComponentMinorVersionsError = (groupId, componentId, errorMessage) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS_ERROR,
+    groupId: groupId,
+    componentId: componentId,
+    errorMessage: errorMessage
+})
+
+const expandGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => ({
+    type: types.EXPAND_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const receiveGroupedComponentVersionsError = (groupId, componentId, minorVersion, errorMessage) => ({
+    type: types.EXPAND_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    errorMessage: errorMessage
+})
+
+const closeGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => ({
+    type: types.CLOSE_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const requestGroupedComponentVersions = (groupId, componentId, minorVersion) => ({
+    type: types.REQUEST_GROUPED_COMPONENT_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const receiveGroupedComponentVersions = (groupId, componentId, minorVersion, versions) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    versions: versions
+})
+
+const selectGroupedComponentVersion = (groupId, componentId, minorVersion, version) => ({
+    type: types.SELECT_GROUPED_COMPONENT_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
 const expandMinorVersion = (componentId, minorVersion) => ({
-    type: types.EXPAND_MINOR_VERSION,
+    type: types.EXPAND_COMPONENT_MINOR_VERSION,
     componentId: componentId,
     minorVersion: minorVersion
 })
 
 const closeMinorVersion = (componentId, minorVersion) => ({
-    type: types.CLOSE_MINOR_VERSION,
+    type: types.CLOSE_COMPONENT_MINOR_VERSION,
     componentId: componentId,
     minorVersion: minorVersion
 })
@@ -261,5 +338,16 @@ export default {
     expandMinorVersion,
     expandVersion,
     closeMinorVersion,
-    selectVersion
+    selectVersion,
+    expandGroupedComponent,
+    closeGroupedComponent,
+    requestGroupedComponentMinorVersions,
+    receiveGroupedComponentMinorVersions,
+    receiveGroupedComponentMinorVersionsError,
+    expandGroupedComponentMinorVersion,
+    closeGroupedComponentMinorVersion,
+    requestGroupedComponentVersions,
+    receiveGroupedComponentVersions,
+    receiveGroupedComponentVersionsError,
+    selectGroupedComponentVersion
 }
