@@ -135,9 +135,13 @@ class ComponentServiceImpl(
                 this.map { it.version }.toTypedArray(),
                 VersionField.VERSION
             )
-            map { cv ->
+            mapNotNull { cv ->
                 val status = componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS
-                mapFunction(cv, numericVersionFactory.create(cv.version), status)
+                if (allowedStatuses.contains(status)) {
+                    mapFunction(cv, numericVersionFactory.create(cv.version), status)
+                } else {
+                    null
+                }
             }
         } ?: emptyList()
     }

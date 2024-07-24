@@ -50,10 +50,10 @@ services:
             - "8083:8080"
         environment:
             - SPRING_CONFIG_ADDITIONAL_LOCATION=/
-            - SPRING_PROFILES_ACTIVE=ft
+            - SPRING_PROFILES_ACTIVE=ut
             - SPRING_CLOUD_CONFIG_ENABLED=false
         volumes:
-            - ./release-management-service.yaml:/release-management-service-ft.yaml
+            - ./release-management-service.yaml:/application-ut.yaml
 
     mockserver:
         container_name: dms-ut-mockserver

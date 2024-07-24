@@ -53,7 +53,7 @@ services:
             - SPRING_PROFILES_ACTIVE=ft
             - SPRING_CLOUD_CONFIG_ENABLED=false
         volumes:
-          - ./release-management-service.yaml:/release-management-service-ft.yaml
+          - ./release-management-service.yaml:/application-ft.yaml
 
     mockserver:
         container_name: dms-ft-mockserver

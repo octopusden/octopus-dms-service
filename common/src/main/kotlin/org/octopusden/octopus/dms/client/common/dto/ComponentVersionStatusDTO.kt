@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 @Schema(
         description = "Component version status",
         example = "{\n" +
+                "  \"component\": \"Some_Component\",\n" +
                 "  \"version\": \"1.2.3\",\n" +
                 "  \"status\": \"RELEASE\"\n" +
                 "}"
@@ -28,5 +29,9 @@ open class ComponentVersionStatusDTO(
                 result = 31 * result + version.hashCode()
                 result = 31 * result + status.hashCode()
                 return result
+        }
+
+        override fun toString(): String {
+                return "ComponentVersionStatusDTO(component='$component', version='$version', status=$status)"
         }
 }
