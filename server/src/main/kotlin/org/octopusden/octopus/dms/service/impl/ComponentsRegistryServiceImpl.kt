@@ -43,8 +43,7 @@ class ComponentsRegistryServiceImpl(
     private fun Component.toComponentDTO() = ComponentDTO(
         id,
         name ?: id,
-        //ToDo Add field to CRS
-        false,
+        solution == true,
         clientCode,
         parentComponent,
         SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
