@@ -3,8 +3,8 @@ import {Spinner, Tree} from "@blueprintjs/core";
 import {getSecondaryLabel} from "../common";
 
 const treeLevel = {
-    PARENT_COMPONENT: 'PARENT_COMPONENT',
-    COMPONENT_GROUP: 'COMPONENT_GROUP',
+    GROUP: 'GROUP',
+    COMPONENT: 'COMPONENT',
     MINOR: 'MINOR',
     VERSION: 'VERSION',
     COMPONENT_VERSION: 'COMPONENT_VERSION',
@@ -44,7 +44,7 @@ function groupsToNodes(props) {
         }
         return {
             id: groupId,
-            level: treeLevel.PARENT_COMPONENT,
+            level: treeLevel.GROUP,
             groupId: groupId,
             isExpanded: group.expand,
             label: group.name,
@@ -64,7 +64,7 @@ function renderComponents(groupId, subComponents, props) {
         }
 
         return {
-            level: treeLevel.COMPONENT_GROUP,
+            level: treeLevel.COMPONENT,
             id: componentId,
             label: component.name,
             groupId: groupId,

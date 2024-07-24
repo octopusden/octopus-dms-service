@@ -120,11 +120,11 @@ class GroupedComponentsTree extends Component {
     handleNodeClick = (nodeData, _nodePath, e) => {
         const {level} = nodeData
         switch (level) {
-            case treeLevel.PARENT_COMPONENT:
+            case treeLevel.GROUP:
                 this.handleClickOnComponentGroup(nodeData)
                 break
-            case treeLevel.CUSTOM_COMPONENT:
-                this.handleClickOnCustomComponent(nodeData)
+            case treeLevel.COMPONENT:
+                this.handleClickOnComponent(nodeData)
                 break
             case treeLevel.MINOR:
                 this.handleMinorVersionSelect(nodeData)
@@ -145,7 +145,7 @@ class GroupedComponentsTree extends Component {
         }
     }
 
-    handleClickOnCustomComponent = (nodeData) => {
+    handleClickOnComponent = (nodeData) => {
         const {components, expandGroupedComponent, closeGroupedComponent, getGroupedComponentMinorVersions} = this.props
         const {groupId, componentId, isExpanded} = nodeData
 
