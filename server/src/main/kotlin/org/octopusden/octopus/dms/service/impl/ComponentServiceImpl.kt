@@ -27,7 +27,6 @@ import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.RelengService
 import org.octopusden.octopus.dms.service.StorageService
 import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
-import org.octopusden.releng.versions.IVersionInfo
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -62,8 +61,9 @@ class ComponentServiceImpl(
                     componentVersion.version
                 ).dependencies.mapNotNull { (component, version, _) ->
                     componentVersionRepository.findByComponentNameAndVersion(component, version)
-                }.convert(true) { cv, _, buildStatus ->
-                    DependencyDTO(components[cv.component.name]!!, cv.version, buildStatus)
+                }.map { cv ->
+                    // ToDo check build status in release management service
+                    DependencyDTO(components[cv.component.name]!!, cv.version, BuildStatus.UNKNOWN_STATUS)
                 }
             } ?: throw NotFoundException("Version '$version' is not found for component '$componentName'")
     }
@@ -108,42 +108,32 @@ class ComponentServiceImpl(
         } else {
             componentVersionRepository.findByComponentNameAndMinorVersions(componentName, minorVersions)
         }
-        return componentVersionEntities.convert(includeRc) { cv, numericVersionFactory, buildStatus ->
-            ComponentVersionStatusWithInfoDTO(
-                cv.component.name,
-                cv.version,
-                buildStatus,
-                numericVersionFactory
-            )
-        }
-    }
-
-    fun <T> Collection<ComponentVersion>.convert(
-        includeRc: Boolean,
-        mapFunction: (ComponentVersion, IVersionInfo, BuildStatus) -> T
-    ): List<T> {
         val allowedStatuses = if (includeRc) {
             arrayOf(BuildStatus.RELEASE, BuildStatus.RC)
         } else {
             arrayOf(BuildStatus.RELEASE)
         }
         val numericVersionFactory = NumericVersionFactory(componentsRegistryService.getVersionNames())
-        return firstOrNull()?.component?.name?.let { componentName ->
+        return if (componentVersionEntities.isEmpty()) {
+            emptyList()
+        } else {
             val componentBuilds = relengService.getComponentBuilds(
                 componentName,
                 allowedStatuses,
-                this.map { it.version }.toTypedArray(),
+                componentVersionEntities.map { it.version }.toTypedArray(),
                 VersionField.VERSION
             )
-            mapNotNull { cv ->
-                val status = componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS
-                if (allowedStatuses.contains(status)) {
-                    mapFunction(cv, numericVersionFactory.create(cv.version), status)
-                } else {
-                    null
-                }
+            componentVersionEntities.map { cv ->
+                ComponentVersionStatusWithInfoDTO(
+                    cv.component.name,
+                    cv.version,
+                    componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS,
+                    numericVersionFactory.create(cv.version)
+                )
+            }.filter {
+                allowedStatuses.contains(it.status)
             }
-        } ?: emptyList()
+        }
     }
 
     @Transactional(readOnly = false)

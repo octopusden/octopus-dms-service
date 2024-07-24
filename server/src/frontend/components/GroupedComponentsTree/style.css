@@ -1,13 +1,13 @@
-.solution-tree {
+.grouped-tree {
     flex-grow: 1;
     overflow-y: auto;
 
-    & .solution-tree-wrapper {
+    & .grouped-tree-wrapper {
         width: 100%;
     }
 }
 
-.error-icon-solution-tree-wrap {
+.error-icon-grouped-tree-wrap {
     padding-top: 15px;
 }
 

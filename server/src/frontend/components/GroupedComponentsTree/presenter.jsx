@@ -20,8 +20,8 @@ function groupedComponentsTree(props) {
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        return <div className="solution-tree">
-            <div className="solution-tree-wrapper">
+        return <div className="grouped-tree">
+            <div className="grouped-tree-wrapper">
                 <Tree
                     contents={nodes}
                     onNodeClick={handleNodeClick}

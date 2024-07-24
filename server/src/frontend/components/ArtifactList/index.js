@@ -14,13 +14,12 @@ const mapStateToProps = (state) => {
 
     const currentArtifacts = get(state, "components.currentArtifacts")
     const {
-        selectedComponent, selectedMinor, selectedVersion, selectedDocument, loadingArtifactsList, artifactsList
+        selectedComponent, selectedVersion, selectedDocument, loadingArtifactsList, artifactsList
     } = currentArtifacts
     return {
         adminMode,
         showConfirmation,
         selectedComponent,
-        selectedMinor,
         selectedVersion,
         selectedDocument,
         loadingArtifactsList,
@@ -82,7 +81,7 @@ class ArtifactsList extends Component {
 
         const {
             fetchArtifactList, fetchDocumentArtifact,
-            selectedComponent, selectedMinor, selectedVersion, selectedDocument, artifactsList
+            selectedComponent, selectedVersion, selectedDocument, artifactsList
         } = this.props
 
         let {
@@ -92,7 +91,7 @@ class ArtifactsList extends Component {
         } = prevProps
 
         if (selectedComponent !== prevSelectedComponent || selectedVersion !== prevSelectedVersion) {
-            fetchArtifactList(selectedComponent, selectedMinor, selectedVersion)
+            fetchArtifactList(selectedComponent, selectedVersion)
         }
 
         if (artifactsList.length > 0

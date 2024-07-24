@@ -14,7 +14,6 @@ const INITIAL_STATE = {
         selectedComponent: null,
         selectedMinor: null,
         selectedVersion: null,
-        selectedDependency: null,
         selectedDocument: {},
         artifactsList: []
     },

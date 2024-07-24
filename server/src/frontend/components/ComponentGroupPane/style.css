@@ -7,9 +7,10 @@
     & .bp3-tabs {
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
+        overflow-y: inherit;
 
         & .bp3-tab-panel {
+            overflow-y: auto;
         }
     }
 }
