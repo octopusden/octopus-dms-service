@@ -37,8 +37,8 @@ function solutionsToNodes(props) {
 
     return Object.values(components).map(solution => {
         let childNodes = []
-        let componentId = solution.id;
-        let minorVersions = solution.minorVersions;
+        const componentId = solution.id
+        const minorVersions = solution.minorVersions
         if (minorVersions) {
             childNodes = renderMinors(componentId, minorVersions, props)
         }
@@ -58,9 +58,9 @@ function solutionsToNodes(props) {
 function renderMinors(solutionId, minorVersions, props) {
     return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
-        let minorVersionId = minorVersion.id;
-        if (minorVersion.versions) {
-            let versions = minorVersion.versions
+        const minorVersionId = minorVersion.id
+        const versions = minorVersion.versions
+        if (versions) {
             childNodes = renderVersions(solutionId, minorVersionId, versions, props)
         }
 
@@ -86,8 +86,8 @@ function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
         })
         .map(version => {
             let childNodes = []
-            if (version.dependencies) {
-                let dependencies = version.dependencies
+            const dependencies = version.dependencies
+            if (dependencies) {
                 childNodes = renderDependencies(solutionId, solutionMinor, version.version, dependencies, props)
             }
 
@@ -111,10 +111,10 @@ function renderDependencies(solutionId, solutionMinor, solutionVersion, dependen
     const {currentArtifacts} = props
     const {selectedSolutionId, selectedSolutionVersion, selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(dependencies).map(dependency => {
-        let dependencyId = dependency.component.id;
-        let dependencyName = dependency.component.name;
-        let version = dependency.version;
-        let displayName = `${dependencyName}:${version}`;
+        const dependencyId = dependency.component.id
+        const dependencyName = dependency.component.name
+        const version = dependency.version
+        const displayName = `${dependencyName}:${version}`
         return {
             id: displayName,
             label: displayName,

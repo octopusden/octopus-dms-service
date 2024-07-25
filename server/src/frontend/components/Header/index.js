@@ -4,7 +4,7 @@ import {connect} from "react-redux";
 import get from "lodash/get";
 
 const mapStateToProps = (state) => {
-    let username = get(state, "components.loggedUser.username")
+    const username = get(state, "components.loggedUser.username")
     return {
         username
     }

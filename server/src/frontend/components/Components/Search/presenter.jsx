@@ -53,7 +53,7 @@ export default function search(props) {
 }
 
 function buildCompletionMenu(searchResult, handleComponentSelect) {
-    let menuItems = searchResult.map((e) => {
+    const menuItems = searchResult.map((e) => {
         let text = `${e.componentId}:${e.version}`
         return <MenuItem
             key={text}

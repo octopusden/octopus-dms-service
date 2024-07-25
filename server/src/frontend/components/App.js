@@ -12,10 +12,10 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const fetchBuildInfo = () => {
+    const getBuildInfo = () => {
         dispatch(componentsOperations.getBuildInfo())
     }
-    const fetchLoggedUser = () => {
+    const getLoggedUser = () => {
         dispatch(componentsOperations.getLoggedUser())
     }
     const showError = (errorMessage) => {
@@ -31,8 +31,8 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.hideConfirmation())
     }
     return {
-        fetchBuildInfo,
-        fetchLoggedUser,
+        getBuildInfo,
+        getLoggedUser,
         showError,
         hideError,
         showConfirmation,
@@ -43,9 +43,9 @@ const mapDispatchToProps = (dispatch) => {
 class App extends Component {
 
     componentDidMount() {
-        const {fetchBuildInfo, fetchLoggedUser} = this.props
-        fetchBuildInfo()
-        fetchLoggedUser()
+        const {getBuildInfo, getLoggedUser} = this.props
+        getBuildInfo()
+        getLoggedUser()
     }
 
     render() {

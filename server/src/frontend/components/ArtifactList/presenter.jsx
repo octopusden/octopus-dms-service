@@ -5,7 +5,7 @@ import './style.css'
 
 export default function artifactList(props) {
     const {
-        loadingArtifactsList, artifactsList, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion,
+        loadingArtifactsList, artifactsList, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion,
         selectedDocument, adminMode, deleteArtifact, showConfirmation
     } = props
     if (loadingArtifactsList) {
@@ -13,20 +13,20 @@ export default function artifactList(props) {
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        let printableArtifacts = artifactsList.filter(artifact => isPrintableArtifact(artifact));
-        let binaryArtifacts = artifactsList.filter(artifact => !isPrintableArtifact(artifact));
+        const printableArtifacts = artifactsList.filter(artifact => isPrintableArtifact(artifact))
+        const binaryArtifacts = artifactsList.filter(artifact => !isPrintableArtifact(artifact))
         return <div className='artifacts-component-list-block'>
             {printableArtifacts.length > 0 && <H4> Documents </H4>}
-            {artifactBlock(printableArtifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {artifactBlock(printableArtifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
             {binaryArtifacts.length > 0 && <H4> Binaries </H4>}
-            {artifactBlock(binaryArtifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {artifactBlock(binaryArtifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
         </div>
     }
 }
 
 function ArtifactLabel(props) {
     const {
-        fetchDocument, selectedComponent, selectedMinor, selectedVersion,
+        getDocument, selectedComponent, selectedVersion,
         selectedDocument, id, displayName, fileName, isPrintable, isDeletable,
         deleteArtifact, showConfirmation
     } = props
@@ -39,7 +39,7 @@ function ArtifactLabel(props) {
         {isPrintable
             ? <div className='artifact-label-link'
                    onClick={() => {
-                       fetchDocument(selectedComponent, selectedVersion, id, isPrintable, displayName)
+                       getDocument(selectedComponent, selectedVersion, id, isPrintable, displayName)
                    }}
             >{displayName}</div>
             : <div className='artifact-label-text'>{displayName}</div>
@@ -59,7 +59,7 @@ function ArtifactLabel(props) {
             {isDeletable &&
                 <a href="#" onClick={() =>
                     showConfirmation(`Delete artifact ${selectedComponent}:${selectedVersion} ${displayName}?`,
-                        () => deleteArtifact(selectedComponent, selectedMinor, selectedVersion, id))
+                        () => deleteArtifact(selectedComponent, selectedVersion, id))
                 }>
                     <Icon icon='trash' style={{color: "red"}}/>
                 </a>
@@ -68,14 +68,14 @@ function ArtifactLabel(props) {
     </div>
 }
 
-function artifactBlock(artifacts, fetchDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
+function artifactBlock(artifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
     return artifacts.map(artifact => {
         const {fileName, id, displayName} = artifact
         return <ArtifactLabel
             key={id}
             displayName={displayName}
             id={id}
-            fetchDocument={fetchDocumentArtifact}
+            fetchDocument={getDocumentArtifact}
             selectedComponent={selectedComponent}
             selectedMinor={selectedMinor}
             selectedVersion={selectedVersion}

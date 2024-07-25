@@ -3,7 +3,7 @@ import React from "react";
 import './style.css'
 
 export default function header(props) {
-    let {username, logOut} = props
+    const {username, logOut} = props
     return <div className="header-wrapper">
         <div className='logo'>DMS Portal</div>
         <div className='greetings-wrapper'>

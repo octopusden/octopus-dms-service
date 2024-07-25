@@ -37,8 +37,8 @@ function groupsToNodes(props) {
     const {components} = props
     return Object.values(components).map(group => {
         let childNodes = []
-        let groupId = group.id;
-        let subComponents = group.subComponents;
+        const groupId = group.id
+        const subComponents = group.subComponents
         if (subComponents) {
             childNodes = renderComponents(groupId, subComponents, props)
         }
@@ -57,8 +57,8 @@ function groupsToNodes(props) {
 function renderComponents(groupId, subComponents, props) {
     return Object.values(subComponents).map(component => {
         let childNodes = []
-        let componentId = component.id;
-        let minorVersions = component.minorVersions;
+        const componentId = component.id
+        const minorVersions = component.minorVersions
         if (minorVersions) {
             childNodes = renderComponentMinorVersions(groupId, componentId, minorVersions, props)
         }
@@ -81,8 +81,8 @@ function renderComponentMinorVersions(groupId, componentId, minorVersions, props
     return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
         const minorVersionId = minorVersion.id
-        if (minorVersion.versions) {
-            let versions = minorVersion.versions
+        const versions = minorVersion.versions
+        if (versions) {
             childNodes = renderVersions(groupId, componentId, minorVersionId, versions, props)
         }
         return {

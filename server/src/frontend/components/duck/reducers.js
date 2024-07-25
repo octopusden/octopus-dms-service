@@ -205,7 +205,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         case types.SELECT_DEPENDENCY: {
             const {solutionId, solutionMinor, solutionVersion, componentId, version} = action
             const {currentArtifacts, components} = state
-            let dependencyId = `${componentId}:${version}`;
+            const dependencyId = `${componentId}:${version}`
             const selectedComponentName = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component', 'name'])
             return {
                 ...state,
@@ -415,9 +415,9 @@ function updateGroupedComponentMinorVersion(state, groupId, componentId, minorVe
 
 function updateGroupedComponent(state, groupId, componentId, data) {
     const {components} = state
-    let parentComponent = components[groupId];
-    let subComponents = parentComponent.subComponents;
-    let customComponent = subComponents[componentId];
+    const parentComponent = components[groupId]
+    const subComponents = parentComponent.subComponents
+    const customComponent = subComponents[componentId]
     return {
         ...state,
         components: {

@@ -36,7 +36,7 @@ function componentsToNodes(props) {
     const {components} = props
     return Object.values(components).map(component => {
         let childNodes = []
-        let componentId = component.id;
+        const componentId = component.id
         if (component.minorVersions) {
             childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
         }
@@ -58,8 +58,8 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
     return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
         const minorVersionId = minorVersion.id
-        if (minorVersion.versions) {
-            let versions = minorVersion.versions
+        const versions = minorVersion.versions
+        if (versions) {
             childNodes = renderComponentVersions(componentId, minorVersionId, versions, props)
         }
         return {
@@ -82,7 +82,7 @@ function renderComponentVersions(componentId, minorVersion, versions, props) {
     return Object.values(versions).filter(version => {
         return showRc || version.status !== 'RC'
     }).map(version => {
-        let versionId = version.version;
+        const versionId = version.version
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
         return {
             id: versionId,

@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch) => {
     const requestSearch = (query) => {
         dispatch(componentsOperations.requestSearch(query))
     }
-    const fetchComponentVersions = (componentId, minorVersion) => {
+    const getComponentVersions = (componentId, minorVersion) => {
         dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
     }
     const handleInputFocus = () => {
@@ -46,11 +46,11 @@ const mapDispatchToProps = (dispatch) => {
         console.log(component, version)
         const {fetchArtifactsList} = this.props
 
-        fetchComponentVersions(component)
+        getComponentVersions(component)
         fetchArtifactsList(component, version)
     }
 
-    return {selectVersion, toggleRc, requestSearch, fetchComponentVersions, handleInputFocus, handleInputBlur, handleComponentSelect}
+    return {selectVersion, toggleRc, requestSearch, getComponentVersions, handleInputFocus, handleInputBlur, handleComponentSelect}
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

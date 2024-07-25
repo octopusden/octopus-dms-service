@@ -105,14 +105,14 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/minor-versions`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let versions = data.reduce((map, e) => {
+                const versions = data.reduce((map, e) => {
                     map[e] = {id: e}
                     return map
                 }, {})
                 dispatch(actions.receiveComponentMinorVersions(componentId, versions))
                 dispatch(actions.expandComponent(componentId))
             } else {
-                let {message} = data
+                const {message} = data
                 dispatch(actions.receiveComponentMinorVersionsError(componentId, message))
                 dispatch(actions.showError(message))
             }
@@ -125,14 +125,14 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let versions = data.versions.reduce((map, e) => {
+                const versions = data.versions.reduce((map, e) => {
                     map[e.version] = e
                     return map
                 }, {})
                 dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
                 dispatch(actions.expandMinorVersion(componentId, minorVersion))
             } else {
-                let {message} = data
+                const {message} = data
                 dispatch(actions.receiveComponentVersionsError(componentId, minorVersion, message))
                 dispatch(actions.showError(message))
             }
@@ -145,14 +145,14 @@ const getDependencies = (componentId, minorVersion, version) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/versions/${version}/dependencies`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let dependencies = data.reduce((map, d) => {
+                const dependencies = data.reduce((map, d) => {
                     map[`${d.component.id}:${d.version}`] = d
                     return map
                 }, {})
                 dispatch(actions.receiveDependencies(componentId, minorVersion, version, dependencies))
                 dispatch(actions.expandVersion(componentId, minorVersion, version))
             } else {
-                let {message} = data
+                const {message} = data
                 dispatch(actions.receiveDependenciesError(componentId, minorVersion, version, message))
                 dispatch(actions.showError(message))
             }
@@ -221,14 +221,14 @@ const getGroupedComponentVersions = (groupId, componentId, minorVersion) => (dis
     fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let versions = data.versions.reduce((map, e) => {
+                const versions = data.versions.reduce((map, e) => {
                     map[e.version] = e
                     return map
                 }, {})
                 dispatch(actions.receiveGroupedComponentVersions(groupId, componentId, minorVersion, versions))
                 dispatch(actions.expandGroupedComponentMinorVersion(groupId, componentId, minorVersion))
             } else {
-                let {message} = data
+                const {message} = data
                 dispatch(actions.receiveGroupedComponentVersionsError(groupId, componentId, minorVersion, message))
                 dispatch(actions.showError(message))
             }
@@ -257,8 +257,7 @@ const getArtifactsList = (componentId, version) => (dispatch) => {
     fetch(`rest/api/3/components/${componentId}/versions/${version}/artifacts`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                let artifacts = data.artifacts
-                dispatch(actions.receiveArtifactsList(artifacts))
+                dispatch(actions.receiveArtifactsList(data.artifacts))
             } else {
                 dispatch(actions.showError(data.message))
             }
@@ -275,7 +274,7 @@ const getDocumentArtifact = (componentId, version, id, displayName) => (dispatch
     })
 }
 
-const deleteArtifact = (componentId, minorVersion, version, id) => (dispatch) => {
+const deleteArtifact = (componentId, version, id) => (dispatch) => {
     dispatch(actions.deleteArtifact(id))
     const options = {
         method: 'DELETE'
@@ -284,7 +283,7 @@ const deleteArtifact = (componentId, minorVersion, version, id) => (dispatch) =>
         .then(handleErrors(`Delete artifact '${id}'`))
         .then((_) => {
             dispatch(actions.successDeleteArtifact(id))
-            dispatch(getArtifactsList(componentId, minorVersion, version))
+            dispatch(getArtifactsList(componentId, version))
         })
         .catch((err) => dispatch(actions.showError(err.message)))
 }
@@ -324,7 +323,7 @@ const hideConfirmation = () => (dispatch) => {
 var requestSearchTimer
 const requestSearch = (query) => (dispatch) => {
     clearTimeout(requestSearchTimer)
-    let isQueryValid = checkQuery(query)
+    const isQueryValid = checkQuery(query)
     dispatch(actions.changeSearchQueryValid(isQueryValid))
 
     if (isQueryValid) {
