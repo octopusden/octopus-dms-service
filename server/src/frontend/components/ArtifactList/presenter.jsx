@@ -5,7 +5,7 @@ import './style.css'
 
 export default function artifactList(props) {
     const {
-        loadingArtifactsList, artifactsList, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion,
+        loadingArtifactsList, artifactsList, getDocument, selectedComponent, selectedMinor, selectedVersion,
         selectedDocument, adminMode, deleteArtifact, showConfirmation
     } = props
     if (loadingArtifactsList) {
@@ -17,9 +17,9 @@ export default function artifactList(props) {
         const binaryArtifacts = artifactsList.filter(artifact => !isPrintableArtifact(artifact))
         return <div className='artifacts-component-list-block'>
             {printableArtifacts.length > 0 && <H4> Documents </H4>}
-            {artifactBlock(printableArtifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {artifactBlock(printableArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
             {binaryArtifacts.length > 0 && <H4> Binaries </H4>}
-            {artifactBlock(binaryArtifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
         </div>
     }
 }
@@ -68,14 +68,14 @@ function ArtifactLabel(props) {
     </div>
 }
 
-function artifactBlock(artifacts, getDocumentArtifact, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
+function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
     return artifacts.map(artifact => {
         const {fileName, id, displayName} = artifact
         return <ArtifactLabel
             key={id}
             displayName={displayName}
             id={id}
-            fetchDocument={getDocumentArtifact}
+            getDocument={getDocument}
             selectedComponent={selectedComponent}
             selectedMinor={selectedMinor}
             selectedVersion={selectedVersion}

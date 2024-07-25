@@ -17,11 +17,11 @@ const mapDispatchToProps = (dispatch) => {
     const handleComponentGroupTabChange = (selectedComponentGroupTab) => {
         dispatch(componentsOperations.handleComponentGroupTabChange(selectedComponentGroupTab))
     }
-    const getCustomComponents = () => {
-        dispatch(componentsOperations.getCustomComponents())
+    const getCustomComponents = (onSuccess) => {
+        dispatch(componentsOperations.getCustomComponents(onSuccess))
     }
-    const getClientsComponents = () => {
-        dispatch(componentsOperations.getClientComponents())
+    const getClientsComponents = (onSuccess) => {
+        dispatch(componentsOperations.getClientComponents(onSuccess))
     }
     return {handleComponentGroupTabChange, getCustomComponents, getClientsComponents}
 }

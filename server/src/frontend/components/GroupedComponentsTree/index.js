@@ -27,8 +27,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeGroupedComponent = (groupId, componentId) => {
         dispatch(componentsOperations.closeGroupedComponent(groupId, componentId))
     }
-    const getGroupedComponentMinorVersions = (groupId, componentId) => {
-        dispatch(componentsOperations.getGroupedComponentMinorVersions(groupId, componentId))
+    const getGroupedComponentMinorVersions = (groupId, componentId, onSuccess) => {
+        dispatch(componentsOperations.getGroupedComponentMinorVersions(groupId, componentId, onSuccess))
     }
     const expandMinorVersion = (groupId, componentId, minorVersion) => {
         dispatch(componentsOperations.expandGroupedComponentMinorVersion(groupId, componentId, minorVersion))
@@ -36,8 +36,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeMinorVersion = (groupId, componentId, minorVersion) => {
         dispatch(componentsOperations.closeGroupedComponentMinorVersion(groupId, componentId, minorVersion))
     }
-    const getVersions = (groupId, componentId, minorVersion) => {
-        dispatch(componentsOperations.getGroupedComponentVersions(groupId, componentId, minorVersion))
+    const getVersions = (groupId, componentId, minorVersion, onSuccess) => {
+        dispatch(componentsOperations.getGroupedComponentVersions(groupId, componentId, minorVersion, onSuccess))
     }
     const selectVersion = (groupId, componentId, minorVersion, version) => {
         dispatch(componentsOperations.selectGroupedComponentVersion(groupId, componentId, minorVersion, version))
@@ -94,23 +94,26 @@ class GroupedComponentsTree extends Component {
             getGroupedComponents,
             expandComponentGroup,
             getGroupedComponentMinorVersions,
-            getGroupedComponentVersions,
+            getVersions,
             selectVersion
         } = this.props
 
-        getGroupedComponents()
-        if (group) {
-            expandComponentGroup(group)
-            if (component) {
-                getGroupedComponentMinorVersions(group, component)
-                if (minor) {
-                    getGroupedComponentVersions(group, component, minor)
-                    if (version) {
-                        selectVersion(group, component, minor, version)
-                    }
+        getGroupedComponents(() => {
+            if (group) {
+                expandComponentGroup(group)
+                if (component) {
+                    getGroupedComponentMinorVersions(group, component, () => {
+                        if (minor) {
+                            getVersions(group, component, minor, () => {
+                                if (version) {
+                                    selectVersion(group, component, minor, version)
+                                }
+                            })
+                        }
+                    })
                 }
             }
-        }
+        })
     }
 
     render() {

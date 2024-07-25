@@ -31,7 +31,7 @@ const getLoggedUser = () => (dispatch) => {
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
-const getComponents = (solution) => (dispatch) => {
+const getComponents = (solution, onSuccess) => (dispatch) => {
     dispatch(actions.requestComponents())
     fetch(`rest/api/3/components?solution=${solution}`)
         .then(handleErrors('Get components'))
@@ -42,11 +42,14 @@ const getComponents = (solution) => (dispatch) => {
                     return map
                 }, {});
                 dispatch(actions.receiveComponents(components))
+                if (onSuccess) {
+                    onSuccess()
+                }
             })
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
-const getClientComponents = () => (dispatch) => {
+const getClientComponents = (onSuccess) => (dispatch) => {
     dispatch(actions.requestComponents())
     fetch(`rest/api/3/components`)
         .then(handleErrors('Get client components'))
@@ -64,11 +67,14 @@ const getClientComponents = () => (dispatch) => {
                         return acc;
                     }, {})
                 dispatch(actions.receiveComponents(parents))
+                if (onSuccess) {
+                    onSuccess()
+                }
             })
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
-const getCustomComponents = () => (dispatch) => {
+const getCustomComponents = (onSuccess) => (dispatch) => {
     dispatch(actions.requestComponents())
     fetch(`rest/api/3/components`)
         .then(handleErrors('Get custom components'))
@@ -94,13 +100,16 @@ const getCustomComponents = () => (dispatch) => {
                                     return acc;
                                 }, {})
                             dispatch(actions.receiveComponents(parents))
+                            if (onSuccess) {
+                                onSuccess()
+                            }
                         })
                     }).catch((err) => dispatch(actions.showError(err.message)))
             })
         }).catch((err) => dispatch(actions.showError(err.message)))
 }
 
-const getComponentMinorVersions = (componentId) => (dispatch) => {
+const getComponentMinorVersions = (componentId, onSuccess) => (dispatch) => {
     dispatch(actions.requestComponentMinorVersions(componentId))
     fetch(`rest/api/3/components/${componentId}/minor-versions`).then((response) => {
         response.json().then((data) => {
@@ -111,6 +120,9 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
                 }, {})
                 dispatch(actions.receiveComponentMinorVersions(componentId, versions))
                 dispatch(actions.expandComponent(componentId))
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 const {message} = data
                 dispatch(actions.receiveComponentMinorVersionsError(componentId, message))
@@ -120,7 +132,7 @@ const getComponentMinorVersions = (componentId) => (dispatch) => {
     })
 }
 
-const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
+const getComponentVersions = (componentId, minorVersion, onSuccess) => (dispatch) => {
     dispatch(actions.requestComponentVersions(componentId, minorVersion))
     fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
         response.json().then((data) => {
@@ -131,6 +143,9 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
                 }, {})
                 dispatch(actions.receiveComponentVersions(componentId, minorVersion, versions))
                 dispatch(actions.expandMinorVersion(componentId, minorVersion))
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 const {message} = data
                 dispatch(actions.receiveComponentVersionsError(componentId, minorVersion, message))
@@ -140,7 +155,7 @@ const getComponentVersions = (componentId, minorVersion) => (dispatch) => {
     })
 }
 
-const getDependencies = (componentId, minorVersion, version) => (dispatch) => {
+const getDependencies = (componentId, minorVersion, version, onSuccess) => (dispatch) => {
     dispatch(actions.requestDependencies(componentId, minorVersion, version))
     fetch(`rest/api/3/components/${componentId}/versions/${version}/dependencies`).then((response) => {
         response.json().then((data) => {
@@ -151,6 +166,9 @@ const getDependencies = (componentId, minorVersion, version) => (dispatch) => {
                 }, {})
                 dispatch(actions.receiveDependencies(componentId, minorVersion, version, dependencies))
                 dispatch(actions.expandVersion(componentId, minorVersion, version))
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 const {message} = data
                 dispatch(actions.receiveDependenciesError(componentId, minorVersion, version, message))
@@ -188,7 +206,7 @@ const closeGroupedComponent = (groupId, componentId) => (dispatch) => {
     dispatch(actions.closeGroupedComponent(groupId, componentId))
 }
 
-const getGroupedComponentMinorVersions = (groupId, componentId) => (dispatch) => {
+const getGroupedComponentMinorVersions = (groupId, componentId, onSuccess) => (dispatch) => {
     dispatch(actions.requestGroupedComponentMinorVersions(groupId, componentId))
     fetch(`rest/api/3/components/${componentId}/minor-versions`).then((response) => {
         response.json().then((data) => {
@@ -199,6 +217,9 @@ const getGroupedComponentMinorVersions = (groupId, componentId) => (dispatch) =>
                 }, {});
                 dispatch(actions.receiveGroupedComponentMinorVersions(groupId, componentId, versions))
                 dispatch(actions.expandGroupedComponent(groupId, componentId))
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 const {message} = data
                 dispatch(actions.receiveGroupedComponentMinorVersionsError(groupId, componentId, message))
@@ -216,7 +237,7 @@ const closeGroupedComponentMinorVersion = (groupId, componentId, minorVersion) =
     dispatch(actions.closeGroupedComponentMinorVersion(groupId, componentId, minorVersion))
 }
 
-const getGroupedComponentVersions = (groupId, componentId, minorVersion) => (dispatch) => {
+const getGroupedComponentVersions = (groupId, componentId, minorVersion, onSuccess) => (dispatch) => {
     dispatch(actions.requestGroupedComponentVersions(groupId, componentId, minorVersion))
     fetch(`rest/api/3/components/${componentId}/versions?filter-by-minor=${minorVersion}&includeRc=true`).then((response) => {
         response.json().then((data) => {
@@ -227,6 +248,9 @@ const getGroupedComponentVersions = (groupId, componentId, minorVersion) => (dis
                 }, {})
                 dispatch(actions.receiveGroupedComponentVersions(groupId, componentId, minorVersion, versions))
                 dispatch(actions.expandGroupedComponentMinorVersion(groupId, componentId, minorVersion))
+                if (onSuccess) {
+                    onSuccess()
+                }
             } else {
                 const {message} = data
                 dispatch(actions.receiveGroupedComponentVersionsError(groupId, componentId, minorVersion, message))
@@ -265,7 +289,7 @@ const getArtifactsList = (componentId, version) => (dispatch) => {
     })
 }
 
-const getDocumentArtifact = (componentId, version, id, displayName) => (dispatch) => {
+const getDocument = (componentId, version, id, displayName) => (dispatch) => {
     dispatch(actions.requestDocumentArtifact(id))
     fetch(`rest/api/3/artifacts/${id}/download`).then((response) => {
         response.text().then((data) => {
@@ -362,7 +386,7 @@ export default {
     selectDependency,
     closeComponent,
     getArtifactsList,
-    getDocumentArtifact,
+    getDocument,
     getEmptyDocumentArtifact,
     showError,
     hideError,

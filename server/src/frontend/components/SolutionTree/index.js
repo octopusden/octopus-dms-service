@@ -15,8 +15,8 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const getSolutions = () => {
-        dispatch(componentsOperations.getComponents(true))
+    const getSolutions = (execute) => {
+        dispatch(componentsOperations.getComponents(true, execute))
     }
     const expandComponent = (componentId) => {
         dispatch(componentsOperations.expandComponent(componentId))
@@ -24,8 +24,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeComponent = (componentId) => {
         dispatch(componentsOperations.closeComponent(componentId))
     }
-    const getComponentMinorVersions = (componentId) => {
-        dispatch(componentsOperations.getComponentMinorVersions(componentId))
+    const getComponentMinorVersions = (componentId, onSuccess) => {
+        dispatch(componentsOperations.getComponentMinorVersions(componentId, onSuccess))
     }
     const expandMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.expandMinorVersion(componentId, minorVersion))
@@ -33,8 +33,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.closeMinorVersion(componentId, minorVersion))
     }
-    const getComponentVersions = (componentId, minorVersion) => {
-        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
+    const getComponentVersions = (componentId, minorVersion, onSuccess) => {
+        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion, onSuccess))
     }
     const expandVersion = (componentId, minorVersion, version) => {
         dispatch(componentsOperations.expandVersion(componentId, minorVersion, version))
@@ -44,8 +44,8 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.closeVersion(componentId, minorVersion, version))
     }
 
-    const getDependencies = (componentId, minorVersion, version) => {
-        dispatch(componentsOperations.getDependencies(componentId, minorVersion, version))
+    const getDependencies = (componentId, minorVersion, version, onSuccess) => {
+        dispatch(componentsOperations.getDependencies(componentId, minorVersion, version, onSuccess))
     }
 
     const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => {
@@ -111,19 +111,23 @@ class SolutionsTree extends Component {
             selectDependency
         } = this.props
 
-        getSolutions()
-        if (solutionId) {
-            getComponentMinorVersions(solutionId)
-            if (solutionMinor) {
-                getComponentVersions(solutionId, solutionMinor)
-                if (solutionVersion) {
-                    getDependencies(solutionId, solutionMinor, solutionVersion)
-                    if (dependencyId && dependencyVersion) {
-                        selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
+        getSolutions(() => {
+            if (solutionId) {
+                getComponentMinorVersions(solutionId, () => {
+                    if (solutionMinor) {
+                        getComponentVersions(solutionId, solutionMinor, () => {
+                            if (solutionVersion) {
+                                getDependencies(solutionId, solutionMinor, solutionVersion, () => {
+                                    if (dependencyId && dependencyVersion) {
+                                        selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
+                                    }
+                                })
+                            }
+                        })
                     }
-                }
+                })
             }
-        }
+        })
     }
 
     render() {

@@ -31,9 +31,9 @@ const mapDispatchToProps = (dispatch) => {
     const getArtifactList = (componentId, version) => {
         dispatch(componentsOperations.getArtifactsList(componentId, version))
     }
-    const getDocumentArtifact = (componentId, version, id, isPrintable, displayName) => {
+    const getDocument = (componentId, version, id, isPrintable, displayName) => {
         isPrintable
-            ? dispatch(componentsOperations.getDocumentArtifact(componentId, version, id, displayName))
+            ? dispatch(componentsOperations.getDocument(componentId, version, id, displayName))
             : dispatch(componentsOperations.getEmptyDocumentArtifact(componentId, version, id))
     }
     const deleteArtifact = (componentId, version, id) => {
@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch) => {
     }
     return {
         getArtifactList,
-        getDocumentArtifact,
+        getDocument,
         deleteArtifact
     }
 }
@@ -68,10 +68,10 @@ class ArtifactsList extends Component {
     constructor(props, context) {
         super(props, context);
         const urlProps = queryString.parse(history.location.search)
-        const {getDocumentArtifact, selectedComponent, selectedVersion} = props
+        const {getDocument, selectedComponent, selectedVersion} = props
         const {artifactId} = urlProps
         if (artifactId) {
-            getDocumentArtifact(selectedComponent, selectedVersion, +artifactId, false, '')
+            getDocument(selectedComponent, selectedVersion, +artifactId, false, '')
         }
     }
 
@@ -80,7 +80,7 @@ class ArtifactsList extends Component {
         history.push({search: queryString.stringify(urlState)})
 
         const {
-            getArtifactList, getDocumentArtifact, selectedComponent, selectedVersion, selectedDocument, artifactsList
+            getArtifactList, getDocument, selectedComponent, selectedVersion, selectedDocument, artifactsList
         } = this.props
 
         const {
@@ -101,7 +101,7 @@ class ArtifactsList extends Component {
                 return artifact.id === selectedDocument.id
             })
             const isPrintable = isPrintableArtifact(artifact)
-            getDocumentArtifact(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
+            getDocument(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
         }
     }
 
@@ -111,12 +111,12 @@ class ArtifactsList extends Component {
             selectedVersion,
             selectedDocument,
             getArtifactList,
-            getDocumentArtifact
+            getDocument
         } = this.props
         if (selectedComponent && selectedVersion) {
             getArtifactList(selectedComponent, selectedVersion)
             if (selectedDocument.id) {
-                getDocumentArtifact(selectedComponent, selectedVersion, +selectedDocument.id, false, '')
+                getDocument(selectedComponent, selectedVersion, +selectedDocument.id, false, '')
             }
         }
     }

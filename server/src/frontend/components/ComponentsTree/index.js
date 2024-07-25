@@ -15,8 +15,8 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const getComponents = () => {
-        dispatch(componentsOperations.getComponents(false))
+    const getComponents = (onSuccess) => {
+        dispatch(componentsOperations.getComponents(false, onSuccess))
     }
     const expandComponent = (componentId) => {
         dispatch(componentsOperations.expandComponent(componentId))
@@ -24,8 +24,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeComponent = (componentId) => {
         dispatch(componentsOperations.closeComponent(componentId))
     }
-    const getComponentMinorVersions = (componentId) => {
-        dispatch(componentsOperations.getComponentMinorVersions(componentId))
+    const getComponentMinorVersions = (componentId, onSuccess) => {
+        dispatch(componentsOperations.getComponentMinorVersions(componentId, onSuccess))
     }
     const expandMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.expandMinorVersion(componentId, minorVersion))
@@ -33,8 +33,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.closeMinorVersion(componentId, minorVersion))
     }
-    const getComponentVersions = (componentId, minorVersion) => {
-        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
+    const getComponentVersions = (componentId, minorVersion, onSuccess) => {
+        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion, onSuccess))
     }
     const selectVersion = (componentId, minorVersion, version) => {
         dispatch(componentsOperations.selectVersion(componentId, minorVersion, version))
@@ -63,7 +63,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
     const {selectedComponent, selectedMinor, selectedVersion} = props.currentArtifacts
-
     return {
         ...currentUrlProps,
         component: selectedComponent == null ? undefined : selectedComponent,
@@ -83,16 +82,19 @@ class ComponentsTree extends Component {
         const {component, minor, version} = urlProps
         const {getComponents, getComponentMinorVersions, getComponentVersions, selectVersion} = this.props
 
-        getComponents()
-        if (component) {
-            getComponentMinorVersions(component)
-            if (minor) {
-                getComponentVersions(component, minor)
-                if (version) {
-                    selectVersion(component, minor, version)
-                }
+        getComponents(() => {
+            if (component) {
+                getComponentMinorVersions(component, () => {
+                    if (minor) {
+                        getComponentVersions(component, minor, () => {
+                            if (version) {
+                                selectVersion(component, minor, version)
+                            }
+                        })
+                    }
+                })
             }
-        }
+        })
     }
 
     render() {

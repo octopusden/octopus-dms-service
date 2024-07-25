@@ -76,7 +76,7 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
     })
 }
 
-function renderComponentVersions(componentId, minorVersion, versions, props) {
+function renderComponentVersions(componentId, minorVersionId, versions, props) {
     const {showRc, currentArtifacts} = props
     const {selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(versions).filter(version => {
@@ -88,7 +88,7 @@ function renderComponentVersions(componentId, minorVersion, versions, props) {
             id: versionId,
             label: displayName,
             version: versionId,
-            minorVersion: minorVersion.id,
+            minorVersion: minorVersionId,
             componentId: componentId,
             icon: 'box',
             isSelected: selectedComponent === componentId && selectedVersion === versionId
