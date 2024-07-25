@@ -175,7 +175,7 @@ class GroupedComponentsTree extends Component {
         if (!minorVersion.versions || minorVersion.loadError) {
             getVersions(groupId, componentId, minor)
         } else {
-            expandMinorVersion(componentId, minor)
+            expandMinorVersion(groupId, componentId, minor)
         }
     }
 
