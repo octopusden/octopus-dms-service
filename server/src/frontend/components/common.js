@@ -22,7 +22,6 @@ export function isPrintableArtifact(artifact) {
 }
 
 export function isHtml(fileName) {
-    console.debug('isHtml', fileName, htmlRegex.test(fileName))
     return htmlRegex.test(fileName)
 }
 

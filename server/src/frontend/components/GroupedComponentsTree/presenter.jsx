@@ -104,22 +104,22 @@ function renderVersions(groupId, componentId, minorVersion, versions, props) {
     const {showRc, currentArtifacts} = props
     const {selectedGroup, selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(versions)
-        .filter(solutionVersion => {
-            return showRc || solutionVersion.status !== 'RC'
+        .filter(version => {
+            return showRc || version.status !== 'RC'
         })
-        .map(componentVersion => {
-            const displayName = componentVersion.version + (componentVersion.status === 'RELEASE' ? '' : `-${componentVersion.status}`)
+        .map(version => {
+            const displayName = version.version + (version.status === 'RELEASE' ? '' : `-${version.status}`)
             return {
                 level: treeLevel.VERSION,
-                id: componentVersion.id,
+                id: version.id,
                 label: displayName,
                 groupId: groupId,
                 componentId: componentId,
                 minorVersion: minorVersion,
-                version: componentVersion.version,
+                version: version.version,
                 icon: 'box',
                 isSelected: selectedGroup === groupId && selectedComponent === componentId
-                    && selectedVersion === componentVersion.version
+                    && selectedVersion === version.version
             }
         })
 }

@@ -81,28 +81,28 @@ function renderMinors(solutionId, minorVersions, props) {
 function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
     const {showRc} = props
     return Object.values(solutionVersions)
-        .filter(solutionVersion => {
-            return showRc || solutionVersion.status !== 'RC'
+        .filter(version => {
+            return showRc || version.status !== 'RC'
         })
-        .map(solutionVersion => {
+        .map(version => {
             let childNodes = []
-            if (solutionVersion.dependencies) {
-                let dependencies = solutionVersion.dependencies
-                childNodes = renderDependencies(solutionId, solutionMinor, solutionVersion.version, dependencies, props)
+            if (version.dependencies) {
+                let dependencies = version.dependencies
+                childNodes = renderDependencies(solutionId, solutionMinor, version.version, dependencies, props)
             }
 
-            const displayName = solutionVersion.version + (solutionVersion.status === 'RELEASE' ? '' : `-${solutionVersion.status}`)
+            const displayName = version.version + (version.status === 'RELEASE' ? '' : `-${version.status}`)
             return {
                 level: treeLevel.VERSION,
-                id: solutionVersion.id,
+                id: version.id,
                 label: displayName,
                 solutionId: solutionId,
                 solutionMinor: solutionMinor,
-                solutionVersion: solutionVersion.version,
+                solutionVersion: version.version,
                 icon: 'box',
-                isExpanded: solutionVersion.expand,
+                isExpanded: version.expand,
                 childNodes: childNodes,
-                secondaryLabel: getSecondaryLabel(solutionVersion)
+                secondaryLabel: getSecondaryLabel(version)
             }
         })
 }
