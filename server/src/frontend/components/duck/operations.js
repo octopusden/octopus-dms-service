@@ -303,7 +303,7 @@ const deleteArtifact = (componentId, version, id) => (dispatch) => {
     const options = {
         method: 'DELETE'
     }
-    fetch(`rest/api/3/artifacts/${id}?dry-run=false`, options)
+    fetch(`rest/api/3/components/${componentId}/versions/${version}/artifacts/${id}?dry-run=false`, options)
         .then(handleErrors(`Delete artifact '${id}'`))
         .then((_) => {
             dispatch(actions.successDeleteArtifact(id))
