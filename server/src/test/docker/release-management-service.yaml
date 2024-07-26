@@ -1,0 +1,5 @@
+server:
+  forward-headers-strategy: framework
+
+releng:
+  url: http://mockserver:1080

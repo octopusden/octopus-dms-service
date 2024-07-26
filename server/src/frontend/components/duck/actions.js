@@ -22,30 +22,54 @@ const requestComponents = () => ({
     type: types.REQUEST_COMPONENTS
 })
 
-const requestComponentVersions = (componentId, minorVersion) => ({
-    type: types.REQUEST_COMPONENT_VERSIONS,
-    componentId: componentId,
-    minorVersion: minorVersion
-})
-
 const receiveComponents = (components) => ({
     type: types.RECEIVE_COMPONENTS,
     components: components
 })
 
+const requestComponentVersions = (componentId, minorVersion) => ({
+    type: types.REQUEST_VERSIONS,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
 const receiveComponentVersionsError = (componentId, minorVersion, errorMessage) => ({
-    type: types.RECEIVE_COMPONENT_VERSIONS_ERROR,
+    type: types.RECEIVE_VERSIONS_ERROR,
     componentId: componentId,
     minorVersion: minorVersion,
     errorMessage: errorMessage,
-    loadingError: true
+    loadError: true
 })
 
 const receiveComponentVersions = (componentId, minorVersion, versions) => ({
-    type: types.RECEIVE_COMPONENT_VERSIONS,
+    type: types.RECEIVE_VERSIONS,
     componentId: componentId,
     minorVersion: minorVersion,
     versions: versions
+})
+
+const requestDependencies = (componentId, minorVersion, version) => ({
+    type: types.REQUEST_DEPENDENCIES,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version,
+})
+
+const receiveDependencies = (componentId, minorVersion, version, dependencies) => ({
+    type: types.RECEIVE_DEPENDENCIES,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version,
+    dependencies: dependencies
+})
+
+const receiveDependenciesError = (componentId, minorVersion, version, errorMessage) => ({
+    type: types.RECEIVE_DEPENDENCIES_ERROR,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    errorMessage: errorMessage,
+    version: version,
+    loadError: true
 })
 
 const expandComponent = (componentId) => ({
@@ -58,16 +82,116 @@ const closeComponent = (componentId) => ({
     componentId: componentId
 })
 
+const expandGroupedComponent = (groupId, componentId) => ({
+    type: types.EXPAND_GROUPED_COMPONENT,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const closeGroupedComponent = (groupId, componentId) => ({
+    type: types.CLOSE_GROUPED_COMPONENT,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const requestGroupedComponentMinorVersions = (groupId, componentId) => ({
+    type: types.REQUEST_GROUPED_COMPONENT_MINOR_VERSIONS,
+    groupId: groupId,
+    componentId: componentId
+})
+
+const receiveGroupedComponentMinorVersions = (groupId, componentId, versions) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    versions: versions
+})
+
+const receiveGroupedComponentMinorVersionsError = (groupId, componentId, errorMessage) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS_ERROR,
+    groupId: groupId,
+    componentId: componentId,
+    errorMessage: errorMessage
+})
+
+const expandGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => ({
+    type: types.EXPAND_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const receiveGroupedComponentVersionsError = (groupId, componentId, minorVersion, errorMessage) => ({
+    type: types.EXPAND_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    errorMessage: errorMessage
+})
+
+const closeGroupedComponentMinorVersion = (groupId, componentId, minorVersion) => ({
+    type: types.CLOSE_GROUPED_COMPONENT_MINOR_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const requestGroupedComponentVersions = (groupId, componentId, minorVersion) => ({
+    type: types.REQUEST_GROUPED_COMPONENT_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion
+})
+
+const receiveGroupedComponentVersions = (groupId, componentId, minorVersion, versions) => ({
+    type: types.RECEIVE_GROUPED_COMPONENT_VERSIONS,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    versions: versions
+})
+
+const selectGroupedComponentVersion = (groupId, componentId, minorVersion, version) => ({
+    type: types.SELECT_GROUPED_COMPONENT_VERSION,
+    groupId: groupId,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
 const expandMinorVersion = (componentId, minorVersion) => ({
-    type: types.EXPAND_MINOR_VERSION,
+    type: types.EXPAND_COMPONENT_MINOR_VERSION,
     componentId: componentId,
     minorVersion: minorVersion
 })
 
 const closeMinorVersion = (componentId, minorVersion) => ({
-    type: types.CLOSE_MINOR_VERSION,
+    type: types.CLOSE_COMPONENT_MINOR_VERSION,
     componentId: componentId,
     minorVersion: minorVersion
+})
+
+const expandVersion = (componentId, minorVersion, version) => ({
+    type: types.EXPAND_VERSION,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
+const closeVersion = (componentId, minorVersion, version) => ({
+    type: types.CLOSE_VERSION,
+    componentId: componentId,
+    minorVersion: minorVersion,
+    version: version
+})
+
+const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => ({
+    type: types.SELECT_DEPENDENCY,
+    solutionId: solutionId,
+    solutionMinor: solutionMinor,
+    solutionVersion: solutionVersion,
+    componentId: componentId,
+    version: version
 })
 
 const selectVersion = (componentId, minorVersion, version) => ({
@@ -77,18 +201,14 @@ const selectVersion = (componentId, minorVersion, version) => ({
     version: version
 })
 
-const requestArtifactsList = (componentId, minorVersion, version) => ({
+const requestArtifactsList = (componentId, version) => ({
     type: types.REQUEST_ARTIFACTS_LIST,
     componentId: componentId,
-    minorVersion: minorVersion,
     version: version
 })
 
-const receiveArtifactsList = (componentId, minorVersion, version, artifactsList) => ({
+const receiveArtifactsList = (artifactsList) => ({
     type: types.RECEIVE_ARTIFACTS_LIST,
-    componentId: componentId,
-    minorVersion: minorVersion,
-    version: version,
     artifactsList: artifactsList
 })
 
@@ -139,6 +259,11 @@ const toggleAdminMode = () => ({
     type: types.TOGGLE_ADMIN_MODE
 })
 
+const handleComponentGroupTabChange = (selectedComponentGroupTab) => ({
+    type: types.HANDLE_COMPONENT_GROUP_TAB_CHANGE,
+    selectedComponentGroupTab: selectedComponentGroupTab
+})
+
 const deleteArtifact = (id) => ({
     type: types.DELETE_ARTIFACT,
     id: id
@@ -184,6 +309,11 @@ export default {
     receiveComponents,
     receiveComponentVersionsError,
     receiveComponentVersions,
+    closeVersion,
+    requestDependencies,
+    receiveDependencies,
+    receiveDependenciesError,
+    selectDependency,
     expandComponent,
     closeComponent,
     requestArtifactsList,
@@ -198,6 +328,7 @@ export default {
     hideError,
     toggleRc,
     toggleAdminMode,
+    handleComponentGroupTabChange,
     requestSearch,
     receiveSearch,
     changeSearchQueryValid,
@@ -205,6 +336,18 @@ export default {
     receiveComponentMinorVersions,
     receiveComponentMinorVersionsError,
     expandMinorVersion,
+    expandVersion,
     closeMinorVersion,
-    selectVersion
+    selectVersion,
+    expandGroupedComponent,
+    closeGroupedComponent,
+    requestGroupedComponentMinorVersions,
+    receiveGroupedComponentMinorVersions,
+    receiveGroupedComponentMinorVersionsError,
+    expandGroupedComponentMinorVersion,
+    closeGroupedComponentMinorVersion,
+    requestGroupedComponentVersions,
+    receiveGroupedComponentVersions,
+    receiveGroupedComponentVersionsError,
+    selectGroupedComponentVersion
 }

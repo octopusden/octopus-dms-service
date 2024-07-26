@@ -12,10 +12,10 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const fetchBuildInfo = () => {
+    const getBuildInfo = () => {
         dispatch(componentsOperations.getBuildInfo())
     }
-    const fetchLoggedUser = () => {
+    const getLoggedUser = () => {
         dispatch(componentsOperations.getLoggedUser())
     }
     const showError = (errorMessage) => {
@@ -24,22 +24,17 @@ const mapDispatchToProps = (dispatch) => {
     const hideError = () => {
         dispatch(componentsOperations.hideError())
     }
-    const requestSearch = (query) => {
-        dispatch(componentsOperations.requestSearch(query))
-    }
     const showConfirmation = (message, onConfirm) => {
         dispatch(componentsOperations.showConfirmation(message, onConfirm))
     }
     const hideConfirmation = () => {
         dispatch(componentsOperations.hideConfirmation())
     }
-
     return {
-        fetchBuildInfo,
-        fetchLoggedUser,
+        getBuildInfo,
+        getLoggedUser,
         showError,
         hideError,
-        requestSearch,
         showConfirmation,
         hideConfirmation
     }
@@ -48,9 +43,9 @@ const mapDispatchToProps = (dispatch) => {
 class App extends Component {
 
     componentDidMount() {
-        const {fetchBuildInfo, fetchLoggedUser} = this.props
-        fetchBuildInfo()
-        fetchLoggedUser()
+        const {getBuildInfo, getLoggedUser} = this.props
+        getBuildInfo()
+        getLoggedUser()
     }
 
     render() {

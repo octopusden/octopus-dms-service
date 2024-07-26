@@ -5,36 +5,18 @@ import {componentsTree, treeLevel} from "./presenter.jsx";
 import {componentsOperations} from "../duck";
 import queryString from "query-string";
 import history from "../../utils/history";
+import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
-        loggedUser, components, componentsVersions, loadingComponents, loadingArtifactsList, currentArtifacts,
-        errorMessage, showRc, searchQueryValid, searchResult, searching, toggleAdminMode, adminMode, confirmation
+        components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc
     } = state.components
-    return {
-        loggedUser,
-        components,
-        componentsVersions,
-        loadingComponents,
-        loadingArtifactsList,
-        currentArtifacts,
-        errorMessage,
-        showRc,
-        searchQueryValid,
-        searchResult,
-        searching,
-        toggleAdminMode,
-        adminMode,
-        confirmation
-    }
+    return {components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc}
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const toggleRc = () => {
-        dispatch(componentsOperations.toggleRc())
-    }
-    const fetchComponents = () => {
-        dispatch(componentsOperations.getComponents())
+    const getComponents = (onSuccess) => {
+        dispatch(componentsOperations.getComponents(false, onSuccess))
     }
     const expandComponent = (componentId) => {
         dispatch(componentsOperations.expandComponent(componentId))
@@ -42,8 +24,8 @@ const mapDispatchToProps = (dispatch) => {
     const closeComponent = (componentId) => {
         dispatch(componentsOperations.closeComponent(componentId))
     }
-    const fetchComponentMinorVersions = (componentId) => {
-        dispatch(componentsOperations.getComponentMinorVersions(componentId))
+    const getComponentMinorVersions = (componentId, onSuccess) => {
+        dispatch(componentsOperations.getComponentMinorVersions(componentId, onSuccess))
     }
     const expandMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.expandMinorVersion(componentId, minorVersion))
@@ -51,22 +33,21 @@ const mapDispatchToProps = (dispatch) => {
     const closeMinorVersion = (componentId, minorVersion) => {
         dispatch(componentsOperations.closeMinorVersion(componentId, minorVersion))
     }
-    const fetchComponentVersions = (componentId, minorVersion) => {
-        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
+    const getComponentVersions = (componentId, minorVersion, onSuccess) => {
+        dispatch(componentsOperations.getComponentVersions(componentId, minorVersion, onSuccess))
     }
     const selectVersion = (componentId, minorVersion, version) => {
         dispatch(componentsOperations.selectVersion(componentId, minorVersion, version))
     }
 
     return {
-        toggleRc,
-        fetchComponents,
+        getComponents,
         expandComponent,
         closeComponent,
-        fetchComponentMinorVersions,
+        getComponentMinorVersions,
         expandMinorVersion,
         closeMinorVersion,
-        fetchComponentVersions,
+        getComponentVersions,
         selectVersion
     }
 }
@@ -81,18 +62,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
-    const {selectedComponent, selectedVersion, selectedMinor} = props.currentArtifacts
-
+    const {selectedComponent, selectedMinor, selectedVersion} = props.currentArtifacts
     return {
         ...currentUrlProps,
         component: selectedComponent == null ? undefined : selectedComponent,
-        version: selectedVersion == null ? undefined : selectedVersion,
         minor: selectedMinor == null ? undefined : selectedMinor,
+        version: selectedVersion == null ? undefined : selectedVersion,
     }
 }
 
 class ComponentsTree extends Component {
-
     componentDidUpdate(prev) {
         const urlState = propsToUrl(this.props)
         history.push({search: queryString.stringify(urlState)})
@@ -100,20 +79,22 @@ class ComponentsTree extends Component {
 
     componentDidMount() {
         const urlProps = queryString.parse(history.location.search)
-        console.debug('urlProps', urlProps)
         const {component, minor, version} = urlProps
-        const {fetchComponents, fetchComponentMinorVersions, fetchComponentVersions, selectVersion} = this.props
+        const {getComponents, getComponentMinorVersions, getComponentVersions, selectVersion} = this.props
 
-        fetchComponents()
-        if (component) {
-            fetchComponentMinorVersions(component)
-            if (minor) {
-                fetchComponentVersions(component, minor)
-                if (version) {
-                    selectVersion(component, minor, version)
-                }
+        getComponents(() => {
+            if (component) {
+                getComponentMinorVersions(component, () => {
+                    if (minor) {
+                        getComponentVersions(component, minor, () => {
+                            if (version) {
+                                selectVersion(component, minor, version)
+                            }
+                        })
+                    }
+                })
             }
-        }
+        })
     }
 
     render() {
@@ -136,7 +117,7 @@ class ComponentsTree extends Component {
     }
 
     handleClickOnRoot = (nodeData) => {
-        const {components, fetchComponentMinorVersions, expandComponent, closeComponent} = this.props
+        const {components, getComponentMinorVersions, expandComponent, closeComponent} = this.props
         const {componentId, isExpanded} = nodeData
 
         if (isExpanded) {
@@ -144,15 +125,16 @@ class ComponentsTree extends Component {
             return
         }
 
-        if (!components[componentId].minorVersions || components[componentId].loadingError) {
-            fetchComponentMinorVersions(componentId)
+        const component = components[componentId];
+        if (!component.minorVersions || component.loadError) {
+            getComponentMinorVersions(componentId)
         } else {
             expandComponent(componentId)
         }
     }
 
     handleMinorVersionSelect = (nodeData) => {
-        const {components, fetchComponentVersions, expandMinorVersion, closeMinorVersion} = this.props
+        const {components, getComponentVersions, expandMinorVersion, closeMinorVersion} = this.props
         const {componentId, version, isExpanded} = nodeData
 
         if (isExpanded) {
@@ -160,8 +142,9 @@ class ComponentsTree extends Component {
             return
         }
 
-        if (!components[componentId].minorVersions.versions || components[componentId].minorVersions.loadingError) {
-            fetchComponentVersions(componentId, version)
+        const minorVersion = get(components, [componentId, 'minorVersions', version])
+        if (!minorVersion.versions || minorVersion.loadError) {
+            getComponentVersions(componentId, version)
         } else {
             expandMinorVersion(componentId, version)
         }

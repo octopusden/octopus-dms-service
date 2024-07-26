@@ -15,6 +15,7 @@ dockerCompose {
         mapOf(
             "DMS_SERVICE_VERSION" to project.version,
             "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"],
+            "OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION" to project.properties["octopus-release-management-service.version"],
             "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
             "AUTH_SERVER_URL" to "authServerUrl".getExt(),

@@ -85,7 +85,8 @@ dockerCompose {
     environment.putAll(mapOf(
         "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
         "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
-        "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"]
+        "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"],
+        "OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION" to project.properties["octopus-release-management-service.version"]
     ))
 }
 
@@ -168,6 +169,7 @@ dependencies {
     implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:2.0.10")
     implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
+    implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}")
     testImplementation(project(":test-common"))
     testImplementation(project(":client"))
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

@@ -1,4 +1,5 @@
 import types from './types'
+import get from "lodash/get"
 
 const INITIAL_STATE = {
     buildInfo: {},
@@ -32,19 +33,19 @@ const INITIAL_STATE = {
 const componentsReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
 
-        case types.RECEIVE_LOGGED_USER: {
-            const {loggedUser} = action
-            return {
-                ...state,
-                loggedUser: loggedUser
-            }
-        }
-
         case types.RECEIVE_BUILD_INFO: {
             const {buildInfo} = action
             return {
                 ...state,
                 buildInfo: buildInfo
+            }
+        }
+
+        case types.RECEIVE_LOGGED_USER: {
+            const {loggedUser} = action
+            return {
+                ...state,
+                loggedUser: loggedUser
             }
         }
 
@@ -64,101 +65,183 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
-        case types.REQUEST_COMPONENT_VERSIONS: {
+        case types.REQUEST_VERSIONS: {
             const {componentId, minorVersion} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                ...components[componentId].minorVersions[minorVersion],
-                                loadingVersions: true,
-                                versions: []
-                            }
-                        }
-                    }
-                }
-            }
+            return updateComponentMinorVersion(state, componentId, minorVersion, {loading: true, versions: {}})
         }
 
-        case types.RECEIVE_COMPONENT_VERSIONS: {
+        case types.RECEIVE_VERSIONS: {
             const {componentId, minorVersion, versions} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                ...components[componentId].minorVersions[minorVersion],
-                                loadingVersions: false,
-                                versions: versions
-                            }
-                        }
-                    }
-                }
-            }
+            return updateComponentMinorVersion(state, componentId, minorVersion, {loading: false, versions: versions})
         }
 
-        case types.RECEIVE_COMPONENT_VERSIONS_ERROR: {
+        case types.EXPAND_VERSION: {
+            const {componentId, minorVersion, version} = action
+            return updateComponentVersion(state, componentId, minorVersion, version, {expand: true});
+        }
+
+        case types.CLOSE_VERSION: {
+            const {componentId, minorVersion, version} = action
+            return updateComponentVersion(state, componentId, minorVersion, version, {expand: false});
+        }
+
+        case types.RECEIVE_VERSIONS_ERROR: {
             const {componentId, errorMessage, minorVersion} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                loadingVersions: false,
-                                loadingError: true,
-                                loadingErrorMessage: errorMessage
-                            }
-                        }
-                    }
-                }
-            }
+            return updateComponentMinorVersion(state, componentId, minorVersion, {
+                loading: false,
+                loadError: true,
+                errorMessage: errorMessage,
+                versions: {}
+            })
+        }
+
+        case types.REQUEST_DEPENDENCIES: {
+            const {componentId, minorVersion, version} = action
+            return updateComponentVersion(state, componentId, minorVersion, version, {
+                loading: true,
+                loadError: false,
+                dependencies: {}
+            })
+        }
+
+        case types.RECEIVE_DEPENDENCIES: {
+            const {componentId, minorVersion, version, dependencies} = action
+            return updateComponentVersion(state, componentId, minorVersion, version, {
+                loading: false,
+                dependencies: dependencies
+            })
         }
 
         case types.REQUEST_COMPONENT_MINOR_VERSIONS: {
             const {componentId} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        loadingMinorVersions: true,
-                        loadingError: false,
-                        minorVersions: {}
-                    }
-                }
-            }
+            return updateComponent(state, componentId, {loading: true, loadError: false, minorVersions: {}})
         }
 
         case types.RECEIVE_COMPONENT_MINOR_VERSIONS: {
             const {componentId, versions} = action
-            const {components} = state
+            return updateComponent(state, componentId, {loading: false, minorVersions: versions})
+        }
+
+        case types.EXPAND_COMPONENT_MINOR_VERSION: {
+            const {componentId, minorVersion} = action
+            return updateComponentMinorVersion(state, componentId, minorVersion, {expand: true})
+        }
+
+        case types.CLOSE_COMPONENT_MINOR_VERSION: {
+            const {componentId, minorVersion} = action
+            return updateComponentMinorVersion(state, componentId, minorVersion, {expand: false})
+        }
+
+        case types.EXPAND_GROUPED_COMPONENT: {
+            const {groupId, componentId} = action
+            return updateGroupedComponent(state, groupId, componentId, {expand: true})
+        }
+
+        case types.CLOSE_GROUPED_COMPONENT: {
+            const {groupId, componentId} = action
+            return updateGroupedComponent(state, groupId, componentId, {expand: false})
+        }
+
+        case types.REQUEST_GROUPED_COMPONENT_MINOR_VERSIONS: {
+            const {groupId, componentId} = action
+            const data = {loading: true, loadError: false, errorMessage: null, minorVersions: {}};
+            return updateGroupedComponent(state, groupId, componentId, data)
+        }
+
+        case types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS: {
+            const {groupId, componentId, versions} = action
+            const data = {loading: false, loadError: false, errorMessage: null, minorVersions: versions};
+            return updateGroupedComponent(state, groupId, componentId, data)
+        }
+
+        case types.RECEIVE_GROUPED_COMPONENT_MINOR_VERSIONS_ERROR: {
+            const {groupId, componentId, errorMessage} = action
+            const data = {loading: false, loadError: true, errorMessage: errorMessage, minorVersions: {}};
+            return updateGroupedComponent(state, groupId, componentId, data)
+        }
+
+        case types.EXPAND_GROUPED_COMPONENT_MINOR_VERSION: {
+            const {groupId, componentId, minorVersion} = action
+            return updateGroupedComponentMinorVersion(state, groupId, componentId, minorVersion, {expand: true})
+        }
+
+        case types.CLOSE_GROUPED_COMPONENT_MINOR_VERSION: {
+            const {groupId, componentId, minorVersion} = action
+            return updateGroupedComponentMinorVersion(state, groupId, componentId, minorVersion, {expand: false})
+        }
+
+        case types.REQUEST_GROUPED_COMPONENT_VERSIONS: {
+            const {groupId, componentId, minorVersion} = action
+            const data = {loading: true, loadError: false, versions: {}};
+            return updateGroupedComponentMinorVersion(state, groupId, componentId, minorVersion, data)
+        }
+
+        case types.RECEIVE_GROUPED_COMPONENT_VERSIONS: {
+            const {groupId, componentId, minorVersion, versions} = action
+            const data = {loading: false, loadError: false, versions: versions};
+            return updateGroupedComponentMinorVersion(state, groupId, componentId, minorVersion, data)
+        }
+
+        case types.SELECT_VERSION: {
+            const {componentId, minorVersion, version} = action
+            const {currentArtifacts, components} = state
+            const selectedComponentName = get(components, [componentId, 'name'])
             return {
                 ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        loadingMinorVersions: false,
-                        minorVersions: versions
-                    }
+                loadingArtifactsList: false,
+                currentArtifacts: {
+                    ...currentArtifacts,
+                    loadingDocumentArtifact: false,
+                    selectedComponent: componentId,
+                    selectedComponentName: selectedComponentName,
+                    selectedMinor: minorVersion,
+                    selectedVersion: version,
+                    selectedDocument: {},
+                    artifactsList: []
+                }
+            }
+        }
+
+        case types.SELECT_DEPENDENCY: {
+            const {solutionId, solutionMinor, solutionVersion, componentId, version} = action
+            const {currentArtifacts, components} = state
+            const dependencyId = `${componentId}:${version}`
+            const selectedComponentName = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component', 'name'])
+            return {
+                ...state,
+                loadingArtifactsList: false,
+                currentArtifacts: {
+                    ...currentArtifacts,
+                    loadingDocumentArtifact: false,
+                    selectedSolutionId: solutionId,
+                    selectedSolutionMinor: solutionMinor,
+                    selectedSolutionVersion: solutionVersion,
+                    selectedComponent: componentId,
+                    selectedComponentName: selectedComponentName,
+                    selectedVersion: version,
+                    selectedDocument: {},
+                    artifactsList: []
+                }
+            }
+        }
+
+        case types.SELECT_GROUPED_COMPONENT_VERSION: {
+            const {groupId, componentId, minorVersion, version} = action
+            const {currentArtifacts, components} = state
+            const selectedComponentName = get(components, [componentId, 'name'])
+            return {
+                ...state,
+                loadingArtifactsList: false,
+                currentArtifacts: {
+                    ...currentArtifacts,
+                    loadingDocumentArtifact: false,
+                    selectedGroup: groupId,
+                    selectedComponent: componentId,
+                    selectedComponentName: selectedComponentName,
+                    selectedMinor: minorVersion,
+                    selectedVersion: version,
+                    selectedDocument: {},
+                    artifactsList: []
                 }
             }
         }
@@ -191,118 +274,28 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.EXPAND_COMPONENT: {
             const {componentId} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        expand: true
-                    }
-                }
-            }
+            return updateComponent(state, componentId, {expand: true})
         }
 
         case types.CLOSE_COMPONENT: {
             const {componentId} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        expand: false
-                    }
-                }
-            }
-        }
-
-        case types.EXPAND_MINOR_VERSION: {
-            const {componentId, minorVersion} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                ...components[componentId].minorVersions[minorVersion],
-                                expand: true
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        case types.CLOSE_MINOR_VERSION: {
-            const {componentId, minorVersion} = action
-            const {components} = state
-            return {
-                ...state,
-                components: {
-                    ...components,
-                    [componentId]: {
-                        ...components[componentId],
-                        minorVersions: {
-                            ...components[componentId].minorVersions,
-                            [minorVersion]: {
-                                ...components[componentId].minorVersions[minorVersion],
-                                expand: false
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        case types.SELECT_VERSION: {
-            const {componentId, minorVersion, version} = action
-            return {
-                ...state,
-                loadingArtifactsList: false,
-                currentArtifacts: {
-                    loadingDocumentArtifact: false,
-                    selectedComponent: componentId,
-                    selectedMinor: minorVersion,
-                    selectedVersion: version,
-                    selectedDocument: {},
-                    artifactsList: []
-                }
-            }
+            return updateComponent(state, componentId, {expand: false})
         }
 
         case types.REQUEST_ARTIFACTS_LIST: {
-            const {componentId, minorVersion, version} = action
             return {
                 ...state,
-                loadingArtifactsList: true,
-                currentArtifacts: {
-                    loadingDocumentArtifact: false,
-                    selectedComponent: componentId,
-                    selectedMinor: minorVersion,
-                    selectedVersion: version,
-                    selectedDocument: {},
-                    artifactsList: []
-                }
+                loadingArtifactsList: true
             }
         }
 
         case types.RECEIVE_ARTIFACTS_LIST: {
-            const {componentId, minorVersion, version, artifactsList} = action
+            const {artifactsList} = action
             return {
                 ...state,
                 loadingArtifactsList: false,
                 currentArtifacts: {
                     ...state.currentArtifacts,
-                    selectedComponent: componentId,
-                    selectedMinor: minorVersion,
-                    selectedVersion: version,
                     artifactsList: artifactsList,
                     preview: {}
                 }
@@ -311,7 +304,6 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.REQUEST_DOCUMENT_ARTIFACT: {
             const {id} = action
-            console.debug('REQUEST_DOCUMENT_ARTIFACT', id)
             return {
                 ...state,
                 currentArtifacts: {
@@ -370,6 +362,16 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             }
         }
 
+        case types.HANDLE_COMPONENT_GROUP_TAB_CHANGE: {
+            const {selectedComponentGroupTab} = action
+            return {
+                ...state,
+                currentArtifacts: {
+                    selectedComponentGroupTab: selectedComponentGroupTab
+                }
+            }
+        }
+
         case types.SHOW_CONFIRMATION: {
             const {message, onConfirm} = action
             return {
@@ -391,6 +393,87 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         default:
             return state
     }
+}
+
+function updateGroupedComponentMinorVersion(state, groupId, componentId, minorVersion, data) {
+    const {components} = state
+    const parentComponent = components[groupId];
+    const subComponents = parentComponent.subComponents;
+    const customComponent = subComponents[componentId];
+    const componentMinors = customComponent.minorVersions;
+    const minorVersions = {
+        minorVersions: {
+            ...componentMinors,
+            [minorVersion]: {
+                ...(componentMinors[minorVersion]),
+                ...data
+            }
+        }
+    }
+    return updateGroupedComponent(state, groupId, componentId, minorVersions)
+}
+
+function updateGroupedComponent(state, groupId, componentId, data) {
+    const {components} = state
+    const parentComponent = components[groupId]
+    const subComponents = parentComponent.subComponents
+    const customComponent = subComponents[componentId]
+    return {
+        ...state,
+        components: {
+            ...components,
+            [groupId]: {
+                ...parentComponent,
+                subComponents: {
+                    ...subComponents,
+                    [componentId]: {
+                        ...customComponent,
+                        ...data
+                    }
+                }
+            }
+        }
+    }
+}
+
+function updateComponent(state, componentId, data) {
+    const {components} = state
+    return {
+        ...state,
+        components: {
+            ...components,
+            [componentId]: {
+                ...components[componentId],
+                ...data
+            }
+        }
+    }
+}
+
+function updateComponentMinorVersion(state, componentId, minorVersion, data) {
+    const {components} = state
+    return updateComponent(state, componentId, {
+        minorVersions: {
+            ...components[componentId].minorVersions,
+            [minorVersion]: {
+                ...components[componentId].minorVersions[minorVersion],
+                ...data
+            }
+        }
+    })
+}
+
+function updateComponentVersion(state, componentId, minorVersion, version, data) {
+    const {components} = state
+    return updateComponentMinorVersion(state, componentId, minorVersion,{
+        versions: {
+            ...components[componentId].minorVersions[minorVersion].versions,
+            [version]: {
+                ...components[componentId].minorVersions[minorVersion].versions[version],
+                ...data,
+            }
+        }
+    })
 }
 
 export default componentsReducer

@@ -1,13 +1,13 @@
-.components-tree {
+.solution-tree {
     flex-grow: 1;
     overflow-y: auto;
 
-    & .components-tree-wrapper {
+    & .solution-tree-wrapper {
         width: 100%;
     }
 }
 
-.error-icon-components-tree-wrap {
+.error-icon-solution-tree-wrap {
     padding-top: 15px;
 }
 

@@ -59,6 +59,9 @@ components-registry-service:
 releng:
   host: http://mockserver:1080
 
+release-management-service:
+  url: http://release-management-service:8083
+
 validation:
   license-validator:
     enabled: true

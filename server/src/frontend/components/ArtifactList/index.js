@@ -9,18 +9,17 @@ import {isPrintableArtifact} from "../common";
 
 const mapStateToProps = (state) => {
 
-    let adminMode = get(state, "components.adminMode", false)
-    let showConfirmation = !!get(state, "confirmation")
+    const adminMode = get(state, "components.adminMode", false)
+    const showConfirmation = !!get(state, "confirmation")
 
     const currentArtifacts = get(state, "components.currentArtifacts")
     const {
-        selectedComponent, selectedMinor, selectedVersion, selectedDocument, loadingArtifactsList, artifactsList
+        selectedComponent, selectedVersion, selectedDocument, loadingArtifactsList, artifactsList
     } = currentArtifacts
     return {
         adminMode,
         showConfirmation,
         selectedComponent,
-        selectedMinor,
         selectedVersion,
         selectedDocument,
         loadingArtifactsList,
@@ -29,21 +28,20 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => {
-    const fetchArtifactList = (componentId, minorVersion, version) => {
-        dispatch(componentsOperations.getArtifactsList(componentId, minorVersion, version))
+    const getArtifactList = (componentId, version) => {
+        dispatch(componentsOperations.getArtifactsList(componentId, version))
     }
-    const fetchDocumentArtifact = (componentId, version, id, isPrintable, displayName) => {
-        console.debug('fetchDocumentArtifact', componentId, version, id, isPrintable, displayName)
+    const getDocument = (componentId, version, id, isPrintable, displayName) => {
         isPrintable
-            ? dispatch(componentsOperations.getDocumentArtifact(componentId, version, id, displayName))
+            ? dispatch(componentsOperations.getDocument(componentId, version, id, displayName))
             : dispatch(componentsOperations.getEmptyDocumentArtifact(componentId, version, id))
     }
-    const deleteArtifact = (componentId, minorVersion, version, id) => {
-        dispatch(componentsOperations.deleteArtifact(componentId, minorVersion, version, id))
+    const deleteArtifact = (componentId, version, id) => {
+        dispatch(componentsOperations.deleteArtifact(componentId, version, id))
     }
     return {
-        fetchArtifactList,
-        fetchDocumentArtifact,
+        getArtifactList,
+        getDocument,
         deleteArtifact
     }
 }
@@ -59,58 +57,66 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
     const {id} = props.selectedDocument
-    console.debug('currentUrlProps', currentUrlProps, 'selectedDocument', props.selectedDocument)
     return {
         ...currentUrlProps,
-        id: id
+        artifactId: id
     }
 }
 
 class ArtifactsList extends Component {
 
+    constructor(props, context) {
+        super(props, context);
+        const urlProps = queryString.parse(history.location.search)
+        const {getDocument, selectedComponent, selectedVersion} = props
+        const {artifactId} = urlProps
+        if (artifactId) {
+            getDocument(selectedComponent, selectedVersion, +artifactId, false, '')
+        }
+    }
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         const urlState = propsToUrl(this.props)
-        console.debug('urlState', urlState)
         history.push({search: queryString.stringify(urlState)})
 
         const {
-            fetchArtifactList, fetchDocumentArtifact,
-            selectedComponent, selectedMinor, selectedVersion, selectedDocument, artifactsList
+            getArtifactList, getDocument, selectedComponent, selectedVersion, selectedDocument, artifactsList
         } = this.props
 
-        let {
+        const {
             selectedComponent: prevSelectedComponent,
             selectedVersion: prevSelectedVersion,
             artifactsList: prevArtifactsList
         } = prevProps
 
         if (selectedComponent !== prevSelectedComponent || selectedVersion !== prevSelectedVersion) {
-            fetchArtifactList(selectedComponent, selectedMinor, selectedVersion)
+            getArtifactList(selectedComponent, selectedVersion)
         }
 
         if (artifactsList.length > 0
             && (artifactsList.length !== prevArtifactsList.length || artifactsList.toString() !== prevArtifactsList.toString())
             && selectedDocument.id
         ) {
-            let artifact = artifactsList.find(artifact => {
+            const artifact = artifactsList.find(artifact => {
                 return artifact.id === selectedDocument.id
             })
-            let isPrintable = isPrintableArtifact(artifact)
-            console.trace('selectedDocument:', selectedDocument, ', artifacts:', artifactsList, ', artifact:', artifact)
-            fetchDocumentArtifact(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
+            const isPrintable = isPrintableArtifact(artifact)
+            getDocument(selectedComponent, selectedVersion, artifact.id, isPrintable, artifact.displayName)
         }
     }
 
     componentDidMount() {
-        const urlProps = queryString.parse(history.location.search)
-        console.trace('urlProps', urlProps)
-        const {component, minor, version, id} = urlProps
-        const {fetchArtifactList, fetchDocumentArtifact} = this.props
-
-        if (component && minor && version) {
-            fetchArtifactList(component, minor, version)
-            if (id) {
-                fetchDocumentArtifact(component, version, +id, false, '')
+        const {
+            selectedComponent,
+            selectedVersion,
+            selectedDocument,
+            getArtifactList,
+            getDocument
+        } = this.props
+        if (selectedComponent && selectedVersion) {
+            getArtifactList(selectedComponent, selectedVersion)
+            if (selectedDocument.id) {
+                getDocument(selectedComponent, selectedVersion, +selectedDocument.id, false, '')
             }
         }
     }

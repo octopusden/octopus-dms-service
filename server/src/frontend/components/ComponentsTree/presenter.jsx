@@ -1,6 +1,6 @@
 import React from 'react'
-import {Icon, Spinner, Tooltip, Tree} from "@blueprintjs/core";
-import Search from "./Search/Search.jsx";
+import {Spinner, Tree} from "@blueprintjs/core";
+import {getSecondaryLabel} from "../common";
 
 const treeLevel = {
     ROOT: 'ROOT',
@@ -9,8 +9,7 @@ const treeLevel = {
 
 function componentsTree(props) {
     const {
-        toggleRc, showRc, requestSearch, selectVersion, fetchComponentVersions, searchResult, searchQueryValid,
-        searching, loadingComponents, handleNodeClick
+        loadingComponents, handleNodeClick
     } = props
 
     const nodes = componentsToNodes(props)
@@ -20,124 +19,82 @@ function componentsTree(props) {
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        return <div className="components_tree_wrapper">
-            <div className='search-block'>
-                <Search
-                    toggleRc={toggleRc}
-                    showRc={showRc}
-                    requestSearch={requestSearch}
-                    selectVersion={selectVersion}
-                    fetchComponentVersions={fetchComponentVersions}
-                    searchResult={searchResult}
-                    searchQueryValid={searchQueryValid}
-                    searching={searching}/>
+        return <div className="components-tree">
+            <div className="components-tree-wrapper">
+                <Tree
+                    contents={nodes}
+                    onNodeClick={handleNodeClick}
+                    onNodeCollapse={handleNodeClick}
+                    onNodeExpand={handleNodeClick}
+                />
             </div>
-            <Tree
-                contents={nodes}
-                onNodeClick={handleNodeClick}
-                onNodeCollapse={handleNodeClick}
-                onNodeExpand={handleNodeClick}
-            />
         </div>
     }
 }
 
 function componentsToNodes(props) {
     const {components} = props
-
-    return Object.entries(components).map(entry => {
-        const [key, cur] = entry
+    return Object.values(components).map(component => {
         let childNodes = []
-        let component = components[key]
+        const componentId = component.id
         if (component.minorVersions) {
-            let versions = component.minorVersions
-            childNodes = renderComponentMinorVersions(versions, key, props)
+            childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
         }
 
-        const isLoading = component && component.loadingMinorVersions
-        const isError = component && component.loadingError
-        const errorMessage = component.loadingErrorMessage
-
         return {
-            id: key,
+            id: componentId,
             level: treeLevel.ROOT,
-            componentId: key,
-            isExpanded: cur.expand,
-            label: cur.name,
-            icon: cur.expand ? 'folder-open' : 'folder-close',
+            componentId: componentId,
+            isExpanded: component.expand,
+            label: component.name,
+            icon: component.expand ? 'folder-open' : 'folder-close',
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(component)
         }
     })
 }
 
-function renderComponentMinorVersions(versions, currentComponent, props) {
-    const {components, showRc, currentArtifacts} = props
-    const {selectedComponent, selectedVersion} = currentArtifacts
-
-    return Object.entries(versions).map(entry => {
-        const [versionId, v] = entry
-
+function renderComponentMinorVersions(componentId, minorVersions, props) {
+    return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
-        let minorVersion = components[currentComponent].minorVersions[versionId]
-        if (minorVersion.versions) {
-            let versions = minorVersion.versions
-            childNodes = renderComponentVersions(versions, currentComponent, versionId, showRc, selectedComponent, selectedVersion)
+        const minorVersionId = minorVersion.id
+        const versions = minorVersion.versions
+        if (versions) {
+            childNodes = renderComponentVersions(componentId, minorVersionId, versions, props)
         }
-
-        const isLoading = minorVersion && minorVersion.loadingVersions
-        const isError = minorVersion && minorVersion.loadingError
-        const errorMessage = minorVersion && minorVersion.errorMessage
-
         return {
             level: treeLevel.MINOR,
-            id: versionId,
-            label: versionId,
-            version: versionId,
-            componentId: currentComponent,
-            icon: v.expand ? 'folder-open' : 'folder-close',
-            isExpanded: v.expand,
+            id: minorVersionId,
+            label: minorVersionId,
+            version: minorVersionId,
+            componentId: componentId,
+            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            isExpanded: minorVersion.expand,
             childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(isLoading, isError, errorMessage)
+            secondaryLabel: getSecondaryLabel(minorVersion)
         }
     })
 }
 
-function renderComponentVersions(versions, currentComponent, currentMinorVersion, showRc, selectedComponent, selectedVersion) {
-    return versions.filter(e => {
-        return showRc || e.status !== 'RC'
-    }).map(v => {
-        const displayName = v.version + (v.status === 'RELEASE' ? '' : `-${v.status}`)
+function renderComponentVersions(componentId, minorVersionId, versions, props) {
+    const {showRc, currentArtifacts} = props
+    const {selectedComponent, selectedVersion} = currentArtifacts
+    return Object.values(versions).filter(version => {
+        return showRc || version.status !== 'RC'
+    }).map(version => {
+        const versionId = version.version
+        const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
         return {
-            id: v.version,
+            id: versionId,
             label: displayName,
-            version: v.version,
-            minorVersion: currentMinorVersion,
-            componentId: currentComponent,
+            version: versionId,
+            minorVersion: minorVersionId,
+            componentId: componentId,
             icon: 'box',
-            isSelected: selectedComponent === currentComponent && selectedVersion === v.version
+            isSelected: selectedComponent === componentId && selectedVersion === versionId
         }
     })
 }
-
-function getSecondaryLabel(isLoading, isError, errorMessage) {
-    let secondaryLabel
-    if (isError) {
-        secondaryLabel = <Tooltip
-            content={errorMessage}
-            position='top-right'
-        >
-            <div className='error-icon-components-tree-wrap'>
-                <Icon icon='error' size={16} intent="danger"/>
-            </div>
-        </Tooltip>
-    }
-    if (isLoading) {
-        secondaryLabel = <Spinner size={16} intent="primary"/>
-    }
-    return secondaryLabel
-}
-
 
 export {
     componentsTree,

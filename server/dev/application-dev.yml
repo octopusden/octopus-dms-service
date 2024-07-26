@@ -40,6 +40,9 @@ components-registry-service:
 releng:
   host: # set via env
 
+release-management-service:
+  url: # set via env
+
 validation:
   license-validator:
     enabled: true

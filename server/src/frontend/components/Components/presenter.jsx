@@ -1,17 +1,18 @@
 import Header from "../Header";
 import {Alert, Spinner} from "@blueprintjs/core";
-import ComponentsTree from "../ComponentsTree";
 import Meta from "../Meta";
 import ArtifactList from "../ArtifactList";
 import Preview from "../Preview";
 import Footer from "../Footer";
 import React from "react";
 import './style.css'
+import ComponentGroupPane from "../ComponentGroupPane";
+import Search from "./Search";
 
 export default function components(props) {
     const {
-        components, selectedComponent, selectedVersion, hideError, errorMessage,
-        confirmation, hideConfirmation, showConfirmation,
+        selectedComponent, selectedVersion, hideError, errorMessage,
+        confirmation, hideConfirmation, showConfirmation
     } = props
     const versionSelected = !!(selectedComponent && selectedVersion)
 
@@ -43,17 +44,14 @@ export default function components(props) {
             > {confirmation.message} </Alert>
             }
             <div className="left-column">
-                <div className='components-tree'>
-                    <ComponentsTree/>
+                <div className='search-block'>
+                    <Search/>
                 </div>
+                <ComponentGroupPane/>
             </div>
             <div className='right-column'>
-                {selectedComponent && <div className='meta-block'>
-                    <Meta
-                        component={selectedComponent}
-                        componentName={components[selectedComponent] ? components[selectedComponent].name :
-                            <Spinner size={10}/>}
-                        version={selectedVersion}/>
+                {versionSelected && <div className='meta-block'>
+                    <Meta/>
                 </div>}
                 <div className='artifacts-block'>
                     {versionSelected &&

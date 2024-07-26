@@ -5,7 +5,6 @@
 
     & .row {
         display: flex;
-        direction: column;
         height: 100%;
         width: 100%;
         padding-top: 60px;
@@ -16,19 +15,14 @@
             min-width: 380px;
             display: flex;
             flex-direction: column;
-
             background-color: #EBF1F5;
 
-
-            & .control-block {
+            & .search-block {
                 padding: 10px;
             }
 
-            & .components-tree {
-                padding-left: 10px;
-                padding-right: 10px;
-                flex-grow: 1;
-                overflow-y: auto;
+            & .control-block {
+                padding: 10px;
             }
         }
 

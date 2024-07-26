@@ -43,6 +43,18 @@ services:
             - ./components-registry-service.yaml:/application-ut.yaml
             - ../../../../test-common/src/main/components-registry:/components-registry
 
+    release-management-service:
+        container_name: dms-ut-release-management-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/release-management-service:${OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION}
+        ports:
+            - "8083:8080"
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=ut
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+        volumes:
+            - ./release-management-service.yaml:/application-ut.yaml
+
     mockserver:
         container_name: dms-ut-mockserver
         image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-5.11.1

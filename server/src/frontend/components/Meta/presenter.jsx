@@ -3,12 +3,12 @@ import './style.css'
 import {Icon} from "@blueprintjs/core";
 
 export default function meta(props) {
-    const {component, version, componentName} = props
+    const {selectedComponent, selectedComponentName, selectedVersion} = props
     return <div className="meta-wrapper">
         <div className="meta-column">
-            <MetaItem icon='tag' keyName='Component name' value={componentName}/>
-            <MetaItem icon='id-number' keyName='Component ID' value={component}/>
-            <MetaItem icon='box' keyName='Version' value={version}/>
+            <MetaItem icon='tag' keyName='Component name' value={selectedComponentName}/>
+            <MetaItem icon='id-number' keyName='Component ID' value={selectedComponent}/>
+            <MetaItem icon='box' keyName='Version' value={selectedVersion}/>
         </div>
     </div>
 }
