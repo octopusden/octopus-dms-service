@@ -166,7 +166,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:8.5.13")
     implementation("org.jfrog.artifactory.client:artifactory-java-client-services:2.13.1")
     implementation("org.danilopianini:khttp:1.2.2")
-    implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:2.0.10")
+    implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:${project.properties["octopus-cloud-commons.version"]}")
     implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
     implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}")
