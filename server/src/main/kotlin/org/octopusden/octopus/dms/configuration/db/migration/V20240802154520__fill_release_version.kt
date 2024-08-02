@@ -9,7 +9,6 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.configuration.RelengProperties
-import org.octopusden.octopus.dms.exception.NotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -40,10 +39,10 @@ class V20240802154520__component_version_fill_release_version(
                                     update.execute("UPDATE component_version SET release_version='${build.releaseVersion}' WHERE id=$id")
                                 }
                             } ?: run {
-                                context.connection.createStatement().use { delete ->
-//                                    delete.execute("DELETE FROM component_version WHERE id=$id")
-                                    log.error("No build found: '$component:$version'")
-                                }
+                            log.error("No build found: '$component:$version'")
+                                /*context.connection.createStatement().use { delete ->
+                                    delete.execute("DELETE FROM component_version WHERE id=$id")
+                                }*/
                         }
                     }
                 }
@@ -65,22 +64,19 @@ class V20240802154520__component_version_fill_release_version(
             get(
                 url = "$relengUrl/components/$component",
                 params = params + mapOf("versions" to it.joinToString(","))
-            ).toObject(object : TypeReference<ComponentBuilds>() {}).builds
+            ).toObject().builds
         }
     }
 
-    private fun <T> Response.toObject(typeReference: TypeReference<T>): T {
-        if (this.statusCode / 100 != 2) {
-            if (this.statusCode == 404) {
-                throw NotFoundException(this.text)
-            } else {
-                throw RuntimeException(this.text)
-            }
+    private fun Response.toObject(): ComponentBuilds {
+        return if (this.statusCode / 100 == 2) {
+            objectMapper.readValue(this.text, object: TypeReference<ComponentBuilds>() {})
+        } else {
+            ComponentBuilds()
         }
-        return objectMapper.readValue(this.text, typeReference)
     }
 
-    private data class ComponentBuilds(val name: String, val builds: List<ComponentBuild>)
+    private data class ComponentBuilds(val builds: List<ComponentBuild> = emptyList())
 
     private data class ComponentBuild(val status: BuildStatus, val version: String, @JsonProperty("release_version")
         val releaseVersion: String)
