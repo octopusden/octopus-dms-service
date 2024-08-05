@@ -1,85 +1,43 @@
 package org.octopusden.octopus.dms.configuration.db.migration
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import khttp.get
-import khttp.responses.Response
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
-import org.octopusden.octopus.dms.client.common.dto.BuildStatus
+import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException
 import org.octopusden.octopus.dms.configuration.RelengProperties
+import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 
 @Component
 class V20240802154520__component_version_fill_release_version(
-    private val objectMapper: ObjectMapper,
-    relengProperties: RelengProperties,
+    private val componentsRegistryService: ComponentsRegistryService,
 ) : BaseJavaMigration() {
 
-    private val relengUrl = "${relengProperties.host}/${relengProperties.apiUri}"
     override fun migrate(context: Context?) {
         context!!.connection.createStatement().use { select ->
-            select.executeQuery("SELECT cv.id, c.name, cv.version FROM component_version CV JOIN component C ON CV.component_id = C.id")
+            select.executeQuery("SELECT cv.id, c.name, cv.version FROM component_version CV JOIN component C ON CV.component_id = C.id WHERE cv.release_version IS NULL ")
                 .use { rows ->
                     while (rows.next()) {
                         val id = rows.getLong(1)
                         val component = rows.getString(2)
                         val version = rows.getString(3)
-
-                        getComponentBuilds(
-                            component,
-                            arrayOf(BuildStatus.BUILD, BuildStatus.RC, BuildStatus.RELEASE),
-                            arrayOf(version)
-                        ).firstOrNull()
-                            ?.let { build ->
-                                context.connection.createStatement().use { update ->
-                                    update.execute("UPDATE component_version SET release_version='${build.releaseVersion}' WHERE id=$id")
-                                }
-                            } ?: run {
+                        try {
+                            val releaseVersion = componentsRegistryService.getDetailedComponentVersion(
+                                component,
+                                version
+                            ).releaseVersion.version
+                            context.connection.createStatement().use { update ->
+                                update.execute("UPDATE component_version SET release_version='$releaseVersion' WHERE id=$id")
+                            }
+                        } catch (e: NotFoundException) {
                             log.error("No build found: '$component:$version'")
-                                /*context.connection.createStatement().use { delete ->
-                                    delete.execute("DELETE FROM component_version WHERE id=$id")
-                                }*/
                         }
                     }
                 }
         }
     }
-
-    private fun getComponentBuilds(
-        component: String,
-        buildStatuses: Array<BuildStatus>,
-        versions: Array<String>
-    ): List<ComponentBuild> {
-        val params = mapOf(
-            "build_whitelist" to "status,version,release_version",
-            "version_statuses" to buildStatuses.joinToString(separator = ","),
-            "versions_field" to "VERSION"
-        )
-
-        return versions.toList().chunked(20).flatMap {
-            get(
-                url = "$relengUrl/components/$component",
-                params = params + mapOf("versions" to it.joinToString(","))
-            ).toObject().builds
-        }
-    }
-
-    private fun Response.toObject(): ComponentBuilds {
-        return if (this.statusCode / 100 == 2) {
-            objectMapper.readValue(this.text, object: TypeReference<ComponentBuilds>() {})
-        } else {
-            ComponentBuilds()
-        }
-    }
-
-    private data class ComponentBuilds(val builds: List<ComponentBuild> = emptyList())
-
-    private data class ComponentBuild(val status: BuildStatus, val version: String, @JsonProperty("release_version")
-        val releaseVersion: String)
 
     companion object {
         private val log = LoggerFactory.getLogger(V20240802154520__component_version_fill_release_version::class.java)
