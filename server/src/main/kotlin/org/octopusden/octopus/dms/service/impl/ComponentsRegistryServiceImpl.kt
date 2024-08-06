@@ -1,12 +1,14 @@
 package org.octopusden.octopus.dms.service.impl
 
-import org.octopusden.octopus.components.registry.client.ComponentsRegistryServiceClient
+import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClient
+import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider
 import org.octopusden.octopus.components.registry.core.dto.Component
 import org.octopusden.octopus.components.registry.core.dto.DetailedComponentVersion
 import org.octopusden.octopus.components.registry.core.dto.VersionRequest
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.SecurityGroupsDTO
+import org.octopusden.octopus.dms.configuration.ComponentsRegistryServiceProperties
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.releng.versions.NumericVersionFactory
@@ -18,7 +20,14 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class ComponentsRegistryServiceImpl(private val client: ComponentsRegistryServiceClient) : ComponentsRegistryService {
+class ComponentsRegistryServiceImpl(
+    private val componentsRegistryServiceProperties: ComponentsRegistryServiceProperties
+) : ComponentsRegistryService {
+    private val client = ClassicComponentsRegistryServiceClient(
+        object : ClassicComponentsRegistryServiceClientUrlProvider {
+            override fun getApiUrl() = componentsRegistryServiceProperties.url
+        }
+    )
 
     override fun getComponent(name: String): ComponentDTO = client.getById(name).toComponentDTO()
 
