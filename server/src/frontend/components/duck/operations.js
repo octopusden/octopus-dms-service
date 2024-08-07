@@ -33,7 +33,11 @@ const getLoggedUser = () => (dispatch) => {
 
 const getComponents = (solution, onSuccess) => (dispatch) => {
     dispatch(actions.requestComponents())
-    fetch(`rest/api/3/components?solution=${solution}`)
+    let url = "rest/api/3/components"
+    if (solution != null) {
+        url += `?solution=${solution}`
+    }
+    fetch(url)
         .then(handleErrors('Get components'))
         .then((response) => {
             response.json().then((data) => {
