@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -67,7 +68,7 @@ abstract class DmsServiceApplicationBaseTest {
 
     private fun insertVersion(component: String, version: Version) = dmsDbConnection.createStatement().use {
         it.executeUpdate("INSERT INTO component_version(component_id, minor_version, version)" +
-                " SELECT id, '${version.minorVersion}', '${version.buildVersion}'" +
+                    " SELECT id, '${version.minorVersion}', '${version.buildVersion}'" +
                 " FROM component WHERE name = '$component'")
     }
 
@@ -179,20 +180,60 @@ abstract class DmsServiceApplicationBaseTest {
     )
 
     @Test
-    fun testGetComponents() = assertEquals(
-        getResource("components.json").openStream().use {
+    fun testGetComponents() {
+        val eeComponentsDTO = getResource("ee-components.json").openStream().use {
             objectMapper.readValue(it, ComponentsDTO::class.java)
-        },
-        client.getComponents()
-    )
+        }
+
+        assertEquals(
+            eeComponentsDTO.components,
+            client.getComponents(ComponentRequestFilter()).components
+        )
+
+        arrayOf(null, true, false).forEach { solution ->
+            assertEquals(
+                eeComponentsDTO.components.filter {
+                    solution?.let { solutionValue -> it.solution == solutionValue } ?: true
+                },
+                client.getComponents(ComponentRequestFilter(solution = solution)).components
+            )
+        }
+
+        val componentsDTO = getResource("components.json").openStream().use {
+            objectMapper.readValue(it, ComponentsDTO::class.java)
+        }
+
+        assertEquals(
+            componentsDTO.components,
+            client.getComponents(ComponentRequestFilter(explicit = false)).components
+        )
+    }
 
     @Test
     fun testGetComponentMinorVersions() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0354.releaseVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0355.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        insertVersion(eeComponent, eeComponentBuildVersion0356) //NOTE: getComponentMinorVersions does not check build status
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0355.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        insertVersion(
+            eeComponent,
+            eeComponentBuildVersion0356
+        ) //NOTE: getComponentMinorVersions does not check build status
         assertEquals(
             getResource("component-minor-versions.json").openStream().use {
                 objectMapper.readValue(it, object : TypeReference<List<String>>() {})
@@ -216,10 +257,25 @@ abstract class DmsServiceApplicationBaseTest {
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         insertVersion(eeComponent, eeComponentBuildVersion0354)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0355.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0355.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         insertVersion(eeComponent, eeComponentBuildVersion0355)
         assertEquals(
             ComponentVersionsStatusesDTO(emptyList()),
@@ -251,12 +307,25 @@ abstract class DmsServiceApplicationBaseTest {
     @MethodSource("releaseArtifacts")
     fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
-        val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+        )
+        val componentVersionArtifacts = client.getComponentVersionArtifacts(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            ArtifactType.DISTRIBUTION
+        )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         updateName(eeComponent, "some-$eeComponent")
         assertThrows(NotFoundException::class.java) {
-            client.getComponentVersionArtifact("some-$eeComponent", eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            client.getComponentVersionArtifact(
+                "some-$eeComponent",
+                eeComponentReleaseVersion0354.releaseVersion,
+                artifact.id
+            )
         }
         client.renameComponent("some-$eeComponent", eeComponent)
         client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
@@ -271,14 +340,20 @@ abstract class DmsServiceApplicationBaseTest {
         }
         // Check an exception, when both old and new component names exist in the system
         val artifact2 = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact(eeClientSpecificComponent, eeComponentReleaseVersion0353.buildVersion, artifact2.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeClientSpecificComponent,
+            eeComponentReleaseVersion0353.buildVersion,
+            artifact2.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         assertThrows(IllegalComponentRenamingException::class.java) {
             client.renameComponent(eeComponent, eeClientSpecificComponent)
         }
         // Check that artifact with new component name is available
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
-            assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
-        }
+        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            .use { response ->
+                assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
+            }
     }
 
     @Test
@@ -288,12 +363,32 @@ abstract class DmsServiceApplicationBaseTest {
             client.getPreviousLinesLatestVersions(eeComponent, eeComponentRCVersion0355.buildVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0353.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0353.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         insertVersion(eeComponent, eeComponentBuildVersion0353)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0353.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0353.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         insertVersion(eeComponent, eeComponentBuildVersion0354)
-        client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0354.releaseVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentRCVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
         assertEquals(
             VersionsDTO(emptyList()),
             client.getPreviousLinesLatestVersions(eeComponent, eeComponentReleaseVersion0353.buildVersion)
@@ -345,28 +440,84 @@ abstract class DmsServiceApplicationBaseTest {
         val artifact = releaseNotesRELEASE.openStream().use {
             client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)
         }
-        assertEquals(0, client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.NOTES).artifacts.size)
+        assertEquals(
+            0,
+            client.getComponentVersionArtifacts(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                ArtifactType.NOTES
+            ).artifacts.size
+        )
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         }
-        val componentVersionArtifact = client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
-        val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.NOTES)
+        val componentVersionArtifact = client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+        val componentVersionArtifacts = client.getComponentVersionArtifacts(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            ArtifactType.NOTES
+        )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
-        assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id))
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use { response ->
-            releaseNotesRELEASE.openStream().use {
-                assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+        assertEquals(
+            componentVersionArtifact,
+            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        )
+        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            .use { response ->
+                releaseNotesRELEASE.openStream().use {
+                    assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+                }
             }
-        }
         client.deleteComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         }
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id).use {
-            assertEquals(403, it.status()) //access is denied because there is no info about artifact type
-        }
+        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            .use {
+                assertEquals(403, it.status()) //access is denied because there is no info about artifact type
+            }
         assertEquals(artifact, client.getArtifact(artifact.id))
+    }
+
+    @Test
+    fun testGetDependencies() {
+        assertEquals(
+            ComponentVersionsStatusesDTO(emptyList()),
+            client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+        )
+
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )
+
+        mapOf(
+            eeComponent to eeComponentReleaseVersion0354.buildVersion,
+            "dependency1" to "1.0.1",
+            "dependency2" to "2.0.1",
+            "dependency3" to "3.0.1"
+        ).forEach { (componentName, version) ->
+            client.registerComponentVersionArtifact(
+                componentName,
+                version,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.NOTES)
+            )
+        }
+
+        val dependencies = client.getDependencies(eeComponent, eeComponentReleaseVersion0354.buildVersion)
+        assertIterableEquals(
+            listOf("Dependency 1", "Dependency 2", "Dependency 3"),
+            dependencies.map { it.component.name })
     }
 
     @ParameterizedTest
@@ -374,7 +525,12 @@ abstract class DmsServiceApplicationBaseTest {
     fun testRegisterStagingArtifact(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(UnableToFindArtifactException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
         }
     }
 
@@ -382,15 +538,34 @@ abstract class DmsServiceApplicationBaseTest {
     @MethodSource("releaseArtifacts")
     fun testRegisterReleaseArtifact(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
-        assertEquals(0, client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION).artifacts.size)
+        assertEquals(
+            0,
+            client.getComponentVersionArtifacts(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                ArtifactType.DISTRIBUTION
+            ).artifacts.size
+        )
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
         }
-        val componentVersionArtifact = client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
-        val componentVersionArtifacts = client.getComponentVersionArtifacts(eeComponent, eeComponentReleaseVersion0354.releaseVersion, ArtifactType.DISTRIBUTION)
+        val componentVersionArtifact = client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+        )
+        val componentVersionArtifacts = client.getComponentVersionArtifacts(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            ArtifactType.DISTRIBUTION
+        )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
-        assertEquals(componentVersionArtifact, client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id))
+        assertEquals(
+            componentVersionArtifact,
+            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
+        )
         client.deleteComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
@@ -403,7 +578,12 @@ abstract class DmsServiceApplicationBaseTest {
     fun testRegisterArtifactForNonEEComponent(component: String) {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         assertThrowsExactly(NotFoundException::class.java) {
-            client.registerComponentVersionArtifact(component, eeComponentReleaseVersion0354.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+            client.registerComponentVersionArtifact(
+                component,
+                eeComponentReleaseVersion0354.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
         }
     }
 
@@ -412,7 +592,12 @@ abstract class DmsServiceApplicationBaseTest {
     fun testRegisterDistributionArtifactForRCVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentRCVersion0355.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentRCVersion0355.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
         }
     }
 
@@ -421,7 +606,12 @@ abstract class DmsServiceApplicationBaseTest {
     fun testRegisterReportArtifactForBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentBuildVersion0356.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.REPORT))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentBuildVersion0356.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.REPORT)
+            )
         }
     }
 
@@ -429,20 +619,40 @@ abstract class DmsServiceApplicationBaseTest {
     fun testRegisterInvalidVersion() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         assertThrowsExactly(VersionFormatIsNotValidException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.minorVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.minorVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.NOTES)
+            )
         }
         assertThrowsExactly(NotFoundException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentNonExistsVersion0357.buildVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentNonExistsVersion0357.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.NOTES)
+            )
         }
         assertThrowsExactly(NotFoundException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentNonExistsVersion0357.releaseVersion, artifact.id, RegisterArtifactDTO(ArtifactType.NOTES))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentNonExistsVersion0357.releaseVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.NOTES)
+            )
         }
     }
 
     @Test
     fun testRegisterInvalidArtifact() {
         assertThrowsExactly(NotFoundException::class.java) {
-            client.registerComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, -1, RegisterArtifactDTO(ArtifactType.DISTRIBUTION))
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                -1,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
         }
     }
 
@@ -463,13 +673,20 @@ abstract class DmsServiceApplicationBaseTest {
         val eeComponentNonExistsVersion0357 = Version("03.57.31", "03.57.30.64-1", "03.57.30.64")
         const val devReleaseNotesFileName = "release-notes-RC.txt"
         const val releaseReleaseNotesFileName = "release-notes-RELEASE.txt"
-        val releaseNotesCoordinates = MavenArtifactCoordinatesDTO(GavDTO("test.upload", "release-notes", "1.0", "txt", "en"))
-        val devMavenDistributionCoordinates = MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "dev"))
-        val releaseMavenDistributionCoordinates = MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "release"))
-        val devDebianDistributionCoordinates = DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-dev_1.0-1_amd64.deb")
-        val releaseDebianDistributionCoordinates = DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-release_1.0-1_amd64.deb")
-        val devRpmDistributionCoordinates = RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-dev-1.0-1.el8.x86_64.rpm")
-        val releaseRpmDistributionCoordinates = RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-release-1.0-1.el8.x86_64.rpm")
+        val releaseNotesCoordinates =
+            MavenArtifactCoordinatesDTO(GavDTO("test.upload", "release-notes", "1.0", "txt", "en"))
+        val devMavenDistributionCoordinates =
+            MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "dev"))
+        val releaseMavenDistributionCoordinates =
+            MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "release"))
+        val devDebianDistributionCoordinates =
+            DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-dev_1.0-1_amd64.deb")
+        val releaseDebianDistributionCoordinates =
+            DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-release_1.0-1_amd64.deb")
+        val devRpmDistributionCoordinates =
+            RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-dev-1.0-1.el8.x86_64.rpm")
+        val releaseRpmDistributionCoordinates =
+            RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-release-1.0-1.el8.x86_64.rpm")
 
         @JvmStatic
         private fun repositories(): Stream<Arguments> = Stream.of(

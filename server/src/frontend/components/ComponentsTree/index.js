@@ -16,7 +16,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     const getComponents = (onSuccess) => {
-        dispatch(componentsOperations.getComponents(false, onSuccess))
+        dispatch(componentsOperations.getComponents(null, onSuccess))
     }
     const expandComponent = (componentId) => {
         dispatch(componentsOperations.expandComponent(componentId))

@@ -81,7 +81,7 @@ tasks.getByName("dockerBuildImage").doFirst {
 dockerCompose {
     useComposeFiles.add("$projectDir/src/test/docker/docker-compose.yaml")
     waitForTcpPorts = true
-    captureContainersOutputToFiles = File("$buildDir/docker_logs")
+    captureContainersOutputToFiles = File("$buildDir/docker-logs")
     environment.putAll(mapOf(
         "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
         "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),

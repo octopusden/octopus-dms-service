@@ -23,24 +23,18 @@ abstract class ConfigureMockServer : DefaultTask() {
                 .resolve("ee-component-builds.json").readText(StandardCharsets.UTF_8)
         )
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/components/ee-component")
-                .withQueryStringParameter("build_whitelist", "status,version,release_version")
+            HttpRequest.request().withMethod("GET")
+                .withPath("/rest/release-engineering/3/component/ee-component/builds")
         ).respond {
-            val versions = it.getFirstQueryStringParameter("versions").split(',')
-            val versionsField = it.getFirstQueryStringParameter("versions_field")
-            val versionStatuses = it.getFirstQueryStringParameter("version_statuses").split(',')
+            val versions = it.queryStringParameters.getValues("versions")
+            val versionStatuses = it.queryStringParameters.getValues("statuses")
             val builds = eeComponentBuilds.filter { build ->
                 build as JSONObject
-                versionStatuses.contains(build.getString("status")) && when (versionsField) {
-                    "VERSION" -> versions.contains(build.getString("version"))
-                    "RELEASE_VERSION" -> versions.contains(build.getString("release_version"))
-                    else -> false
-                }
+                versionStatuses.contains(build.getString("status")) && versions.contains(build.getString("version"))
             }
             HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
                 .withBody(
-                    JSONObject().put("name", "ee-component")
-                        .put("builds", builds)
+                    JSONArray(builds)
                         .toString(2)
                 ).withStatusCode(200)
         }
@@ -67,26 +61,27 @@ abstract class ConfigureMockServer : DefaultTask() {
                 ).withStatusCode(200)
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component-management/component/{component-name}")
+            HttpRequest.request().withMethod("GET")
+                .withPath("/rest/release-engineering/3/component-management/{component-name}")
                 .withPathParameter("component-name")
         ).respond {
             val component = it.getFirstPathParameter("component-name")
             if ("ee-component".equals(component, ignoreCase = true)) {
                 HttpResponse.response().withStatusCode(200).withBody(
-                    JSONObject().put("status-code", 200)
-                        .put("message", "Component $component exists")
+                    JSONObject().put("id", component)
                         .toString(2)
                 )
             } else {
-                HttpResponse.response().withStatusCode(200).withBody(
-                    JSONObject().put("status-code", 404)
-                        .put("message", "Component $component not found")
+                HttpResponse.response().withStatusCode(404).withBody(
+                    JSONObject().put("errorCode", "NOT_FOUND")
+                        .put("errorMessage", "Component $component not registered in RM2.0 base")
                         .toString(2)
                 )
             }
         }
         mockServerClient.`when`(
-            HttpRequest.request().withMethod("GET").withPath("/rest/release-engineering/3/component/{component-name}/version/{version}/status")
+            HttpRequest.request().withMethod("GET")
+                .withPath("/rest/release-engineering/3/component/{component-name}/version/{version}/build")
                 .withPathParameter("version")
                 .withPathParameter("component-name")
         ).respond {
@@ -94,21 +89,27 @@ abstract class ConfigureMockServer : DefaultTask() {
             val component = it.getFirstPathParameter("component-name")
             val build = eeComponentBuilds.firstOrNull { build ->
                 build as JSONObject
-                version == build.getString("version")
+                version == build.getString("version") || version == build.getString("release_version")
             } as JSONObject?
-            if (build != null) {
+
+            build?.let {
                 HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+                    .withStatusCode(200)
                     .withBody(
                         JSONObject().put("component", component)
                             .put("version", build.getString("version"))
-                            .put("buildVersion", build.getString("version"))
-                            .put("releaseVersion", build.getString("release_version"))
-                            .put("versionStatus", build.getString("status"))
+                            .put("status", build.getString("status"))
+                            .put("dependencies", build.getJSONArray("dependencies"))
+                            .put("commits", build.getJSONArray("commits"))
                             .toString(2)
-                    ).withStatusCode(200)
-            } else {
-                HttpResponse.response().withStatusCode(404)
-            }
+                    )
+            } ?: HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+                .withStatusCode(404)
+                .withBody(
+                    JSONObject().put("errorCode", "NOT_FOUND")
+                        .put("errorMessage", "Build $component:$version is not found")
+                        .toString(2)
+                )
         }
         mockServerClient.`when`(
             HttpRequest.request().withMethod("POST").withPath("/webhook")

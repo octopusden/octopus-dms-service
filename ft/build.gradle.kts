@@ -10,7 +10,7 @@ fun String.getExt() = project.ext[this] as? String
 dockerCompose {
     useComposeFiles.add("${projectDir}/src/ft/docker/docker-compose.yaml")
     waitForTcpPorts = true
-    captureContainersOutputToFiles = File("$buildDir${File.separator}docker_logs")
+    captureContainersOutputToFiles = File("$buildDir${File.separator}docker-logs")
     environment.putAll(
         mapOf(
             "DMS_SERVICE_VERSION" to project.version,

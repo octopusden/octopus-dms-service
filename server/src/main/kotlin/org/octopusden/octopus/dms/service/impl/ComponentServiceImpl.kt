@@ -24,7 +24,7 @@ import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentVersionRepository
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
-import org.octopusden.octopus.dms.service.RelengService
+import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
 import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.releng.versions.NumericVersionFactory
@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ComponentServiceImpl(
     private val componentsRegistryService: ComponentsRegistryService,
-    private val relengService: RelengService,
+    private val releaseManagementService: ReleaseManagementService,
     private val storageService: StorageService,
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
@@ -62,8 +62,10 @@ class ComponentServiceImpl(
                 ).dependencies.mapNotNull { (component, version, _) ->
                     componentVersionRepository.findByComponentNameAndVersion(component, version)
                 }.map { cv ->
-                    // ToDo check build status in release management service
                     DependencyDTO(components[cv.component.name]!!, cv.version, BuildStatus.UNKNOWN_STATUS)
+                }.sortedWith { a, b ->
+                    a.component.name.lowercase().compareTo(b.component.name.lowercase()).takeIf { it != 0 }
+                        ?: a.version.compareTo(b.version)
                 }
             } ?: throw NotFoundException("Version '$version' is not found for component '$componentName'")
     }
@@ -97,9 +99,7 @@ class ComponentServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getComponentVersions(
-        componentName: String,
-        minorVersions: List<String>,
-        includeRc: Boolean
+        componentName: String, minorVersions: List<String>, includeRc: Boolean
     ): List<ComponentVersionStatusWithInfoDTO> {
         log.info("Get versions of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
@@ -117,11 +117,8 @@ class ComponentServiceImpl(
         return if (componentVersionEntities.isEmpty()) {
             emptyList()
         } else {
-            val componentBuilds = relengService.getComponentBuilds(
-                componentName,
-                allowedStatuses,
-                componentVersionEntities.map { it.version }.toTypedArray(),
-                VersionField.VERSION
+            val componentBuilds = releaseManagementService.getComponentBuilds(
+                componentName, allowedStatuses, componentVersionEntities.map { it.version }.toSet()
             )
             componentVersionEntities.map { cv ->
                 ComponentVersionStatusWithInfoDTO(
@@ -167,18 +164,15 @@ class ComponentServiceImpl(
         log.info("Get previous versions for version '$version' of component '$componentName'" + if (includeRc) " including RC" else "")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        relengService.checkVersionStatus(componentName, buildVersion, null)
-        val versions = componentVersionRepository.findByComponentName(componentName).map { it.version }.toTypedArray()
+        releaseManagementService.validateVersionStatus(componentName, buildVersion, null)
+        val versions = componentVersionRepository.findByComponentName(componentName).map { it.version }.toSet()
         val allowedStatuses = if (includeRc) {
             arrayOf(BuildStatus.RELEASE, BuildStatus.RC)
         } else {
             arrayOf(BuildStatus.RELEASE)
         }
-        val builds = relengService.getComponentBuilds(componentName, allowedStatuses, versions, VersionField.VERSION)
-        return componentsRegistryService.findPreviousLines(
-            componentName,
-            buildVersion,
-            builds.map { it.version })
+        val builds = releaseManagementService.getComponentBuilds(componentName, allowedStatuses, versions)
+        return componentsRegistryService.findPreviousLines(componentName, version, builds.map { it.version })
     }
 
     @Transactional(readOnly = true)
@@ -190,7 +184,7 @@ class ComponentServiceImpl(
         log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        relengService.checkVersionStatus(componentName, buildVersion, type)
+        releaseManagementService.validateVersionStatus(componentName, buildVersion, type)
         return ArtifactsDTO(
             if (type == null) {
                 componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersion(
@@ -209,29 +203,25 @@ class ComponentServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getComponentVersionArtifact(
-        componentName: String,
-        version: String,
-        artifactId: Long
+        componentName: String, version: String, artifactId: Long
     ): ArtifactFullDTO {
         log.info("Get artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         return getOrElseThrow(componentName, buildVersion, artifactId).toFullDTO().also {
-            relengService.checkVersionStatus(componentName, buildVersion, it.type)
+            releaseManagementService.validateVersionStatus(componentName, buildVersion, it.type)
         }
     }
 
     @Transactional(readOnly = true)
     override fun downloadComponentVersionArtifact(
-        componentName: String,
-        version: String,
-        artifactId: Long
+        componentName: String, version: String, artifactId: Long
     ): DownloadArtifactDTO {
         log.info("Download artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val componentVersionArtifactEntity = getOrElseThrow(componentName, buildVersion, artifactId)
-        relengService.checkVersionStatus(componentName, buildVersion, componentVersionArtifactEntity.type)
+        releaseManagementService.validateVersionStatus(componentName, buildVersion, componentVersionArtifactEntity.type)
         return DownloadArtifactDTO(
             componentVersionArtifactEntity.artifact.fileName,
             storageService.download(componentVersionArtifactEntity.artifact, false)
@@ -249,7 +239,7 @@ class ComponentServiceImpl(
         log.info("Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (minorVersion, buildVersion) = normalizeComponentVersion(componentName, version)
-        relengService.checkVersionStatus(componentName, buildVersion, registerArtifactDTO.type)
+        releaseManagementService.validateVersionStatus(componentName, buildVersion, registerArtifactDTO.type)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
@@ -317,30 +307,31 @@ class ComponentServiceImpl(
 
     private fun normalizeComponentVersion(componentName: String, version: String): Pair<String, String> {
         val detailedComponentVersion = componentsRegistryService.getDetailedComponentVersion(componentName, version)
-        return detailedComponentVersion.minorVersion.version to (
-                when (version) {
-                    detailedComponentVersion.buildVersion.version -> version
+        return detailedComponentVersion.minorVersion.version to (when (version) {
+            detailedComponentVersion.buildVersion.version -> version
 
-                    detailedComponentVersion.releaseVersion.version -> {
-                        relengService.getComponentBuilds(
-                            componentName,
-                            arrayOf(BuildStatus.RC, BuildStatus.RELEASE),
-                            arrayOf(detailedComponentVersion.releaseVersion.jiraVersion),
-                            VersionField.RELEASE_VERSION
-                        ).firstOrNull()?.let {
-                            log.info("Release version '$version' of component '$componentName' is normalized to build version '${it.version}'")
-                            it.version
-                        } ?: throw NotFoundException("Unable to normalize version '$version' of component '$componentName'")
-                    }
+            detailedComponentVersion.releaseVersion.version -> {
+                try {
+                    releaseManagementService.getComponentBuild(componentName, version)
+                        .takeIf { build -> build.status in normalizeStatuses }
+                        ?.let { build ->
+                            val buildVersion = build.version
+                            log.info("Release version '$version' of component '$componentName' is normalized to build version '$buildVersion'")
+                            buildVersion
+                        }
+                } catch (e: org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException) {
+                    null
+                } ?: throw NotFoundException("Unable to normalize version '$version' of component '$componentName'")
+            }
 
-                    else -> {
-                        throw VersionFormatIsNotValidException("Version '$version' of component '$componentName' does not fit RELEASE or BUILD format")
-                    }
-                }
-                )
+            else -> {
+                throw VersionFormatIsNotValidException("Version '$version' of component '$componentName' does not fit RELEASE or BUILD format")
+            }
+        })
     }
 
     companion object {
+        private val normalizeStatuses = arrayOf(BuildStatus.RC, BuildStatus.RELEASE)
         private val log = LoggerFactory.getLogger(ComponentServiceImpl::class.java)
     }
 }

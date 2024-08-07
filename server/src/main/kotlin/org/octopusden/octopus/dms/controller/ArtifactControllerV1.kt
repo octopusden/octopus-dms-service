@@ -9,9 +9,8 @@ import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentVersionRepository
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
-import org.octopusden.octopus.dms.service.RelengService
+import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
-import org.octopusden.octopus.dms.service.impl.VersionField
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
@@ -47,7 +46,7 @@ class ArtifactControllerV1(
     private val componentService: ComponentService,
     private val storageService: StorageService,
     private val componentsRegistryService: ComponentsRegistryService,
-    private val relengService: RelengService,
+    private val relengService: ReleaseManagementService,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val storageProperties: StorageProperties
@@ -358,8 +357,7 @@ class ArtifactControllerV1(
             val builds = relengService.getComponentBuilds(
                 component,
                 allowedStatuses.toTypedArray(),
-                versions.toTypedArray(),
-                VersionField.VERSION
+                versions.toSet()
             )
             componentsRegistryService.findPreviousLines(component, buildVersion, builds.map { it.version })
         } catch (e: UncheckedExecutionException) {
@@ -393,8 +391,7 @@ class ArtifactControllerV1(
                 relengService.getComponentBuilds(
                     component,
                     arrayOf(BuildStatus.RELEASE, BuildStatus.RC),
-                    arrayOf(detailedComponentVersion.releaseVersion.jiraVersion),
-                    VersionField.RELEASE_VERSION
+                    setOf(detailedComponentVersion.releaseVersion.jiraVersion)
                 ).firstOrNull()?.version
                     ?: throw NotFoundException("There no release for version '${detailedComponentVersion.releaseVersion.jiraVersion}' of component '$component' in Jira")
             }
