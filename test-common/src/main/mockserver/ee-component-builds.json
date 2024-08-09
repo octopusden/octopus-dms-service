@@ -1,47 +1,114 @@
 [
   {
+    "component": "ee-component",
     "status": "RELEASE",
     "version": "03.53.30.31-1",
-    "release_version": "03.53.30.31"
+    "release_version": "03.53.30.31",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "BUILD",
     "version": "03.53.30.42-1",
-    "release_version": "03.53.30.42"
+    "release_version": "03.53.30.42",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "RC",
     "version": "03.53.30.53-1",
-    "release_version": "03.53.30.53"
+    "release_version": "03.53.30.53",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "BUILD",
     "version": "03.54.30.42-1",
-    "release_version": "03.54.30.42"
+    "release_version": "03.54.30.42",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "RC",
     "version": "03.54.30.53-1",
-    "release_version": "03.54.30.53"
+    "release_version": "03.54.30.53",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "RELEASE",
     "version": "03.54.30.64-1",
-    "release_version": "03.54.30.64"
+    "release_version": "03.54.30.64",
+    "dependencies": [
+      {
+        "component": "dependency3",
+        "version": "3.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "dependency1",
+        "version": "1.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "dependency2",
+        "version": "2.0.1",
+        "status": "RELEASE"
+      }
+    ],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "BUILD",
     "version": "03.55.30.42-1",
-    "release_version": "03.55.30.42"
+    "release_version": "03.55.30.42",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "RC",
     "version": "03.55.30.53-1",
-    "release_version": "03.55.30.53"
+    "release_version": "03.55.30.53",
+    "dependencies": [],
+    "commits": []
   },
   {
+    "component": "ee-component",
     "status": "BUILD",
     "version": "03.56.30.42-1",
-    "release_version": "03.56.30.42"
+    "release_version": "03.56.30.42",
+    "dependencies": [],
+    "commits": []
+  },
+  {
+    "component": "dependency1",
+    "status": "RELEASE",
+    "version": "1.0.1",
+    "release_version": "1.0.1",
+    "dependencies": [],
+    "commits": []
+  },
+  {
+    "component": "dependency2",
+    "status": "RELEASE",
+    "version": "2.0.1",
+    "release_version": "2.0.1",
+    "dependencies": [],
+    "commits": []
+  },
+  {
+    "component": "dependency3",
+    "status": "RELEASE",
+    "version": "3.0.1",
+    "release_version": "3.0.1",
+    "dependencies": [],
+    "commits": []
   }
 ]

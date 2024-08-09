@@ -9,6 +9,10 @@
         flex-direction: column;
         overflow-y: inherit;
 
+        & .bp3-tab-list {
+            margin: 4px;
+        }
+
         & .bp3-tab-panel {
             overflow-y: auto;
         }

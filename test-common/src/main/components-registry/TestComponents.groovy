@@ -5,6 +5,7 @@
     releaseManager = "EE Component Release Manager"
     groupId = "corp.domain"
     vcsUrl = "ssh://git@git.domain.corp/ee/ee-component.git"
+    solution = true
     jira {
         projectKey = 'EE'
         lineVersionFormat = '$major02.$minor02'
@@ -84,5 +85,53 @@
     distribution {
         explicit = false
         external = false
+    }
+}
+
+dependency1 {
+    system = "CLASSIC"
+    componentDisplayName = "Dependency 1"
+    componentOwner = "Dependency Owner"
+    releaseManager = "Dependency Manager"
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ee/dependency-1.git"
+    jira {
+        projectKey = 'DEPS'
+    }
+    distribution {
+        external = true
+        explicit = true
+    }
+}
+
+dependency2 {
+    system = "CLASSIC"
+    componentDisplayName = "Dependency 2"
+    componentOwner = "Dependency Owner"
+    releaseManager = "Dependency Manager"
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ee/dependency-2.git"
+    jira {
+        projectKey = 'DEPS'
+    }
+    distribution {
+        external = true
+        explicit = true
+    }
+}
+
+dependency3 {
+    system = "CLASSIC"
+    componentDisplayName = "Dependency 3"
+    componentOwner = "Dependency Owner"
+    releaseManager = "Dependency Manager"
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ee/dependency-3.git"
+    jira {
+        projectKey = 'DEPS'
+    }
+    distribution {
+        external = true
+        explicit = true
     }
 }

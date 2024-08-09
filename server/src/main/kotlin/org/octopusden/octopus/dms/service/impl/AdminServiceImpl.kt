@@ -11,7 +11,7 @@ import org.octopusden.octopus.dms.service.AdminService
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
-import org.octopusden.octopus.dms.service.RelengService
+import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -28,7 +28,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
     private val artifactRepository: ArtifactRepository,
-    private val relengService: RelengService
+    private val relengService: ReleaseManagementService
 ) : AdminService {
 
     override fun deleteInvalidComponents(dryRun: Boolean) {

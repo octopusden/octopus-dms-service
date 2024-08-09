@@ -18,9 +18,8 @@ import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentVersionRepository
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
-import org.octopusden.octopus.dms.service.RelengService
+import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
-import org.octopusden.octopus.dms.service.impl.VersionField
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,7 +41,7 @@ class ArtifactControllerV2(
     private val componentsRegistryService: ComponentsRegistryService,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val relengService: RelengService,
+    private val relengService: ReleaseManagementService,
     private val storageService: StorageService
 ) {
     @Operation(summary = "List of Component Versions")
@@ -76,8 +75,7 @@ class ArtifactControllerV2(
                 val componentBuilds = relengService.getComponentBuilds(
                     component,
                     status,
-                    componentVersionEntities.map { it.version }.toTypedArray(),
-                    VersionField.VERSION
+                    componentVersionEntities.map { it.version }.toSet()
                 )
                 componentVersionEntities.map { cv ->
                     ComponentVersionStatusWithInfoDTO(
@@ -209,8 +207,7 @@ class ArtifactControllerV2(
                 relengService.getComponentBuilds(
                     component,
                     arrayOf(BuildStatus.RELEASE, BuildStatus.RC),
-                    arrayOf(detailedComponentVersion.releaseVersion.jiraVersion),
-                    VersionField.RELEASE_VERSION
+                    setOf(detailedComponentVersion.releaseVersion.jiraVersion)
                 ).firstOrNull()?.version
                     ?: throw NotFoundException("There no release for version '${detailedComponentVersion.releaseVersion.jiraVersion}' of component '$component' in Jira")
             }

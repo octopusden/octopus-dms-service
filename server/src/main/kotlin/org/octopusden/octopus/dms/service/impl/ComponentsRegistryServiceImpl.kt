@@ -34,7 +34,7 @@ class ComponentsRegistryServiceImpl(
     override fun getExternalComponents(filter: ComponentRequestFilter?) =
         client.getAllComponents(solution = filter?.solution).components
             .filter { component ->
-                component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit)} ?: false
+                component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit) } ?: false
             }
             .map {
                 it.toComponentDTO()

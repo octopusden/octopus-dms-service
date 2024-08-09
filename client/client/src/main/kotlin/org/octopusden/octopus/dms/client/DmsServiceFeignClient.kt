@@ -1,26 +1,28 @@
 package org.octopusden.octopus.dms.client
 
+import feign.CollectionFormat
+import feign.Headers
+import feign.Param
+import feign.QueryMap
+import feign.RequestLine
+import feign.Response
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
+import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
-import feign.CollectionFormat
-import feign.Headers
-import feign.Param
-import feign.RequestLine
-import feign.Response
-import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 
 interface DmsServiceFeignClient {
     @RequestLine("GET rest/api/3/components")
-    fun getComponents(): ComponentsDTO
+    fun getComponents(@QueryMap filter: ComponentRequestFilter): ComponentsDTO
 
     @RequestLine("GET rest/api/3/components/{component-name}/minor-versions")
     fun getComponentMinorVersions(
@@ -81,6 +83,12 @@ interface DmsServiceFeignClient {
         @Param("version") version: String,
         @Param("artifact-id") artifactId: Long
     )
+
+    @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/dependencies")
+    fun getDependencies(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+    ): List<DependencyDTO>
 
     @RequestLine("POST /rest/api/3/admin/rename-component/{component-name}/{new-component-name}?dry-run=false")
     @Headers("Accept: application/json")

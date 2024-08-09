@@ -55,17 +55,6 @@
           "Production Security"
         ]
       }
-    },
-    {
-      "id": "ie-component",
-      "name": "IE Component",
-      "clientCode": null,
-      "parentComponent": null,
-      "securityGroups": {
-        "read": [
-          "Production Security"
-        ]
-      }
     }
   ]
 }
