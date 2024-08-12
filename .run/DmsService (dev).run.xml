@@ -13,7 +13,7 @@
         <option name="value" value="false" />
       </param>
     </additionalParameters>
-    <module name="octopus-dms-service.dms-service.main" />
+    <module name="org.octopusden.octopus.dms.octopus-dms-service.dms-service.main" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="org.octopusden.octopus.dms.DmsServiceApplication" />
     <extension name="coverage">
       <pattern>
