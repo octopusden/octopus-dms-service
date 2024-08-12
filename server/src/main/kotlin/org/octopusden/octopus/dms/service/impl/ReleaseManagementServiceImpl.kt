@@ -9,7 +9,6 @@ import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildDTO
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildFilterDTO
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildStatus as rmServiceBuildStatus
 
@@ -43,8 +42,11 @@ class ReleaseManagementServiceImpl(
     override fun getComponentBuilds(component: String, buildStatuses: Array<BuildStatus>, versions: Set<String>)
             : List<ComponentBuild> {
         val statuses = buildStatuses.map { bs -> rmServiceBuildStatus.valueOf(bs.name) }.toSet()
-        return client.getBuilds(component, BuildFilterDTO(statuses = statuses, versions = versions))
-            .map { b -> ComponentBuild(BuildStatus.valueOf(b.status.name), b.version) }
+        return versions.chunked(20)
+            .flatMap { chunkVersions ->
+                client.getBuilds(component, BuildFilterDTO(statuses = statuses, versions = chunkVersions.toSet()))
+                    .map { b -> ComponentBuild(BuildStatus.valueOf(b.status.name), b.version) }
+            }
     }
 
     override fun getComponentBuild(component: String, version: String) =
