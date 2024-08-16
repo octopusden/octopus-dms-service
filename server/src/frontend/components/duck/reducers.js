@@ -8,14 +8,17 @@ const INITIAL_STATE = {
     components: {},
 
     loadingComponents: false,
-    loadingArtifactsList: false,
+    loadingArtifacts: false,
 
     currentArtifacts: {
         selectedComponent: null,
         selectedMinor: null,
         selectedVersion: null,
         selectedDocument: {},
-        artifactsList: []
+        artifacts: [],
+        meta: {
+            ready: false
+        }
     },
 
     confirmation: null,
@@ -52,6 +55,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         case types.REQUEST_COMPONENTS: {
             return {
                 ...state,
+                components: {},
                 loadingComponents: true
             }
         }
@@ -185,19 +189,25 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         case types.SELECT_VERSION: {
             const {componentId, minorVersion, version} = action
             const {currentArtifacts, components} = state
-            const selectedComponentName = get(components, [componentId, 'name'])
+            const selectedComponent = get(components, [componentId])
             return {
                 ...state,
-                loadingArtifactsList: false,
+                loadingArtifacts: false,
                 currentArtifacts: {
                     ...currentArtifacts,
                     loadingDocumentArtifact: false,
                     selectedComponent: componentId,
-                    selectedComponentName: selectedComponentName,
                     selectedMinor: minorVersion,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifactsList: []
+                    artifacts: [],
+                    meta: {
+                        componentId: componentId,
+                        componentName: selectedComponent.name,
+                        solution: selectedComponent.solution,
+                        clientCode: selectedComponent.clientCode,
+                        parentComponent: selectedComponent.parentComponent
+                    }
                 }
             }
         }
@@ -209,7 +219,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             const selectedComponentName = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component', 'name'])
             return {
                 ...state,
-                loadingArtifactsList: false,
+                loadingArtifacts: false,
                 currentArtifacts: {
                     ...currentArtifacts,
                     loadingDocumentArtifact: false,
@@ -220,7 +230,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     selectedComponentName: selectedComponentName,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifactsList: []
+                    artifacts: []
                 }
             }
         }
@@ -228,20 +238,26 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         case types.SELECT_GROUPED_COMPONENT_VERSION: {
             const {groupId, componentId, minorVersion, version} = action
             const {currentArtifacts, components} = state
-            const selectedComponentName = get(components, [componentId, 'name'])
+            const selectedComponent = get(components, [groupId, 'subComponents', componentId])
             return {
                 ...state,
-                loadingArtifactsList: false,
+                loadingArtifacts: false,
                 currentArtifacts: {
                     ...currentArtifacts,
                     loadingDocumentArtifact: false,
                     selectedGroup: groupId,
                     selectedComponent: componentId,
-                    selectedComponentName: selectedComponentName,
                     selectedMinor: minorVersion,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifactsList: []
+                    artifacts: [],
+                    meta: {
+                        componentId: componentId,
+                        componentName: selectedComponent.name,
+                        solution: selectedComponent.solution,
+                        clientCode: selectedComponent.clientCode,
+                        parentComponent: selectedComponent.parentComponent
+                    }
                 }
             }
         }
@@ -282,21 +298,30 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             return updateComponent(state, componentId, {expand: false})
         }
 
-        case types.REQUEST_ARTIFACTS_LIST: {
+        case types.REQUEST_ARTIFACTS: {
             return {
                 ...state,
-                loadingArtifactsList: true
+                loadingArtifacts: true
             }
         }
 
-        case types.RECEIVE_ARTIFACTS_LIST: {
-            const {artifactsList} = action
+        case types.RECEIVE_ARTIFACTS: {
+            const {artifacts} = action
+            const build = artifacts.build
             return {
                 ...state,
-                loadingArtifactsList: false,
+                loadingArtifacts: false,
                 currentArtifacts: {
                     ...state.currentArtifacts,
-                    artifactsList: artifactsList,
+                    artifacts: artifacts.artifacts,
+                    meta: {
+                        ...state.currentArtifacts.meta,
+                        ready: true,
+                        componentId: build.component,
+                        version: build.version,
+                        status: build.status,
+                        promoted: build.promotedAt
+                    },
                     preview: {}
                 }
             }
@@ -367,7 +392,10 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             return {
                 ...state,
                 currentArtifacts: {
-                    selectedComponentGroupTab: selectedComponentGroupTab
+                    selectedComponentGroupTab: selectedComponentGroupTab,
+                    meta: {
+                        ready: false
+                    }
                 }
             }
         }
@@ -438,15 +466,20 @@ function updateGroupedComponent(state, groupId, componentId, data) {
 
 function updateComponent(state, componentId, data) {
     const {components} = state
-    return {
-        ...state,
-        components: {
-            ...components,
-            [componentId]: {
-                ...components[componentId],
-                ...data
+    const component = get(components, componentId)
+    if (component) {
+        return {
+            ...state,
+            components: {
+                ...components,
+                [componentId]: {
+                    ...components[componentId],
+                    ...data
+                }
             }
         }
+    } else {
+        return state
     }
 }
 
@@ -465,7 +498,7 @@ function updateComponentMinorVersion(state, componentId, minorVersion, data) {
 
 function updateComponentVersion(state, componentId, minorVersion, version, data) {
     const {components} = state
-    return updateComponentMinorVersion(state, componentId, minorVersion,{
+    return updateComponentMinorVersion(state, componentId, minorVersion, {
         versions: {
             ...components[componentId].minorVersions[minorVersion].versions,
             [version]: {

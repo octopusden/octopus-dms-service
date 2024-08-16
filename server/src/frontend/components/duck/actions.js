@@ -201,15 +201,15 @@ const selectVersion = (componentId, minorVersion, version) => ({
     version: version
 })
 
-const requestArtifactsList = (componentId, version) => ({
-    type: types.REQUEST_ARTIFACTS_LIST,
+const requestArtifacts = (componentId, version) => ({
+    type: types.REQUEST_ARTIFACTS,
     componentId: componentId,
     version: version
 })
 
-const receiveArtifactsList = (artifactsList) => ({
-    type: types.RECEIVE_ARTIFACTS_LIST,
-    artifactsList: artifactsList
+const receiveArtifacts = (artifacts) => ({
+    type: types.RECEIVE_ARTIFACTS,
+    artifacts: artifacts
 })
 
 const requestDocumentArtifact = (id) => ({
@@ -316,8 +316,8 @@ export default {
     selectDependency,
     expandComponent,
     closeComponent,
-    requestArtifactsList,
-    receiveArtifactsList,
+    requestArtifacts,
+    receiveArtifacts,
     requestDocumentArtifact,
     receiveDocumentArtifact,
     deleteArtifact,

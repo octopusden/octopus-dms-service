@@ -48,7 +48,9 @@ class ComponentServiceImpl(
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
         log.info("Get components")
-        return componentsRegistryService.getExternalComponents(filter)
+        return componentsRegistryService.getExternalComponents(filter).sortedWith { a, b ->
+            a.name.lowercase().compareTo(b.name.lowercase())
+        }
     }
 
     override fun getDependencies(componentName: String, version: String): List<DependencyDTO> {
@@ -119,12 +121,12 @@ class ComponentServiceImpl(
         } else {
             val componentBuilds = releaseManagementService.getComponentBuilds(
                 componentName, allowedStatuses, componentVersionEntities.map { it.version }.toSet()
-            )
+            ).associateBy { build -> build.version }
             componentVersionEntities.map { cv ->
                 ComponentVersionStatusWithInfoDTO(
                     cv.component.name,
                     cv.version,
-                    componentBuilds.find { it.version == cv.version }?.status ?: BuildStatus.UNKNOWN_STATUS,
+                    componentBuilds[cv.version]?.status ?: BuildStatus.UNKNOWN_STATUS,
                     numericVersionFactory.create(cv.version)
                 )
             }.filter {
@@ -164,7 +166,7 @@ class ComponentServiceImpl(
         log.info("Get previous versions for version '$version' of component '$componentName'" + if (includeRc) " including RC" else "")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        releaseManagementService.validateVersionStatus(componentName, buildVersion, null)
+        releaseManagementService.getComponentBuild(componentName, buildVersion, null)
         val versions = componentVersionRepository.findByComponentName(componentName).map { it.version }.toSet()
         val allowedStatuses = if (includeRc) {
             arrayOf(BuildStatus.RELEASE, BuildStatus.RC)
@@ -184,8 +186,9 @@ class ComponentServiceImpl(
         log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        releaseManagementService.validateVersionStatus(componentName, buildVersion, type)
+        val build = releaseManagementService.getComponentBuild(componentName, buildVersion, type)
         return ArtifactsDTO(
+            build,
             if (type == null) {
                 componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersion(
                     componentName,
@@ -209,7 +212,7 @@ class ComponentServiceImpl(
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         return getOrElseThrow(componentName, buildVersion, artifactId).toFullDTO().also {
-            releaseManagementService.validateVersionStatus(componentName, buildVersion, it.type)
+            releaseManagementService.getComponentBuild(componentName, buildVersion, it.type)
         }
     }
 
@@ -221,7 +224,7 @@ class ComponentServiceImpl(
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val componentVersionArtifactEntity = getOrElseThrow(componentName, buildVersion, artifactId)
-        releaseManagementService.validateVersionStatus(componentName, buildVersion, componentVersionArtifactEntity.type)
+        releaseManagementService.getComponentBuild(componentName, buildVersion, componentVersionArtifactEntity.type)
         return DownloadArtifactDTO(
             componentVersionArtifactEntity.artifact.fileName,
             storageService.download(componentVersionArtifactEntity.artifact, false)
@@ -239,7 +242,7 @@ class ComponentServiceImpl(
         log.info("Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (minorVersion, buildVersion) = normalizeComponentVersion(componentName, version)
-        releaseManagementService.validateVersionStatus(componentName, buildVersion, registerArtifactDTO.type)
+        releaseManagementService.getComponentBuild(componentName, buildVersion, registerArtifactDTO.type)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }

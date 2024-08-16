@@ -9,9 +9,9 @@ import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
-        components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc
+        components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc
     } = state.components
-    return {components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc}
+    return {components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc}
 }
 
 const mapDispatchToProps = (dispatch) => {
@@ -138,7 +138,7 @@ class SolutionsTree extends Component {
         const {level} = nodeData
         switch (level) {
             case treeLevel.ROOT:
-                this.handleClickOnRoot(nodeData)
+                this.handleSolutionSelect(nodeData)
                 break
             case treeLevel.MINOR:
                 this.handleMinorVersionSelect(nodeData)
@@ -151,7 +151,7 @@ class SolutionsTree extends Component {
         }
     }
 
-    handleClickOnRoot = (nodeData) => {
+    handleSolutionSelect = (nodeData) => {
         const {components, getComponentMinorVersions, expandComponent, closeComponent} = this.props
         const {componentId, isExpanded} = nodeData
 
