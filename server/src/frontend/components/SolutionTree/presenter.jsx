@@ -48,7 +48,7 @@ function solutionsToNodes(props) {
             componentId: componentId,
             isExpanded: solution.expand,
             label: solution.name,
-            icon: solution.expand ? 'folder-open' : 'folder-close',
+            icon: 'applications',
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(solution)
         }
@@ -70,7 +70,7 @@ function renderMinors(solutionId, minorVersions, props) {
             label: minorVersionId,
             version: minorVersionId,
             componentId: solutionId,
-            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            icon: 'filter',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(minorVersion)
@@ -101,7 +101,7 @@ function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
                 solutionId: solutionId,
                 solutionMinor: solutionMinor,
                 solutionVersion: solutionVersion,
-                icon: 'box',
+                icon: 'build',
                 isExpanded: version.expand,
                 isSelected: selectedComponent === solutionId && selectedVersion === solutionVersion,
                 childNodes: childNodes,
@@ -126,7 +126,7 @@ function renderDependencies(solutionId, solutionMinor, solutionVersion, dependen
             solutionMinor: solutionMinor,
             componentId: dependencyId,
             version: version,
-            icon: 'box',
+            icon: 'inheritance',
             isSelected: selectedComponent === dependencyId
                 && selectedVersion === version
                 && selectedSolutionId === solutionId
