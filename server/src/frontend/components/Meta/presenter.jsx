@@ -13,10 +13,10 @@ export default function meta(props) {
                 <MetaItem icon='applications' keyName='Solution' value={meta.solution ? "yes" : "no"}/>
             </div>
             <div className="meta-column">
-                <MetaItem icon='dollar' keyName='Client Code' value={meta.clientCode}/>
-                <MetaItem icon='fork' keyName='Parent Component ID' value={meta.parentComponent}/>
+                <MetaItem icon='dollar' keyName='Client Code' value={!!meta.clientCode ? meta.clientCode : "none"}/>
+                <MetaItem icon='fork' keyName='Parent Component ID' value={!!meta.parentComponent ? meta.parentComponent : "none"}/>
                 <MetaItem icon='build' keyName='Status' value={meta.status}/>
-                <MetaItem icon='calendar' keyName='Promoted' value={new Date(meta.promoted).toLocaleString("ru-RU")}/>
+                <MetaItem icon='calendar' keyName='Promoted' value={!!meta.promoted ? new Date(meta.promoted).toLocaleString("ru-RU") : "unknown"}/>
             </div>
         </div>
     } else {

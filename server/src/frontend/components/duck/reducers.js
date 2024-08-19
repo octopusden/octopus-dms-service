@@ -216,7 +216,11 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
             const {solutionId, solutionMinor, solutionVersion, componentId, version} = action
             const {currentArtifacts, components} = state
             const dependencyId = `${componentId}:${version}`
-            const selectedComponentName = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component', 'name'])
+
+            const selectedComponent = solutionId === componentId && solutionVersion === version
+                ? get(components, [componentId])
+                : get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component'])
+
             return {
                 ...state,
                 loadingArtifacts: false,
@@ -227,10 +231,17 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     selectedSolutionMinor: solutionMinor,
                     selectedSolutionVersion: solutionVersion,
                     selectedComponent: componentId,
-                    selectedComponentName: selectedComponentName,
+                    selectedMinor: null,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifacts: []
+                    artifacts: [],
+                    meta: {
+                        componentId: componentId,
+                        componentName: selectedComponent.name,
+                        solution: selectedComponent.solution,
+                        clientCode: selectedComponent.clientCode,
+                        parentComponent: selectedComponent.parentComponent
+                    }
                 }
             }
         }
