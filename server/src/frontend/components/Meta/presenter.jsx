@@ -10,15 +10,13 @@ export default function meta(props) {
                 <MetaItem icon='application' keyName='Component name' value={meta.componentName}/>
                 <MetaItem icon='id-number' keyName='Component ID' value={meta.componentId}/>
                 <MetaItem icon='box' keyName='Version' value={meta.version}/>
-            </div>
-            <div className="meta-column">
-                <MetaItem icon='build' keyName='Status' value={meta.status}/>
-                <MetaItem icon='calendar' keyName='Promoted' value={new Date(meta.promoted).toLocaleString("ru-RU")}/>
-            </div>
-            <div className="meta-column">
                 <MetaItem icon='applications' keyName='Solution' value={meta.solution ? "yes" : "no"}/>
+            </div>
+            <div className="meta-column">
                 <MetaItem icon='dollar' keyName='Client Code' value={meta.clientCode}/>
                 <MetaItem icon='fork' keyName='Parent Component ID' value={meta.parentComponent}/>
+                <MetaItem icon='build' keyName='Status' value={meta.status}/>
+                <MetaItem icon='calendar' keyName='Promoted' value={new Date(meta.promoted).toLocaleString("ru-RU")}/>
             </div>
         </div>
     } else {
