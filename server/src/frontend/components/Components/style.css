@@ -32,10 +32,7 @@
             flex-grow: 1;
 
             & .meta-block {
-                padding-top: 10px;
                 background-color: #F5F8FA;
-                height: 80px;
-                min-height: 80px;
             }
 
             & .artifacts-block {

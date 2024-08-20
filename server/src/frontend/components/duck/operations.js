@@ -280,12 +280,12 @@ const selectVersion = (componentId, minorVersion, version) => (dispatch) => {
     dispatch(actions.selectVersion(componentId, minorVersion, version))
 }
 
-const getArtifactsList = (componentId, version) => (dispatch) => {
-    dispatch(actions.requestArtifactsList(componentId, version))
+const getArtifacts = (componentId, version) => (dispatch) => {
+    dispatch(actions.requestArtifacts(componentId, version))
     fetch(`rest/api/3/components/${componentId}/versions/${version}/artifacts`).then((response) => {
         response.json().then((data) => {
             if (response.ok) {
-                dispatch(actions.receiveArtifactsList(data.artifacts))
+                dispatch(actions.receiveArtifacts(data))
             } else {
                 dispatch(actions.showError(data.message))
             }
@@ -311,7 +311,7 @@ const deleteArtifact = (componentId, version, id) => (dispatch) => {
         .then(handleErrors(`Delete artifact '${id}'`))
         .then((_) => {
             dispatch(actions.successDeleteArtifact(id))
-            dispatch(getArtifactsList(componentId, version))
+            dispatch(getArtifacts(componentId, version))
         })
         .catch((err) => dispatch(actions.showError(err.message)))
 }
@@ -389,7 +389,7 @@ export default {
     closeVersion,
     selectDependency,
     closeComponent,
-    getArtifactsList,
+    getArtifacts,
     getDocument,
     getEmptyDocumentArtifact,
     showError,

@@ -9,7 +9,7 @@ const getComponents = () => {
     }
 }
 
-const getArtifactsList = (componentId, version) => {
+const getArtifacts = (componentId, version) => {
     return {
         "Artifact type1": [
             {name: componentId + "some-artifact-id 1", classifyer: "cl1"},
@@ -35,6 +35,6 @@ const getDocument = (componentId, version, artifactType, artifactName, artifactC
 export default {
     getComponents,
     getComponentVersions,
-    getArtifactsList,
+    getArtifacts,
     getDocument
 }

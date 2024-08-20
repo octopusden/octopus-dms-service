@@ -10,7 +10,7 @@ const treeLevel = {
 }
 
 function solutionTree(props) {
-    const {loadingComponents, handleNodeClick} = props
+    const {loadingComponents, handleNodeClick, handleNodeExpand, handleNodeCollapse} = props
 
     const nodes = solutionsToNodes(props)
 
@@ -24,8 +24,8 @@ function solutionTree(props) {
                 <Tree
                     contents={nodes}
                     onNodeClick={handleNodeClick}
-                    onNodeCollapse={handleNodeClick}
-                    onNodeExpand={handleNodeClick}
+                    onNodeExpand={handleNodeExpand}
+                    onNodeCollapse={handleNodeCollapse}
                 />
             </div>
         </div>
@@ -48,7 +48,7 @@ function solutionsToNodes(props) {
             componentId: componentId,
             isExpanded: solution.expand,
             label: solution.name,
-            icon: solution.expand ? 'folder-open' : 'folder-close',
+            icon: 'applications',
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(solution)
         }
@@ -70,7 +70,7 @@ function renderMinors(solutionId, minorVersions, props) {
             label: minorVersionId,
             version: minorVersionId,
             componentId: solutionId,
-            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            icon: 'filter',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(minorVersion)
@@ -79,7 +79,8 @@ function renderMinors(solutionId, minorVersions, props) {
 }
 
 function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
-    const {showRc} = props
+    const {currentArtifacts, showRc} = props
+    const {selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(solutionVersions)
         .filter(version => {
             return showRc || version.status !== 'RC'
@@ -87,20 +88,22 @@ function renderVersions(solutionId, solutionMinor, solutionVersions, props) {
         .map(version => {
             let childNodes = []
             const dependencies = version.dependencies
+            let solutionVersion = version.version;
             if (dependencies) {
-                childNodes = renderDependencies(solutionId, solutionMinor, version.version, dependencies, props)
+                childNodes = renderDependencies(solutionId, solutionMinor, solutionVersion, dependencies, props)
             }
 
-            const displayName = version.version + (version.status === 'RELEASE' ? '' : `-${version.status}`)
+            const displayName = solutionVersion + (version.status === 'RELEASE' ? '' : `-${version.status}`)
             return {
                 level: treeLevel.VERSION,
                 id: version.id,
                 label: displayName,
                 solutionId: solutionId,
                 solutionMinor: solutionMinor,
-                solutionVersion: version.version,
-                icon: 'box',
+                solutionVersion: solutionVersion,
+                icon: 'build',
                 isExpanded: version.expand,
+                isSelected: selectedComponent === solutionId && selectedVersion === solutionVersion,
                 childNodes: childNodes,
                 secondaryLabel: getSecondaryLabel(version)
             }
@@ -123,7 +126,7 @@ function renderDependencies(solutionId, solutionMinor, solutionVersion, dependen
             solutionMinor: solutionMinor,
             componentId: dependencyId,
             version: version,
-            icon: 'box',
+            icon: 'inheritance',
             isSelected: selectedComponent === dependencyId
                 && selectedVersion === version
                 && selectedSolutionId === solutionId

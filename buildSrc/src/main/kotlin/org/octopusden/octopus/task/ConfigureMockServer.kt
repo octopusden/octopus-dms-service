@@ -101,6 +101,7 @@ abstract class ConfigureMockServer : DefaultTask() {
                             .put("status", build.getString("status"))
                             .put("dependencies", build.getJSONArray("dependencies"))
                             .put("commits", build.getJSONArray("commits"))
+                            .put("statusHistory", build.getJSONObject("statusHistory"))
                             .toString(2)
                     )
             } ?: HttpResponse.response().withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)

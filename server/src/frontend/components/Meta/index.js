@@ -5,11 +5,9 @@ import {connect} from "react-redux";
 
 
 const mapStateToProps = (state) => {
-    const { selectedComponent, selectedComponentName, selectedVersion} = get(state, "components.currentArtifacts")
+    const {meta} = get(state, "components.currentArtifacts")
     return {
-        selectedComponent,
-        selectedComponentName,
-        selectedVersion
+        meta
     }
 }
 

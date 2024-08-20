@@ -14,7 +14,7 @@ const mapStateToProps = (state) => {
 
     const currentArtifacts = get(state, "components.currentArtifacts")
     const {
-        selectedComponent, selectedVersion, selectedDocument, loadingArtifactsList, artifactsList
+        selectedComponent, selectedVersion, selectedDocument, loadingArtifacts, artifacts
     } = currentArtifacts
     return {
         adminMode,
@@ -22,14 +22,14 @@ const mapStateToProps = (state) => {
         selectedComponent,
         selectedVersion,
         selectedDocument,
-        loadingArtifactsList,
-        artifactsList
+        loadingArtifacts,
+        artifacts
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     const getArtifactList = (componentId, version) => {
-        dispatch(componentsOperations.getArtifactsList(componentId, version))
+        dispatch(componentsOperations.getArtifacts(componentId, version))
     }
     const getDocument = (componentId, version, id, isPrintable, displayName) => {
         isPrintable
@@ -80,24 +80,24 @@ class ArtifactsList extends Component {
         history.push({search: queryString.stringify(urlState)})
 
         const {
-            getArtifactList, getDocument, selectedComponent, selectedVersion, selectedDocument, artifactsList
+            getArtifactList, getDocument, selectedComponent, selectedVersion, selectedDocument, artifacts
         } = this.props
 
         const {
             selectedComponent: prevSelectedComponent,
             selectedVersion: prevSelectedVersion,
-            artifactsList: prevArtifactsList
+            artifacts: prevArtifacts
         } = prevProps
 
         if (selectedComponent !== prevSelectedComponent || selectedVersion !== prevSelectedVersion) {
             getArtifactList(selectedComponent, selectedVersion)
         }
 
-        if (artifactsList.length > 0
-            && (artifactsList.length !== prevArtifactsList.length || artifactsList.toString() !== prevArtifactsList.toString())
+        if (artifacts.length > 0
+            && (artifacts.length !== prevArtifacts.length || artifacts.toString() !== prevArtifacts.toString())
             && selectedDocument.id
         ) {
-            const artifact = artifactsList.find(artifact => {
+            const artifact = artifacts.find(artifact => {
                 return artifact.id === selectedDocument.id
             })
             const isPrintable = isPrintableArtifact(artifact)

@@ -47,7 +47,7 @@ function componentsToNodes(props) {
             componentId: componentId,
             isExpanded: component.expand,
             label: component.name,
-            icon: component.expand ? 'folder-open' : 'folder-close',
+            icon: component.solution ? 'applications' : 'application',
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(component)
         }
@@ -68,7 +68,7 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
             label: minorVersionId,
             version: minorVersionId,
             componentId: componentId,
-            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            icon: 'filter',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(minorVersion)
@@ -90,7 +90,7 @@ function renderComponentVersions(componentId, minorVersionId, versions, props) {
             version: versionId,
             minorVersion: minorVersionId,
             componentId: componentId,
-            icon: 'box',
+            icon: 'build',
             isSelected: selectedComponent === componentId && selectedVersion === versionId
         }
     })

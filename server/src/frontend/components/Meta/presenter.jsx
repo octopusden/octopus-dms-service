@@ -3,14 +3,25 @@ import './style.css'
 import {Icon} from "@blueprintjs/core";
 
 export default function meta(props) {
-    const {selectedComponent, selectedComponentName, selectedVersion} = props
-    return <div className="meta-wrapper">
-        <div className="meta-column">
-            <MetaItem icon='tag' keyName='Component name' value={selectedComponentName}/>
-            <MetaItem icon='id-number' keyName='Component ID' value={selectedComponent}/>
-            <MetaItem icon='box' keyName='Version' value={selectedVersion}/>
+    const {meta} = props
+    if (meta.ready) {
+        return <div className="meta-wrapper">
+            <div className="meta-column">
+                <MetaItem icon='application' keyName='Component name' value={meta.componentName}/>
+                <MetaItem icon='id-number' keyName='Component ID' value={meta.componentId}/>
+                <MetaItem icon='box' keyName='Version' value={meta.version}/>
+                <MetaItem icon='applications' keyName='Solution' value={meta.solution ? "yes" : "no"}/>
+            </div>
+            <div className="meta-column">
+                <MetaItem icon='dollar' keyName='Client Code' value={!!meta.clientCode ? meta.clientCode : "none"}/>
+                <MetaItem icon='fork' keyName='Parent Component ID' value={!!meta.parentComponent ? meta.parentComponent : "none"}/>
+                <MetaItem icon='build' keyName='Status' value={meta.status}/>
+                <MetaItem icon='calendar' keyName='Promoted' value={!!meta.promoted ? new Date(meta.promoted).toLocaleString("ru-RU") : "unknown"}/>
+            </div>
         </div>
-    </div>
+    } else {
+        return <div className="meta-wrapper"></div>
+    }
 }
 
 function MetaItem(props) {

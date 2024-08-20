@@ -34,7 +34,8 @@ function groupedComponentsTree(props) {
 }
 
 function groupsToNodes(props) {
-    const {components} = props
+    const {components, icon} = props
+    console.log("icon", icon)
     return Object.values(components).map(group => {
         let childNodes = []
         const groupId = group.id
@@ -48,7 +49,7 @@ function groupsToNodes(props) {
             groupId: groupId,
             isExpanded: group.expand,
             label: group.name,
-            icon: group.expand ? 'folder-open' : 'folder-close',
+            icon: icon,
             childNodes: childNodes,
         }
     })
@@ -69,7 +70,7 @@ function renderComponents(groupId, subComponents, props) {
             label: component.name,
             groupId: groupId,
             componentId: componentId,
-            icon: component.expand ? 'folder-open' : 'folder-close',
+            icon: component.solution ? 'applications' : 'application',
             isExpanded: component.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(component)
@@ -92,7 +93,7 @@ function renderComponentMinorVersions(groupId, componentId, minorVersions, props
             groupId: groupId,
             minor: minorVersionId,
             componentId: componentId,
-            icon: minorVersion.expand ? 'folder-open' : 'folder-close',
+            icon: 'filter',
             isExpanded: minorVersion.expand,
             childNodes: childNodes,
             secondaryLabel: getSecondaryLabel(minorVersion)
@@ -117,7 +118,7 @@ function renderVersions(groupId, componentId, minorVersion, versions, props) {
                 componentId: componentId,
                 minorVersion: minorVersion,
                 version: version.version,
-                icon: 'box',
+                icon: 'build',
                 isSelected: selectedGroup === groupId && selectedComponent === componentId
                     && selectedVersion === version.version
             }

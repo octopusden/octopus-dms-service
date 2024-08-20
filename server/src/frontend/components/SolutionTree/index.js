@@ -9,9 +9,9 @@ import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
-        components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc
+        components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc
     } = state.components
-    return {components, loadingComponents, loadingArtifactsList, currentArtifacts, errorMessage, confirmation, showRc}
+    return {components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc}
 }
 
 const mapDispatchToProps = (dispatch) => {
@@ -119,7 +119,7 @@ class SolutionsTree extends Component {
                             if (solutionVersion) {
                                 getDependencies(solutionId, solutionMinor, solutionVersion, () => {
                                     if (dependencyId && dependencyVersion) {
-                                        selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
+                                            selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
                                     }
                                 })
                             }
@@ -131,14 +131,47 @@ class SolutionsTree extends Component {
     }
 
     render() {
-        return solutionTree({...this.props, handleNodeClick: this.handleNodeClick})
+        return solutionTree({
+            ...this.props,
+            handleNodeClick: this.handleNodeClick,
+            handleNodeExpand: this.handleNodeExpand,
+            handleNodeCollapse: this.handleNodeCollapse
+        })
+    }
+
+    handleNodeExpand = (nodeData, _nodePath, e) => {
+        const {level} = nodeData
+        if (level === treeLevel.VERSION) {
+            const {components, getDependencies, expandVersion} = this.props
+            const {solutionId, solutionMinor, solutionVersion} = nodeData
+
+            const version = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion]);
+            if (!version.dependencies || version.loadError) {
+                getDependencies(solutionId, solutionMinor, solutionVersion)
+            } else {
+                expandVersion(solutionId, solutionMinor, solutionVersion)
+            }
+        } else {
+            this.handleNodeClick(nodeData, _nodePath, e)
+        }
+    }
+
+    handleNodeCollapse = (nodeData, _nodePath, e) => {
+        const {level} = nodeData
+        if (level === treeLevel.VERSION) {
+            const {closeVersion} = this.props
+            const {solutionId, solutionMinor, solutionVersion} = nodeData
+            closeVersion(solutionId, solutionMinor, solutionVersion)
+        } else {
+            this.handleNodeClick(nodeData, _nodePath, e)
+        }
     }
 
     handleNodeClick = (nodeData, _nodePath, e) => {
         const {level} = nodeData
         switch (level) {
             case treeLevel.ROOT:
-                this.handleClickOnRoot(nodeData)
+                this.handleSolutionSelect(nodeData)
                 break
             case treeLevel.MINOR:
                 this.handleMinorVersionSelect(nodeData)
@@ -151,7 +184,7 @@ class SolutionsTree extends Component {
         }
     }
 
-    handleClickOnRoot = (nodeData) => {
+    handleSolutionSelect = (nodeData) => {
         const {components, getComponentMinorVersions, expandComponent, closeComponent} = this.props
         const {componentId, isExpanded} = nodeData
 
@@ -185,18 +218,10 @@ class SolutionsTree extends Component {
     }
 
     handleVersionSelect = (nodeData) => {
-        const {components, getDependencies, expandVersion, closeVersion} = this.props
-        const {solutionId, solutionMinor, solutionVersion, isExpanded} = nodeData
-
-        if (isExpanded) {
-            closeVersion(solutionId, solutionMinor, solutionVersion)
-            return
-        }
-        const version = get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion]);
-        if (!version.dependencies || version.loadError) {
-            getDependencies(solutionId, solutionMinor, solutionVersion)
-        } else {
-            expandVersion(solutionId, solutionMinor, solutionVersion)
+        const {selectDependency} = this.props
+        const {solutionId, solutionMinor, solutionVersion, isSelected} = nodeData
+        if (!isSelected) {
+            selectDependency(solutionId, solutionMinor, solutionVersion, solutionId, solutionVersion)
         }
     }
 
