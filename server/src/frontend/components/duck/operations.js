@@ -88,16 +88,26 @@ const getCustomComponents = (onSuccess) => (dispatch) => {
                     .then(handleErrors('Get custom component parents'))
                     .then((responseWithImplicit) => {
                         responseWithImplicit.json().then((allData) => {
-                            const idComponents = allData.components.reduce((map, c) => {
-                                map[c.id] = c
-                                return map
+                            const idComponents = allData.components.reduce((acc, c) => {
+                                acc[c.id] = c
+                                return acc
                             }, {})
+
                             const parents = data.components
                                 .filter((c) => c.parentComponent)
+                                .map((c) => {
+                                    const parentComponentId = c.parentComponent
+                                    if (idComponents[parentComponentId]) {
+                                        c.parentComponent = idComponents[parentComponentId]
+                                    }
+                                    return c
+                                })
+                                .sort((a, b) => a.parentComponent.name.toLowerCase().localeCompare(b.parentComponent.name.toLowerCase()))
                                 .reduce(function (acc, component) {
-                                    const parentComponentId = component.parentComponent
+                                    const parentComponent = component.parentComponent
+                                    const parentComponentId = parentComponent.id
                                     if (!acc[parentComponentId]) {
-                                        acc[parentComponentId] = idComponents[parentComponentId] ? idComponents[parentComponentId] : parentComponentId
+                                        acc[parentComponentId] = parentComponent
                                         acc[parentComponentId].subComponents = {}
                                     }
                                     acc[parentComponentId].subComponents[component.id] = component;

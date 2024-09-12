@@ -35,7 +35,6 @@ function groupedComponentsTree(props) {
 
 function groupsToNodes(props) {
     const {components, icon} = props
-    console.log("icon", icon)
     return Object.values(components).map(group => {
         let childNodes = []
         const groupId = group.id
