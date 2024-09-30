@@ -3,6 +3,7 @@ package org.octopusden.octopus.dms.client.service;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO;
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.GavDTO;
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO;
@@ -45,6 +46,15 @@ public class ArtifactServiceImpl implements ArtifactService {
     public static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
     public static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
     public static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
+    public static final Pattern DOCKER_PATTERN = Pattern.compile(String.format("[^%1$s]+", PROHIBITED_SYMBOLS));
+
+    private List<String> createEntities(String artifactsCoordinates, EscrowExpressionContext escrowExpressionContext) {
+        if (StringUtils.isBlank(artifactsCoordinates)) {
+            return Collections.emptyList();
+        }
+        String deb = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
+        return Arrays.asList(deb.split(","));
+    }
 
     @Override
     public void processArtifacts(Log log,
@@ -58,6 +68,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesVersion,
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
+                                 String artifactsCoordinatesDocker,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
         VersionNames versionNamesStub = new VersionNames("", "", ""); //IMPORTANT: does not affect EscrowExpressionContext evaluation
@@ -72,16 +83,10 @@ public class ArtifactServiceImpl implements ArtifactService {
                 throw new MojoExecutionException("The 'name' parameter should be set only if one artifact is specified in 'artifactsCoordinates' property");
             }
         }
-        List<String> debEntities = Collections.emptyList();
-        if (StringUtils.isNotBlank(artifactsCoordinatesDeb)) {
-            String deb = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinatesDeb, escrowExpressionContext);
-            debEntities = Arrays.asList(deb.split(","));
-        }
-        List<String> rpmEntities = Collections.emptyList();
-        if (StringUtils.isNotBlank(artifactsCoordinatesRpm)) {
-            String rpm = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinatesRpm, escrowExpressionContext);
-            rpmEntities = Arrays.asList(rpm.split(","));
-        }
+        List<String> debEntities = createEntities(artifactsCoordinatesDeb, escrowExpressionContext);
+        List<String> rpmEntities = createEntities(artifactsCoordinatesRpm, escrowExpressionContext);
+
+
         final ArtifactType targetType = ArtifactType.findByType(type);
         if (targetType == null) {
             throw new MojoExecutionException(String.format("type %s is not recognized", type));
@@ -117,6 +122,7 @@ public class ArtifactServiceImpl implements ArtifactService {
         final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
         List<Future<?>> results = new ArrayList<>(entities.size() + debEntities.size() + rpmEntities.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
+        final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         for (DistributionEntity entity : entities) {
             File targetFile;
             MavenArtifactCoordinatesDTO targetCoordinates;
@@ -156,7 +162,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                 targetCoordinates = new MavenArtifactCoordinatesDTO(new GavDTO(
                         structuredGav[0],
                         structuredGav[1],
-                        (StringUtils.isNotBlank(artifactsCoordinatesVersion)) ? artifactsCoordinatesVersion : version,
+                        absoluteVersion,
                         (structuredGavSize > 2) ? structuredGav[2] : "jar",
                         (structuredGavSize > 3) ? structuredGav[3] : null
                 ));
@@ -176,6 +182,19 @@ public class ArtifactServiceImpl implements ArtifactService {
             results.add(executorService.submit(() ->
                 processFunction.accept(new TargetArtifact(targetType, new RpmArtifactCoordinatesDTO(rpmEntity), null))
             ));
+        }
+        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
+            if (targetType == ArtifactType.DISTRIBUTION) {
+                if (DOCKER_PATTERN.matcher(artifactsCoordinatesDocker).matches()) {
+                    results.add(executorService.submit(() ->
+                            processFunction.accept(new TargetArtifact(targetType, new DockerArtifactCoordinatesDTO(artifactsCoordinatesDocker, absoluteVersion), null))
+                    ));
+                } else {
+                    throw new MojoFailureException(String.format("DOCKER entity '%s' does not match '%s'", artifactsCoordinatesDocker, DOCKER_PATTERN));
+                }
+            } else {
+                log.warn("Docker coordinates are set, but type is not DISTRIBUTION(" + targetType + ")");
+            }
         }
         executorService.shutdown();
         try {

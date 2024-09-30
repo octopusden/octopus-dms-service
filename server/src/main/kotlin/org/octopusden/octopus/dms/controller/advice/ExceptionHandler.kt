@@ -70,6 +70,12 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: AccessDeniedException) =
         createHttpResponse(request, e, HttpStatus.FORBIDDEN, "")
 
+    @ExceptionHandler(UnsupportedOperationException::class)
+    @ResponseBody
+    @Order(5)
+    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: UnsupportedOperationException) =
+        createHttpResponse(request, e, HttpStatus.NOT_IMPLEMENTED, e.message ?: "")
+
     @ExceptionHandler(Throwable::class)
     @ResponseBody
     @Order(10)

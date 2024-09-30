@@ -15,6 +15,7 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.ManyToOne
 import javax.persistence.Table
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
 
 @Entity
 @Table(name = "component_version_artifact")
@@ -43,6 +44,11 @@ class ComponentVersionArtifact (
         RepositoryType.RPM -> {
             artifact.fileName.replace(Regex("-${Pattern.quote(componentVersion.version)}\\."), ".")
         }
+
+        RepositoryType.DOCKER -> {
+            artifact as DockerArtifact
+            "${artifact.image}:${componentVersion.version}"
+        }
     }
 
     fun toShortDTO() = ArtifactShortDTO(artifact.id, artifact.repositoryType, type, displayName, artifact.fileName)
@@ -56,6 +62,11 @@ class ComponentVersionArtifact (
         RepositoryType.DEBIAN -> DebianArtifactFullDTO(artifact.id, type, displayName, artifact.fileName, artifact.path)
 
         RepositoryType.RPM -> RpmArtifactFullDTO(artifact.id, type, displayName, artifact.fileName, artifact.path)
+
+        RepositoryType.DOCKER -> {
+            artifact as DockerArtifact
+            DockerArtifactFullDTO(artifact.id, type, displayName, artifact.fileName, artifact.image, artifact.tag)
+        }
     }
 
     override fun toString(): String {

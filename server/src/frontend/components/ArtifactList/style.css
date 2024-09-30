@@ -95,6 +95,10 @@
     }
 }
 
+.box {
+    margin-top: 10px;
+}
+
 .load-artifacts-list {
     height: 100%;
     display: flex;

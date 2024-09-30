@@ -1,5 +1,6 @@
 package org.octopusden.octopus.dms.entity
 
+import javax.persistence.Column
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
@@ -15,6 +16,7 @@ import javax.persistence.Id
 import javax.persistence.Inheritance
 import javax.persistence.InheritanceType
 import javax.persistence.Table
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 
 @Entity
 @Table(name = "artifact")
@@ -39,14 +41,35 @@ abstract class Artifact(
 }
 
 @Entity
+@DiscriminatorValue("DOCKER")
+class DockerArtifact(
+    uploaded: Boolean,
+    path: String,
+    @Column(name = "group_id")
+    val image: String,
+    @Column(name = "version")
+    val tag: String,
+) : Artifact(
+    uploaded = uploaded,
+    path = path
+) {
+    override val repositoryType get() = RepositoryType.DOCKER
+
+    override fun toDTO() = DockerArtifactDTO(id, uploaded, image, tag)
+}
+
+@Entity
 @DiscriminatorValue("MAVEN")
 class MavenArtifact(
     uploaded: Boolean,
     path: String,
+    @Column(name = "group_id")
     val groupId: String,
     val artifactId: String,
+    @Column(name = "version")
     val version: String,
     val packaging: String,
+    @Column(name = "classifier")
     val classifier: String?
 ) : Artifact(
     uploaded = uploaded,

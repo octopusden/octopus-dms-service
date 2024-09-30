@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Component
@@ -224,6 +225,9 @@ class ComponentServiceImpl(
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val componentVersionArtifactEntity = getOrElseThrow(componentName, buildVersion, artifactId)
+        if (componentVersionArtifactEntity.artifact.repositoryType == RepositoryType.DOCKER) {
+            throw UnsupportedOperationException("Docker artifacts can't be downloaded")
+        }
         releaseManagementService.getComponentBuild(componentName, buildVersion, componentVersionArtifactEntity.type)
         return DownloadArtifactDTO(
             componentVersionArtifactEntity.artifact.fileName,

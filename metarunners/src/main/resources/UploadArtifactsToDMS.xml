@@ -10,6 +10,7 @@
             <param name="ARTIFACTS_COORDINATES_VERSION" value="" />
             <param name="ARTIFACTS_COORDINATES_DEB" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DEB%" />
             <param name="ARTIFACTS_COORDINATES_RPM" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_RPM%" />
+            <param name="ARTIFACTS_COORDINATES_DOCKER" value="%DISTRIBUTION_DOCKER_IMAGE_NAME%" />
             <param name="EXTRA_PARAMETERS" value="" />
             <param name="SKIP_UPLOAD_TO_DMS" value="%SKIP_UPLOAD_DISTRIBUTION_TO_DMS%" />
             <param name="DMS_SERVICE_URL" value="%DMS_SERVICE_URL%" />
@@ -21,11 +22,11 @@
         <build-runners>
             <runner name="UploadArtifactsToDMS" type="Maven2">
                 <parameters>
-                    <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:upload-artifacts" />
+                    <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:2.0.24:upload-artifacts" />
                     <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %RELENG_JVM_OPTS%" />
                     <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/3.6.0" />
                     <param name="runnerArgs"
-                           value="-e -Pstaging -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dtype=%ARTIFACT_TYPE% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -Dskip=%SKIP_UPLOAD_TO_DMS% %EXTRA_PARAMETERS%"/>
+                           value="-e -Pstaging -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dtype=%ARTIFACT_TYPE% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -Dskip=%SKIP_UPLOAD_TO_DMS% %EXTRA_PARAMETERS%"/>
                     <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/1.8" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />

@@ -1,7 +1,8 @@
 import {H4, Icon, Spinner} from "@blueprintjs/core";
-import {isPrintableArtifact} from "../common";
+import {getArtifactsByTypes, isPrintableArtifact} from "../common";
 import React from "react";
 import './style.css'
+import DockerBox from "../DockerBox";
 
 export default function artifactList(props) {
     const {
@@ -13,13 +14,26 @@ export default function artifactList(props) {
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        const printableArtifacts = artifacts.filter(artifact => isPrintableArtifact(artifact))
-        const binaryArtifacts = artifacts.filter(artifact => !isPrintableArtifact(artifact))
+        const [printableArtifacts, binaryArtifacts, dockerImage] = getArtifactsByTypes(artifacts)
         return <div className='artifacts-component-list-block'>
-            {printableArtifacts.length > 0 && <H4> Documents </H4>}
-            {artifactBlock(printableArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
-            {binaryArtifacts.length > 0 && <H4> Binaries </H4>}
-            {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {printableArtifacts.length > 0 &&
+                <div className='box'>
+                    <H4> Documents </H4>
+                    {artifactBlock(printableArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+                </div>
+            }
+            {binaryArtifacts.length > 0 &&
+                <div className='box'>
+                    <H4> Binaries </H4>
+                    {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+                </div>
+            }
+            {dockerImage.length > 0 &&
+                <div className='box'>
+                    <H4> Docker image </H4>
+                    { dockerImage.map(image => <DockerBox key={image.id} image={image.displayName} />) }
+                </div>
+            }
         </div>
     }
 }

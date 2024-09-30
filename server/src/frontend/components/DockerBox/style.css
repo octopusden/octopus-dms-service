@@ -1,0 +1,19 @@
+.docker-box {
+    display: block;
+    position: relative;
+    border: 1px #cccccc solid;
+    padding: 5px 5px 5px 15px;
+    border-radius: 5px;
+}
+
+.docker-box .code-block {
+    user-select: all;
+    font-family: Consolas,monaco,monospace;
+}
+
+.docker-box .copy-button {
+    position: absolute;
+    right: 5px;
+    left: auto;
+    cursor: pointer;
+}

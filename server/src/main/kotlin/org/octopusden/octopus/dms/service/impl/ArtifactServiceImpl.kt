@@ -3,11 +3,13 @@ package org.octopusden.octopus.dms.service.impl
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.DebianArtifact
+import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
 import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
@@ -56,6 +58,9 @@ class ArtifactServiceImpl(
         log.info("Download artifact with ID '$id'")
         val artifact = artifactRepository.findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
+        if (artifact.repositoryType == RepositoryType.DOCKER) {
+            throw UnsupportedOperationException("Docker artifacts can't be downloaded")
+        }
         return DownloadArtifactDTO(
             artifact.fileName,
             storageService.download(artifact, true)
@@ -123,6 +128,17 @@ class ArtifactServiceImpl(
 
 
     private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
+
+        RepositoryType.DOCKER -> {
+            this as DockerArtifactCoordinatesDTO
+            DockerArtifact(
+                uploaded = uploaded,
+                path = toPath(),
+                image = image,
+                tag = tag
+            )
+        }
+
         RepositoryType.MAVEN -> {
             this as MavenArtifactCoordinatesDTO
             MavenArtifact(

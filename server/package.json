@@ -37,6 +37,7 @@
   "dependencies": {
     "@blueprintjs/core": "^3.0.1",
     "@blueprintjs/icons": "^5.11.0",
+    "copy-to-clipboard": "^3.3.3",
     "history": "^4.7.2",
     "lodash": "^4.17.21",
     "normalize.css": "^8.0.0",
