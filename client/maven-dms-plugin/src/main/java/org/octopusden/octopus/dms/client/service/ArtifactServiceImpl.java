@@ -1,5 +1,9 @@
 package org.octopusden.octopus.dms.client.service;
 
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO;
@@ -46,14 +50,33 @@ public class ArtifactServiceImpl implements ArtifactService {
     public static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
     public static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
     public static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
-    public static final Pattern DOCKER_PATTERN = Pattern.compile(String.format("[^%1$s]+", PROHIBITED_SYMBOLS));
+    public static final Pattern DOCKER_PATTERN = Pattern.compile(String.format("^[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*$"));
 
-    private List<String> createEntities(String artifactsCoordinates, EscrowExpressionContext escrowExpressionContext) {
+    /**
+     * List of entities
+     *
+     * @param artifactsCoordinates    - comma separated list of entities
+     * @param escrowExpressionContext - context for expression evaluation
+     * @param creater                 - function to create entity
+     * @param pattern                 - pattern to validate entity
+     * @param message                 - message for exception
+     * @return list of entities with their creators
+     */
+    private List createEntities(String artifactsCoordinates,
+                                EscrowExpressionContext escrowExpressionContext,
+                                Function<String, ArtifactCoordinatesDTO> creater,
+                                Pattern pattern,
+                                String message) {
         if (StringUtils.isBlank(artifactsCoordinates)) {
             return Collections.emptyList();
         }
-        String deb = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
-        return Arrays.asList(deb.split(","));
+        String entitiesStr = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
+        return Arrays.stream(entitiesStr.split(",")).map(item -> {
+            if (!pattern.matcher(item).matches()) {
+                throw new IllegalArgumentException(String.format(message, item, pattern));
+            }
+            return new ImmutablePair(item, creater);
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -83,8 +106,6 @@ public class ArtifactServiceImpl implements ArtifactService {
                 throw new MojoExecutionException("The 'name' parameter should be set only if one artifact is specified in 'artifactsCoordinates' property");
             }
         }
-        List<String> debEntities = createEntities(artifactsCoordinatesDeb, escrowExpressionContext);
-        List<String> rpmEntities = createEntities(artifactsCoordinatesRpm, escrowExpressionContext);
 
 
         final ArtifactType targetType = ArtifactType.findByType(type);
@@ -108,19 +129,9 @@ public class ArtifactServiceImpl implements ArtifactService {
                 throw new MojoFailureException("Not supported distribution entity: " + entity);
             }
         }
-        for (String debEntity : debEntities) {
-            if (!DEB_PATTERN.matcher(debEntity).matches()) {
-                throw new MojoFailureException(String.format("DEB entity '%s' does not match '%s'", debEntity, DEB_PATTERN));
-            }
-        }
-        for (String rpmEntity : rpmEntities) {
-            if (!RPM_PATTERN.matcher(rpmEntity).matches()) {
-                throw new MojoFailureException(String.format("RPM entity '%s' does not match '%s'", rpmEntity, RPM_PATTERN));
-            }
-        }
         //Bulk processing
         final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
-        List<Future<?>> results = new ArrayList<>(entities.size() + debEntities.size() + rpmEntities.size());
+        List<Future<?>> results = new ArrayList<>(entities.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         for (DistributionEntity entity : entities) {
@@ -173,29 +184,44 @@ public class ArtifactServiceImpl implements ArtifactService {
                     processFunction.accept(new TargetArtifact(targetType, targetCoordinates, targetFile))
             ));
         }
-        for (String debEntity : debEntities) {
+
+        if (
+                (StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)
+                ) &&
+                        targetType != ArtifactType.DISTRIBUTION
+        ) {
+            throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type is not DISTRIBUTION(" + targetType + ")");
+        }
+        Function<String, ArtifactCoordinatesDTO> createrDebian = DebianArtifactCoordinatesDTO::new;
+        Function<String, ArtifactCoordinatesDTO> createrRpm = RpmArtifactCoordinatesDTO::new;
+        Function<String, ArtifactCoordinatesDTO> createrDocker = image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion);
+
+        List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> entitiesRep = createEntities(artifactsCoordinatesDeb,
+                escrowExpressionContext,
+                createrDebian,
+                DEB_PATTERN,
+                "DEB entity '%s' does not match '%s'");
+        entitiesRep.addAll(createEntities(artifactsCoordinatesRpm,
+                escrowExpressionContext,
+                createrRpm,
+                RPM_PATTERN,
+                "RPM entity '%s' does not match '%s")
+        );
+        entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
+                escrowExpressionContext,
+                createrDocker,
+                DOCKER_PATTERN,
+                "DOCKER entity '%s' does not match '%s")
+        );
+        for (Pair<String, Function<String, ArtifactCoordinatesDTO>> pair : entitiesRep) {
+            String entity = pair.getLeft();
+            Function<String, ArtifactCoordinatesDTO> creater = pair.getRight();
+
             results.add(executorService.submit(() ->
-                    processFunction.accept(new TargetArtifact(targetType, new DebianArtifactCoordinatesDTO(debEntity), null))
+                    processFunction.accept(new TargetArtifact(targetType, creater.apply(entity), null))
             ));
         }
-        for (String rpmEntity : rpmEntities) {
-            results.add(executorService.submit(() ->
-                processFunction.accept(new TargetArtifact(targetType, new RpmArtifactCoordinatesDTO(rpmEntity), null))
-            ));
-        }
-        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
-            if (targetType == ArtifactType.DISTRIBUTION) {
-                if (DOCKER_PATTERN.matcher(artifactsCoordinatesDocker).matches()) {
-                    results.add(executorService.submit(() ->
-                            processFunction.accept(new TargetArtifact(targetType, new DockerArtifactCoordinatesDTO(artifactsCoordinatesDocker, absoluteVersion), null))
-                    ));
-                } else {
-                    throw new MojoFailureException(String.format("DOCKER entity '%s' does not match '%s'", artifactsCoordinatesDocker, DOCKER_PATTERN));
-                }
-            } else {
-                log.warn("Docker coordinates are set, but type is not DISTRIBUTION(" + targetType + ")");
-            }
-        }
+
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(2, TimeUnit.HOURS)) {
