@@ -196,11 +196,13 @@ public class ArtifactServiceImpl implements ArtifactService {
         Function<String, ArtifactCoordinatesDTO> createrRpm = RpmArtifactCoordinatesDTO::new;
         Function<String, ArtifactCoordinatesDTO> createrDocker = image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion);
 
-        List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> entitiesRep = createEntities(artifactsCoordinatesDeb,
+        List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> entitiesRep = new ArrayList<>();
+        entitiesRep.addAll(createEntities(artifactsCoordinatesDeb,
                 escrowExpressionContext,
                 createrDebian,
                 DEB_PATTERN,
-                "DEB entity '%s' does not match '%s'");
+                "DEB entity '%s' does not match '%s'")
+        );
         entitiesRep.addAll(createEntities(artifactsCoordinatesRpm,
                 escrowExpressionContext,
                 createrRpm,
