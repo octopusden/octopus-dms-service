@@ -10,7 +10,7 @@
             <param name="ARTIFACTS_COORDINATES_VERSION" value="" />
             <param name="ARTIFACTS_COORDINATES_DEB" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DEB%" />
             <param name="ARTIFACTS_COORDINATES_RPM" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_RPM%" />
-            <param name="ARTIFACTS_COORDINATES_DOCKER" value="%DISTRIBUTION_DOCKER_IMAGE_NAME%" />
+            <param name="ARTIFACTS_COORDINATES_DOCKER" value="" />
             <param name="EXTRA_PARAMETERS" value="" />
             <param name="SKIP_UPLOAD_TO_DMS" value="%SKIP_UPLOAD_DISTRIBUTION_TO_DMS%" />
             <param name="DMS_SERVICE_URL" value="%DMS_SERVICE_URL%" />
