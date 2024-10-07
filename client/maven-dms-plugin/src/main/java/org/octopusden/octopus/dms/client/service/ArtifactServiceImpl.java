@@ -210,8 +210,8 @@ public class ArtifactServiceImpl implements ArtifactService {
         entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
                 escrowExpressionContext,
                 image -> {
-                    if (!DOCKER_TAG_PATTERN.matcher(image).matches()) {
-                        throw new IllegalArgumentException("Docker image tag contains invalid characters. Allowed characters are: a-z, A-Z, 0-9, ., _, -. Tag must not be 'latest'");
+                    if (!DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
+                        throw new IllegalArgumentException("Docker image tag contains invalid characters. Allowed characters are: a-z, A-Z, 0-9, ., _, -. Tag must not be 'latest'.");
                     }
                     return new DockerArtifactCoordinatesDTO(image, absoluteVersion);
                 },
