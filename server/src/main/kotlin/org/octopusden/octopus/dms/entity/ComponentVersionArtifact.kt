@@ -47,7 +47,7 @@ class ComponentVersionArtifact (
 
         RepositoryType.DOCKER -> {
             artifact as DockerArtifact
-            "${artifact.image}:${componentVersion.version}"
+            "${artifact.image}"
         }
     }
 

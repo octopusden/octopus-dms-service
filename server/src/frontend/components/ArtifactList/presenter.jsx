@@ -2,7 +2,6 @@ import {H4, Icon, Spinner} from "@blueprintjs/core";
 import {getArtifactsByTypes, isPrintableArtifact} from "../common";
 import React from "react";
 import './style.css'
-import DockerBox from "../DockerBox";
 
 export default function artifactList(props) {
     const {
@@ -31,7 +30,8 @@ export default function artifactList(props) {
             {dockerImage.length > 0 &&
                 <div className='box'>
                     <H4> Docker image </H4>
-                    { dockerImage.map(image => <DockerBox key={image.id} image={image.displayName} />) }
+                    {/*{ dockerImage.map(image => <DockerBox key={image.id} image={image.displayName} />) }*/}
+                    {artifactBlock(dockerImage, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, true)}
                 </div>
             }
         </div>
@@ -42,7 +42,7 @@ function ArtifactLabel(props) {
     const {
         getDocument, selectedComponent, selectedVersion,
         selectedDocument, id, displayName, fileName, isPrintable, isDeletable,
-        deleteArtifact, showConfirmation
+        deleteArtifact, showConfirmation, nonDownloadable
     } = props
 
     const isSelected = selectedDocument.id === id
@@ -60,10 +60,12 @@ function ArtifactLabel(props) {
         }
 
         <div className='artifact-label-right'>
-            <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
-               download={fileName}>
-                <Icon icon='import'/>
-            </a>
+            {!nonDownloadable &&
+                <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
+                   download={fileName}>
+                    <Icon icon='import'/>
+                </a>
+            }
             {isPrintable &&
                 <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
                    target="_blank" hidden={!isPrintable}>
@@ -82,7 +84,7 @@ function ArtifactLabel(props) {
     </div>
 }
 
-function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
+function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, nonDownloadable) {
     return artifacts.map(artifact => {
         const {fileName, id, displayName} = artifact
         return <ArtifactLabel
@@ -99,6 +101,7 @@ function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor,
             isDeletable={adminMode}
             deleteArtifact={deleteArtifact}
             showConfirmation={showConfirmation}
+            nonDownloadable={nonDownloadable}
         />
     })
 }

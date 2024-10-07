@@ -47,10 +47,11 @@ import org.octopusden.releng.versions.VersionNames;
 @Singleton
 public class ArtifactServiceImpl implements ArtifactService {
     private static final String PROHIBITED_SYMBOLS = ":,\\s";
-    public static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
-    public static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
-    public static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
-    public static final Pattern DOCKER_PATTERN = Pattern.compile(String.format("^[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*$"));
+    private static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
+    private static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
+    private static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
+    private static final Pattern DOCKER_PATTERN = Pattern.compile("^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*$");
+    private static final Pattern DOCKER_TAG_PATTERN = Pattern.compile("^(?![lL][aA][tT][eE][sS][tT]\\b)[a-zA-Z0-9._-]+$");
 
     /**
      * List of entities
@@ -62,7 +63,7 @@ public class ArtifactServiceImpl implements ArtifactService {
      * @param message                 - message for exception
      * @return list of entities with their creators
      */
-    private List createEntities(String artifactsCoordinates,
+    private List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> createEntities(String artifactsCoordinates,
                                 EscrowExpressionContext escrowExpressionContext,
                                 Function<String, ArtifactCoordinatesDTO> creater,
                                 Pattern pattern,
@@ -75,7 +76,7 @@ public class ArtifactServiceImpl implements ArtifactService {
             if (!pattern.matcher(item).matches()) {
                 throw new IllegalArgumentException(String.format(message, item, pattern));
             }
-            return new ImmutablePair(item, creater);
+            return new ImmutablePair<>(item, creater);
         }).collect(Collectors.toList());
     }
 
@@ -208,7 +209,12 @@ public class ArtifactServiceImpl implements ArtifactService {
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
                 escrowExpressionContext,
-                image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion),
+                image -> {
+                    if (!DOCKER_TAG_PATTERN.matcher(image).matches()) {
+                        throw new IllegalArgumentException("Docker image tag contains invalid characters. Allowed characters are: a-z, A-Z, 0-9, ., _, -. Tag must not be 'latest'");
+                    }
+                    return new DockerArtifactCoordinatesDTO(image, absoluteVersion);
+                },
                 DOCKER_PATTERN,
                 "DOCKER entity '%s' does not match '%s")
         );

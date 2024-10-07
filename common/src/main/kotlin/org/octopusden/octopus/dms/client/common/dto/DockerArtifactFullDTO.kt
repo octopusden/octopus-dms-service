@@ -9,7 +9,7 @@ import java.util.Objects
             "  \"id\": 1,\n" +
             "  \"repositoryType\": \"DOCKER\",\n" +
             "  \"type\": \"distribution\",\n" +
-            "  \"displayName\": \"test/test-component:1.2.3\",\n" +
+            "  \"displayName\": \"test/test-component\",\n" +
             "  \"fileName\": \"test/test-component/1.2.3\"\n" +
             " \"tag\": \"1.2.3\",\n" +
             " \"image\": \"test/test-component\"\n" +

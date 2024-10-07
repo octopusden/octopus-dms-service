@@ -45,7 +45,6 @@ abstract class Artifact(
 class DockerArtifact(
     uploaded: Boolean,
     path: String,
-    @Column(name = "group_id")
     val image: String,
     @Column(name = "version")
     val tag: String,
@@ -63,13 +62,11 @@ class DockerArtifact(
 class MavenArtifact(
     uploaded: Boolean,
     path: String,
-    @Column(name = "group_id")
     val groupId: String,
     val artifactId: String,
     @Column(name = "version")
     val version: String,
     val packaging: String,
-    @Column(name = "classifier")
     val classifier: String?
 ) : Artifact(
     uploaded = uploaded,
