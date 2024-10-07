@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
     example = "{\n" +
             "  \"repositoryType\": \"DOCKER\",\n" +
             "  \"image\": \"some-app/docker_image\",\n" +
+            "  \"tag\": \"1.0.0\"\n" +
             "}"
 )
 class DockerArtifactCoordinatesDTO(val image: String, val tag: String): ArtifactCoordinatesDTO(RepositoryType.DOCKER) {
