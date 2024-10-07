@@ -226,7 +226,7 @@ class ComponentServiceImpl(
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val componentVersionArtifactEntity = getOrElseThrow(componentName, buildVersion, artifactId)
         if (componentVersionArtifactEntity.artifact.repositoryType == RepositoryType.DOCKER) {
-            throw UnsupportedOperationException("Docker artifacts can't be downloaded")
+            throw UnsupportedOperationException("The download of Docker artifacts is not supported.")
         }
         releaseManagementService.getComponentBuild(componentName, buildVersion, componentVersionArtifactEntity.type)
         return DownloadArtifactDTO(

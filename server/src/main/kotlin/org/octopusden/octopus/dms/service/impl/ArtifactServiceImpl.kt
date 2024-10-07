@@ -59,7 +59,7 @@ class ArtifactServiceImpl(
         val artifact = artifactRepository.findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
         if (artifact.repositoryType == RepositoryType.DOCKER) {
-            throw UnsupportedOperationException("Docker artifacts can't be downloaded")
+            throw UnsupportedOperationException("The download of Docker artifacts is not supported.")
         }
         return DownloadArtifactDTO(
             artifact.fileName,

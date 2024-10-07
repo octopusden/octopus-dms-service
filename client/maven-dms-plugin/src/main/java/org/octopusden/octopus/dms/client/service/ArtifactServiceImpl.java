@@ -190,7 +190,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                 ) &&
                         targetType != ArtifactType.DISTRIBUTION
         ) {
-            throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type is not DISTRIBUTION(" + targetType + ")");
+            throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
         Function<String, ArtifactCoordinatesDTO> createrDebian = DebianArtifactCoordinatesDTO::new;
         Function<String, ArtifactCoordinatesDTO> createrRpm = RpmArtifactCoordinatesDTO::new;

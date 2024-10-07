@@ -22,7 +22,7 @@
         <build-runners>
             <runner name="UploadArtifactsToDMS" type="Maven2">
                 <parameters>
-                    <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:2.0.24:upload-artifacts" />
+                    <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:upload-artifacts" />
                     <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %RELENG_JVM_OPTS%" />
                     <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/3.6.0" />
                     <param name="runnerArgs"
