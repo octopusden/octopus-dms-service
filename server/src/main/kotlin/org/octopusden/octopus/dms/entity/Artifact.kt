@@ -1,6 +1,5 @@
 package org.octopusden.octopus.dms.entity
 
-import javax.persistence.Column
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
@@ -46,7 +45,6 @@ class DockerArtifact(
     uploaded: Boolean,
     path: String,
     val image: String,
-    @Column(name = "version")
     val tag: String,
 ) : Artifact(
     uploaded = uploaded,
@@ -64,7 +62,6 @@ class MavenArtifact(
     path: String,
     val groupId: String,
     val artifactId: String,
-    @Column(name = "version")
     val version: String,
     val packaging: String,
     val classifier: String?

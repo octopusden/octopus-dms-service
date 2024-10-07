@@ -12,8 +12,14 @@ ALTER TABLE artifact
 ALTER TABLE artifact ADD COLUMN image VARCHAR;
 COMMENT ON COLUMN artifact.image IS 'The image name of the docker artifact.';
 
+ALTER TABLE artifact ADD COLUMN tag VARCHAR;
+COMMENT ON COLUMN artifact.tag IS 'The tag of the docker artifact.';
+
 ALTER TABLE artifact
 DROP CONSTRAINT group_id_check;
+
+ALTER TABLE artifact
+DROP CONSTRAINT version_check;
 
 ALTER TABLE artifact
     ADD CONSTRAINT group_id_check CHECK (
@@ -22,7 +28,7 @@ ALTER TABLE artifact
         );
 
 ALTER TABLE artifact
-DROP CONSTRAINT version_check;
-
-ALTER TABLE artifact
-    ADD CONSTRAINT version_check CHECK (repository_type NOT IN ('DOCKER', 'MAVEN') OR version IS NOT NULL);
+    ADD CONSTRAINT version_check CHECK (
+            (repository_type <> 'MAVEN' OR version IS NOT NULL) AND
+            (repository_type <> 'DOCKER' OR tag IS NOT NULL)
+        );
