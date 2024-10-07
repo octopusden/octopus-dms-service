@@ -192,26 +192,23 @@ public class ArtifactServiceImpl implements ArtifactService {
         ) {
             throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
-        Function<String, ArtifactCoordinatesDTO> createrDebian = DebianArtifactCoordinatesDTO::new;
-        Function<String, ArtifactCoordinatesDTO> createrRpm = RpmArtifactCoordinatesDTO::new;
-        Function<String, ArtifactCoordinatesDTO> createrDocker = image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion);
 
         List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> entitiesRep = new ArrayList<>();
         entitiesRep.addAll(createEntities(artifactsCoordinatesDeb,
                 escrowExpressionContext,
-                createrDebian,
+                DebianArtifactCoordinatesDTO::new,
                 DEB_PATTERN,
                 "DEB entity '%s' does not match '%s'")
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesRpm,
                 escrowExpressionContext,
-                createrRpm,
+                RpmArtifactCoordinatesDTO::new,
                 RPM_PATTERN,
                 "RPM entity '%s' does not match '%s")
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
                 escrowExpressionContext,
-                createrDocker,
+                image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion),
                 DOCKER_PATTERN,
                 "DOCKER entity '%s' does not match '%s")
         );
