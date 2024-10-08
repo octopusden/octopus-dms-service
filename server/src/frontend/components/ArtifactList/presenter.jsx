@@ -100,7 +100,7 @@ function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor,
             isDeletable={adminMode}
             deleteArtifact={deleteArtifact}
             showConfirmation={showConfirmation}
-            nonDownloadable={nonDownloadable}
+            nonDownloadable={!!nonDownloadable}
         />
     })
 }
