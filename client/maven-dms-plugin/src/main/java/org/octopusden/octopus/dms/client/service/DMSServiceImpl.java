@@ -7,6 +7,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO;
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
 import org.octopusden.octopus.dms.client.validation.ArtifactValidator;
@@ -36,6 +37,10 @@ public class DMSServiceImpl implements DMSService {
                                  Path validationLog,
                                  boolean dryRun) {
         log.info(String.format("Validate artifact '%s' for component '%s' version '%s', dry run '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
+        if (coordinates.getRepositoryType() == RepositoryType.DOCKER) {
+            log.info("Skip validation for Docker artifact");
+            return;
+        }
         if (!dryRun) {
             try {
                 ArtifactDTO artifact;
