@@ -16,19 +16,11 @@ ALTER TABLE artifact ADD COLUMN tag VARCHAR;
 COMMENT ON COLUMN artifact.tag IS 'The tag of the docker artifact.';
 
 ALTER TABLE artifact
-DROP CONSTRAINT group_id_check;
-
-ALTER TABLE artifact
-DROP CONSTRAINT version_check;
-
-ALTER TABLE artifact
-    ADD CONSTRAINT group_id_check CHECK (
-            (repository_type <> 'MAVEN' OR group_id IS NOT NULL) AND
-            (repository_type <> 'DOCKER' OR image IS NOT NULL)
+    ADD CONSTRAINT image_check CHECK (
+            repository_type <> 'DOCKER' OR image IS NOT NULL
         );
 
 ALTER TABLE artifact
-    ADD CONSTRAINT version_check CHECK (
-            (repository_type <> 'MAVEN' OR version IS NOT NULL) AND
-            (repository_type <> 'DOCKER' OR tag IS NOT NULL)
+    ADD CONSTRAINT tag_check CHECK (
+            repository_type <> 'DOCKER' OR tag IS NOT NULL
         );

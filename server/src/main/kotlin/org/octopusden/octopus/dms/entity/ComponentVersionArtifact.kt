@@ -47,7 +47,7 @@ class ComponentVersionArtifact (
 
         RepositoryType.DOCKER -> {
             artifact as DockerArtifact
-            "${artifact.image}"
+            "${artifact.image}" + (if (artifact.tag == componentVersion.version) "" else ":${artifact.tag}")
         }
     }
 
