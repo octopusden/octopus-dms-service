@@ -30,7 +30,6 @@ export default function artifactList(props) {
             {dockerImage.length > 0 &&
                 <div className='box'>
                     <H4> Docker image </H4>
-                    {/*{ dockerImage.map(image => <DockerBox key={image.id} image={image.displayName} />) }*/}
                     {artifactBlock(dockerImage, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, true)}
                 </div>
             }

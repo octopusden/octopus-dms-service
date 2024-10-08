@@ -193,6 +193,9 @@ public class ArtifactServiceImpl implements ArtifactService {
         ) {
             throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
+        if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && !DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
+            throw new IllegalArgumentException("Docker image tag contains invalid characters. Allowed characters are: a-z, A-Z, 0-9, ., _, -. Tag must not be 'latest'.");
+        }
 
         List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> entitiesRep = new ArrayList<>();
         entitiesRep.addAll(createEntities(artifactsCoordinatesDeb,
@@ -209,12 +212,7 @@ public class ArtifactServiceImpl implements ArtifactService {
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
                 escrowExpressionContext,
-                image -> {
-                    if (!DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
-                        throw new IllegalArgumentException("Docker image tag contains invalid characters. Allowed characters are: a-z, A-Z, 0-9, ., _, -. Tag must not be 'latest'.");
-                    }
-                    return new DockerArtifactCoordinatesDTO(image, absoluteVersion);
-                },
+                image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion),
                 DOCKER_PATTERN,
                 "DOCKER entity '%s' does not match '%s")
         );
