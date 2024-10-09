@@ -15,6 +15,7 @@ import javax.persistence.Id
 import javax.persistence.Inheritance
 import javax.persistence.InheritanceType
 import javax.persistence.Table
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 
 @Entity
 @Table(name = "artifact")
@@ -36,6 +37,22 @@ abstract class Artifact(
     override fun toString(): String {
         return "Artifact(id=$id, repositoryType=$repositoryType, uploaded=$uploaded, path=$path)"
     }
+}
+
+@Entity
+@DiscriminatorValue("DOCKER")
+class DockerArtifact(
+    uploaded: Boolean,
+    path: String,
+    val image: String,
+    val tag: String,
+) : Artifact(
+    uploaded = uploaded,
+    path = path
+) {
+    override val repositoryType get() = RepositoryType.DOCKER
+
+    override fun toDTO() = DockerArtifactDTO(id, uploaded, image, tag)
 }
 
 @Entity
