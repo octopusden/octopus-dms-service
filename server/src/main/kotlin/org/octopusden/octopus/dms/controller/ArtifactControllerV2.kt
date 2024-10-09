@@ -62,6 +62,7 @@ class ArtifactControllerV2(
         @RequestParam("status", required = false, defaultValue = "RELEASE,RC") status: Array<BuildStatus>,
         @RequestParam("filter-by-minor", required = false, defaultValue = "") minorVersions: List<String>
     ): ComponentVersionsStatusesDTO {
+        logger.warn("Deprecated call! V2 getVersionsWithStatus($component, $status, $minorVersions)")
         val componentVersionEntities = if (minorVersions.isEmpty()) {
             componentVersionRepository.findByComponentName(component)
         } else {
@@ -98,7 +99,9 @@ class ArtifactControllerV2(
                 "@permissionEvaluator.hasPermissionByComponent(#component)"
     )
     fun getMinorVersions(@PathVariable("component") component: String) =
-        componentService.getComponentMinorVersions(component).sortedDescending()
+        componentService.getComponentMinorVersions(component).sortedDescending().also {
+            logger.warn("Deprecated call! V2 getMinorVersions($component)")
+        }
 
     @Operation(summary = "List of existed Artifacts")
     @GetMapping("component/{component}/version/{version}/{type}/list")
@@ -130,7 +133,7 @@ class ArtifactControllerV2(
         )
         @PathVariable(required = true) type: ArtifactType
     ): String {
-        logger.info("Get list of artifact names for $component:$version:$type")
+        logger.warn("Deprecated call! V2 getList($component, $version, $type)")
         val result = getArtifacts(component, getBuildVersion(component, version), type)
         return mapper.writeValueAsString(result)
     }
@@ -158,13 +161,15 @@ class ArtifactControllerV2(
         )
         @PathVariable(required = true) version: String
     ): LegacyArtifactsDTO {
-        logger.info("Get map of artifacts for $component:$version")
+        logger.warn("Deprecated call! V2 getKnownComponentVersionArtifacts($component, $version)")
         return LegacyArtifactsDTO(getArtifacts(component, getBuildVersion(component, version), null))
     }
 
     @Operation(summary = "Get Artifacts repositories")
     @GetMapping("repositories", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getRepositories() = storageService.getRepositoriesUrls(RepositoryType.MAVEN, false)
+    fun getRepositories() = storageService.getRepositoriesUrls(RepositoryType.MAVEN, false).also {
+        logger.warn("Deprecated call! V2 getRepositories()")
+    }
 
     private fun getArtifacts(component: String, version: String, type: ArtifactType?) =
         if (type == null) {
