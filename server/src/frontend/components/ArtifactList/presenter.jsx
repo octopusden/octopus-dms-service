@@ -3,11 +3,18 @@ import {getArtifactsByTypes, isPrintableArtifact} from "../common";
 import React from "react";
 import './style.css'
 
-export default function artifactList(props) {
-    const {
-        loadingArtifacts, artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion,
-        selectedDocument, adminMode, deleteArtifact, showConfirmation
-    } = props
+export default function artifactList({
+                                         loadingArtifacts,
+                                         artifacts,
+                                         getDocument,
+                                         selectedComponent,
+                                         selectedMinor,
+                                         selectedVersion,
+                                         selectedDocument,
+                                         adminMode,
+                                         deleteArtifact,
+                                         showConfirmation
+                                     }) {
     if (loadingArtifacts) {
         return <div className='load-artifacts-list'>
             <Spinner size={50} intent="primary"/>
@@ -37,14 +44,26 @@ export default function artifactList(props) {
     }
 }
 
-function ArtifactLabel(props) {
-    const {
-        getDocument, selectedComponent, selectedVersion,
-        selectedDocument, id, displayName, fileName, isPrintable, isDeletable,
-        deleteArtifact, showConfirmation, nonDownloadable
-    } = props
+function ArtifactLabel({
+                           getDocument,
+                           selectedComponent,
+                           selectedVersion,
+                           selectedDocument,
+                           id,
+                           displayName,
+                           fileName,
+                           isPrintable,
+                           isDeletable,
+                           deleteArtifact,
+                           showConfirmation,
+                           nonDownloadable
+                       }) {
 
     const isSelected = selectedDocument.id === id
+
+    const handleOnCopyClick = () => {
+        navigator.clipboard.writeText(`${displayName}:${selectedVersion}`)
+    }
 
     return <div
         className={`artifact-label-wrap ${isSelected ? 'selected' : ''}`}
@@ -59,6 +78,11 @@ function ArtifactLabel(props) {
         }
 
         <div className='artifact-label-right'>
+            {!!nonDownloadable &&
+                <div role='button' onClick={handleOnCopyClick}>
+                    <Icon icon='clipboard'/>
+                </div>
+            }
             {!nonDownloadable &&
                 <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
                    download={fileName}>
