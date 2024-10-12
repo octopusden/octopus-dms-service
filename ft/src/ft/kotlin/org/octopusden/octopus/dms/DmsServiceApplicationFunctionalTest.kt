@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
@@ -203,22 +204,40 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginUploadArtifactsDifferentRepos() {
-        with(runMavenDmsPlugin("different-repos.log", "upload-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=${releaseMavenDistributionCoordinates.toString().replace(":1.0:", ":")}",
-            "-Dartifacts.coordinates.version=1.0",
-            "-Dartifacts.coordinates.deb=$releaseDebianDistributionCoordinates",
-            "-Dartifacts.coordinates.rpm=$releaseRpmDistributionCoordinates"
-        ))) {
-            assertEquals(0, this.first)
+        with(
+            runMavenDmsPlugin(
+                "different-repos.log", "upload-artifacts", listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=${releaseMavenDistributionCoordinates.toString().replace(":1.0:", ":")}",
+                    "-Dartifacts.coordinates.version=1.0",
+                    "-Dartifacts.coordinates.deb=$releaseDebianDistributionCoordinates",
+                    "-Dartifacts.coordinates.rpm=$releaseRpmDistributionCoordinates",
+                    "-Dartifacts.coordinates.docker=$releaseDockerDistributionCoordinates"
+                )
+            )
+        ) {
+            assertEquals(0, this.first, this.second.joinToString("\n"))
             assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseMavenDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
             assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
             assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseRpmDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseDockerDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
         }
-        assertEquals(releaseMavenDistributionCoordinates.gav, (client.findArtifact(releaseMavenDistributionCoordinates) as MavenArtifactDTO).gav)
-        assertEquals(releaseDebianDistributionCoordinates.deb, (client.findArtifact(releaseDebianDistributionCoordinates) as DebianArtifactDTO).deb)
-        assertEquals(releaseRpmDistributionCoordinates.rpm, (client.findArtifact(releaseRpmDistributionCoordinates) as RpmArtifactDTO).rpm)
+        assertEquals(
+            releaseMavenDistributionCoordinates.gav,
+            (client.findArtifact(releaseMavenDistributionCoordinates) as MavenArtifactDTO).gav
+        )
+        assertEquals(
+            releaseDebianDistributionCoordinates.deb,
+            (client.findArtifact(releaseDebianDistributionCoordinates) as DebianArtifactDTO).deb
+        )
+        assertEquals(
+            releaseRpmDistributionCoordinates.rpm,
+            (client.findArtifact(releaseRpmDistributionCoordinates) as RpmArtifactDTO).rpm
+        )
+        val dockerArtifact = client.findArtifact(releaseDockerDistributionCoordinates) as DockerArtifactDTO
+        assertEquals(releaseDockerDistributionCoordinates.image, dockerArtifact.image)
+        assertEquals(releaseDockerDistributionCoordinates.tag, dockerArtifact.tag)
     }
 
     @Test

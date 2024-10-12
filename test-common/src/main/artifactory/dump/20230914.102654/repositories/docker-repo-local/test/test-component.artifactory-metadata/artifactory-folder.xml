@@ -1,0 +1,15 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>docker-repo-local</repoKey>
+        <path>test/test-component</path>
+        <folder>true</folder>
+    </repoPath>
+    <name>test-component</name>
+    <created>1728754484088</created>
+    <lastModified>1728754484088</lastModified>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1728754484088</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+    </additionalInfo>
+</artifactory-folder>

@@ -13,5 +13,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 class DockerArtifactCoordinatesDTO(val image: String, val tag: String): ArtifactCoordinatesDTO(RepositoryType.DOCKER) {
     override fun toPath() = "$image/$tag"
 
-    override fun toString() = "$image:$tag"
+    override fun toString() = "$image"
 }

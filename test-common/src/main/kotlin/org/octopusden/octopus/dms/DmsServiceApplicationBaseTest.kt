@@ -35,6 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -687,6 +688,8 @@ abstract class DmsServiceApplicationBaseTest {
             RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-dev-1.0-1.el8.x86_64.rpm")
         val releaseRpmDistributionCoordinates =
             RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-release-1.0-1.el8.x86_64.rpm")
+        val releaseDockerDistributionCoordinates =
+            DockerArtifactCoordinatesDTO("test/test-component", "1.0")
 
         @JvmStatic
         private fun repositories(): Stream<Arguments> = Stream.of(
@@ -698,6 +701,9 @@ abstract class DmsServiceApplicationBaseTest {
             ),
             Arguments.of(
                 RepositoryType.RPM, listOf("rpm-release-repo-local")
+            ),
+            Arguments.of(
+                RepositoryType.DOCKER, listOf("docker-repo-local")
             )
         )
 
@@ -716,7 +722,8 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of(devDebianDistributionCoordinates),
             Arguments.of(releaseDebianDistributionCoordinates),
             Arguments.of(devRpmDistributionCoordinates),
-            Arguments.of(releaseRpmDistributionCoordinates)
+            Arguments.of(releaseRpmDistributionCoordinates),
+            Arguments.of(releaseDockerDistributionCoordinates)
         )
 
         @JvmStatic

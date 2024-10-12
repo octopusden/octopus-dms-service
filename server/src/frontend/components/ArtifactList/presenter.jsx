@@ -20,7 +20,7 @@ export default function artifactList({
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        const [printableArtifacts, binaryArtifacts, dockerImage] = getArtifactsByTypes(artifacts)
+        const [printableArtifacts, binaryArtifacts, dockerImages] = getArtifactsByTypes(artifacts)
         return <div className='artifacts-component-list-block'>
             {printableArtifacts.length > 0 &&
                 <div className='box'>
@@ -34,10 +34,10 @@ export default function artifactList({
                     {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
                 </div>
             }
-            {dockerImage.length > 0 &&
+            {dockerImages.length > 0 &&
                 <div className='box'>
-                    <H4> Docker image </H4>
-                    {artifactBlock(dockerImage, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, true)}
+                    <H4> Docker images </H4>
+                    {artifactBlock(dockerImages, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, false)}
                 </div>
             }
         </div>
@@ -56,7 +56,8 @@ function ArtifactLabel({
                            isDeletable,
                            deleteArtifact,
                            showConfirmation,
-                           nonDownloadable
+                           onCopyClick,
+                           isDownloadable = true,
                        }) {
 
     const isSelected = selectedDocument.id === id
@@ -78,12 +79,12 @@ function ArtifactLabel({
         }
 
         <div className='artifact-label-right'>
-            {!!nonDownloadable &&
+            {!isDownloadable &&
                 <div role='button' onClick={handleOnCopyClick}>
                     <Icon icon='clipboard'/>
                 </div>
             }
-            {!nonDownloadable &&
+            {isDownloadable &&
                 <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
                    download={fileName}>
                     <Icon icon='import'/>
@@ -107,9 +108,23 @@ function ArtifactLabel({
     </div>
 }
 
-function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, nonDownloadable) {
+function artifactBlock(artifacts,
+                       getDocument,
+                       selectedComponent,
+                       selectedMinor,
+                       selectedVersion,
+                       selectedDocument,
+                       adminMode,
+                       deleteArtifact,
+                       showConfirmation,
+                       isDownloadable = true) {
+
+    const handleOnCopyClick = (imageName, tag) => {
+        navigator.clipboard.writeText(`${imageName}:${tag}`)
+    }
+
     return artifacts.map(artifact => {
-        const {fileName, id, displayName} = artifact
+        const {fileName, id, displayName, imageName, tag} = artifact
         return <ArtifactLabel
             key={id}
             displayName={displayName}
@@ -124,7 +139,8 @@ function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor,
             isDeletable={adminMode}
             deleteArtifact={deleteArtifact}
             showConfirmation={showConfirmation}
-            nonDownloadable={!!nonDownloadable}
+            isDownloadable={isDownloadable}
+            onCopyClick={() => handleOnCopyClick(imageName, tag)}
         />
     })
 }

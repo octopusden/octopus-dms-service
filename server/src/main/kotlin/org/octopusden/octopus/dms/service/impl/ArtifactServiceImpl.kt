@@ -49,7 +49,7 @@ class ArtifactServiceImpl(
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
         log.info("Find artifact with coordinates '$artifactCoordinates'")
         return (artifactRepository.findByPath(artifactCoordinates.toPath())
-            ?: throw NotFoundException("Artifact with coordinates '$artifactCoordinates' is not found")
+            ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
                 ).toDTO()
     }
 

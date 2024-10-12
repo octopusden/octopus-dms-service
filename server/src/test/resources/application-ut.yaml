@@ -28,8 +28,11 @@ storage:
     user: admin
     password: password
     upload-repositories:
+      DOCKER: docker-repo-local
       MAVEN: maven-upload-repo-local
     staging-repositories:
+      DOCKER:
+        - docker-repo-local
       MAVEN:
         - maven-dev-repo-local
       DEBIAN:
@@ -38,6 +41,8 @@ storage:
       RPM:
         - rpm-dev-repo-local
     release-repositories:
+      DOCKER:
+        - docker-repo-local
       MAVEN:
         - maven-release-repo-local
       DEBIAN:

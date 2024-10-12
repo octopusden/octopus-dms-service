@@ -16,6 +16,7 @@ import javax.persistence.Id
 import javax.persistence.ManyToOne
 import javax.persistence.Table
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactShortDTO
 
 @Entity
 @Table(name = "component_version_artifact")
@@ -51,7 +52,15 @@ class ComponentVersionArtifact (
         }
     }
 
-    fun toShortDTO() = ArtifactShortDTO(artifact.id, artifact.repositoryType, type, displayName, artifact.fileName)
+    fun toShortDTO() = when (artifact.repositoryType) {
+        RepositoryType.DOCKER -> {
+            artifact as DockerArtifact
+            DockerArtifactShortDTO(artifact.id, type, displayName, artifact.fileName, artifact.image, artifact.tag)
+        }
+        else -> {
+            ArtifactShortDTO(artifact.id, artifact.repositoryType, type, displayName, artifact.fileName)
+        }
+    }
 
     fun toFullDTO() = when (artifact.repositoryType) {
         RepositoryType.MAVEN -> {
