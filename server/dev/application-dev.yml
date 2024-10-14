@@ -29,6 +29,7 @@ storage:
     password: password
     upload-repositories:
       MAVEN: example-repo-local
+      DOCKER: rnd-docker-virtual
 
 dms-service:
   webhook:

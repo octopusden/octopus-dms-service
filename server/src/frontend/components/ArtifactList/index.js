@@ -8,13 +8,13 @@ import history from "../../utils/history";
 import {isPrintableArtifact} from "../common";
 
 const mapStateToProps = (state) => {
-
     const adminMode = get(state, "components.adminMode", false)
+    const { loadingArtifacts } = get(state, "components")
     const showConfirmation = !!get(state, "confirmation")
 
     const currentArtifacts = get(state, "components.currentArtifacts")
     const {
-        selectedComponent, selectedVersion, selectedDocument, loadingArtifacts, artifacts
+        selectedComponent, selectedVersion, selectedDocument, artifacts
     } = currentArtifacts
     return {
         adminMode,

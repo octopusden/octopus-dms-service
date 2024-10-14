@@ -1,37 +1,73 @@
 import {H4, Icon, Spinner} from "@blueprintjs/core";
-import {isPrintableArtifact} from "../common";
+import {getArtifactsByTypes, isPrintableArtifact} from "../common";
 import React from "react";
 import './style.css'
 
-export default function artifactList(props) {
-    const {
-        loadingArtifacts, artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion,
-        selectedDocument, adminMode, deleteArtifact, showConfirmation
-    } = props
+export default function artifactList({
+                                         loadingArtifacts,
+                                         artifacts,
+                                         getDocument,
+                                         selectedComponent,
+                                         selectedMinor,
+                                         selectedVersion,
+                                         selectedDocument,
+                                         adminMode,
+                                         deleteArtifact,
+                                         showConfirmation
+                                     }) {
     if (loadingArtifacts) {
         return <div className='load-artifacts-list'>
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        const printableArtifacts = artifacts.filter(artifact => isPrintableArtifact(artifact))
-        const binaryArtifacts = artifacts.filter(artifact => !isPrintableArtifact(artifact))
+        const [printableArtifacts, binaryArtifacts, dockerImages] = getArtifactsByTypes(artifacts)
         return <div className='artifacts-component-list-block'>
-            {printableArtifacts.length > 0 && <H4> Documents </H4>}
-            {artifactBlock(printableArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
-            {binaryArtifacts.length > 0 && <H4> Binaries </H4>}
-            {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+            {printableArtifacts.length > 0 &&
+                <div className='box'>
+                    <H4> Documents </H4>
+                    {artifactBlock(printableArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+                </div>
+            }
+            {binaryArtifacts.length > 0 &&
+                <div className='box'>
+                    <H4> Binaries </H4>
+                    {artifactBlock(binaryArtifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation)}
+                </div>
+            }
+            {dockerImages.length > 0 &&
+                <div className='box'>
+                    <H4> Docker images </H4>
+                    {artifactBlock(dockerImages, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation, false)}
+                </div>
+            }
         </div>
     }
 }
 
-function ArtifactLabel(props) {
-    const {
-        getDocument, selectedComponent, selectedVersion,
-        selectedDocument, id, displayName, fileName, isPrintable, isDeletable,
-        deleteArtifact, showConfirmation
-    } = props
+function ArtifactLabel({
+                           getDocument,
+                           selectedComponent,
+                           selectedVersion,
+                           selectedDocument,
+                           id,
+                           displayName,
+                           fileName,
+                           isPrintable,
+                           isDeletable,
+                           deleteArtifact,
+                           showConfirmation,
+                           dockerData: {
+                                 imageName,
+                                 tag
+                           },
+                           isDownloadable = true,
+                       }) {
 
     const isSelected = selectedDocument.id === id
+
+    const handleOnCopyClick = () => {
+        navigator.clipboard.writeText(`${imageName}:${tag}`)
+    }
 
     return <div
         className={`artifact-label-wrap ${isSelected ? 'selected' : ''}`}
@@ -46,10 +82,17 @@ function ArtifactLabel(props) {
         }
 
         <div className='artifact-label-right'>
-            <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
-               download={fileName}>
-                <Icon icon='import'/>
-            </a>
+            {!isDownloadable &&
+                <div role='button' onClick={handleOnCopyClick}>
+                    <Icon icon='clipboard'/>
+                </div>
+            }
+            {isDownloadable &&
+                <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
+                   download={fileName}>
+                    <Icon icon='import'/>
+                </a>
+            }
             {isPrintable &&
                 <a href={`rest/api/3/components/${selectedComponent}/versions/${selectedVersion}/artifacts/${id}/download`}
                    target="_blank" hidden={!isPrintable}>
@@ -68,9 +111,18 @@ function ArtifactLabel(props) {
     </div>
 }
 
-function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor, selectedVersion, selectedDocument, adminMode, deleteArtifact, showConfirmation) {
+function artifactBlock(artifacts,
+                       getDocument,
+                       selectedComponent,
+                       selectedMinor,
+                       selectedVersion,
+                       selectedDocument,
+                       adminMode,
+                       deleteArtifact,
+                       showConfirmation,
+                       isDownloadable = true) {
     return artifacts.map(artifact => {
-        const {fileName, id, displayName} = artifact
+        const {fileName, id, displayName, imageName, tag} = artifact
         return <ArtifactLabel
             key={id}
             displayName={displayName}
@@ -85,6 +137,8 @@ function artifactBlock(artifacts, getDocument, selectedComponent, selectedMinor,
             isDeletable={adminMode}
             deleteArtifact={deleteArtifact}
             showConfirmation={showConfirmation}
+            isDownloadable={isDownloadable}
+            dockerData={{imageName, tag}}
         />
     })
 }
