@@ -56,14 +56,17 @@ function ArtifactLabel({
                            isDeletable,
                            deleteArtifact,
                            showConfirmation,
-                           onCopyClick,
+                           dockerData: {
+                                 imageName,
+                                 tag
+                           },
                            isDownloadable = true,
                        }) {
 
     const isSelected = selectedDocument.id === id
 
     const handleOnCopyClick = () => {
-        navigator.clipboard.writeText(`${displayName}:${selectedVersion}`)
+        navigator.clipboard.writeText(`${imageName}:${tag}`)
     }
 
     return <div
@@ -118,11 +121,6 @@ function artifactBlock(artifacts,
                        deleteArtifact,
                        showConfirmation,
                        isDownloadable = true) {
-
-    const handleOnCopyClick = (imageName, tag) => {
-        navigator.clipboard.writeText(`${imageName}:${tag}`)
-    }
-
     return artifacts.map(artifact => {
         const {fileName, id, displayName, imageName, tag} = artifact
         return <ArtifactLabel
@@ -140,7 +138,7 @@ function artifactBlock(artifacts,
             deleteArtifact={deleteArtifact}
             showConfirmation={showConfirmation}
             isDownloadable={isDownloadable}
-            onCopyClick={() => handleOnCopyClick(imageName, tag)}
+            dockerData={{imageName, tag}}
         />
     })
 }
