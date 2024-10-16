@@ -68,7 +68,7 @@ fun String.getExt() = project.ext[this] as? String
 
 docker {
     springBootApplication {
-        baseImage.set("${"dockerRegistry".getExt()}/openjdk:11")
+        baseImage.set("${"dockerRegistry".getExt()}/eclipse-temurin:21-jdk")
         ports.set(listOf(8080, 8080))
         images.set(setOf("${"octopusGithubDockerRegistry".getExt()}/octopusden/${project.name}:${project.version}"))
     }
