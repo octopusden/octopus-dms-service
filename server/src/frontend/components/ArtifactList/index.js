@@ -13,9 +13,8 @@ const mapStateToProps = (state) => {
     const showConfirmation = !!get(state, "confirmation")
 
     const currentArtifacts = get(state, "components.currentArtifacts")
-    const {
-        selectedComponent, selectedVersion, selectedDocument, loadingArtifacts, artifacts
-    } = currentArtifacts
+    const {selectedComponent, selectedVersion, selectedDocument, artifacts} = currentArtifacts
+    const {loadingArtifacts} = state.components
     return {
         adminMode,
         showConfirmation,
