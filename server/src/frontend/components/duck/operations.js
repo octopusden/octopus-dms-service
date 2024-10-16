@@ -98,16 +98,15 @@ const getCustomComponents = (onSuccess) => (dispatch) => {
                                 .map((c) => {
                                     const parentComponentId = c.parentComponent
                                     if (idComponents[parentComponentId]) {
-                                        c.parentComponent = idComponents[parentComponentId]
+                                        c.parentComponentName = idComponents[parentComponentId].name
                                     }
                                     return c
                                 })
-                                .sort((a, b) => a.parentComponent.name.toLowerCase().localeCompare(b.parentComponent.name.toLowerCase()))
+                                .sort((a, b) => a.parentComponentName.toLowerCase().localeCompare(b.parentComponentName.toLowerCase()))
                                 .reduce(function (acc, component) {
-                                    const parentComponent = component.parentComponent
-                                    const parentComponentId = parentComponent.id
-                                    if (!acc[parentComponentId]) {
-                                        acc[parentComponentId] = parentComponent
+                                    const parentComponentId = component.parentComponent
+                                    if (!acc[parentComponentId] && idComponents[parentComponentId]) {
+                                        acc[parentComponentId] = idComponents[parentComponentId]
                                         acc[parentComponentId].subComponents = {}
                                     }
                                     acc[parentComponentId].subComponents[component.id] = component;
