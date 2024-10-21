@@ -44,8 +44,7 @@ class ComponentServiceImpl(
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val releaseManagementServiceClient: ReleaseManagementServiceClient,
-    private val componentVersionArtifactMapper: ComponentVersionArtifactMapper
+    private val releaseManagementServiceClient: ReleaseManagementServiceClient
 ) : ComponentService {
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
@@ -83,7 +82,7 @@ class ComponentServiceImpl(
                     componentVersionArtifactRepository.findByComponentVersion(componentVersion).forEach {
                         applicationEventPublisher.publishEvent(
                             DeleteComponentVersionArtifactEvent(
-                                componentName, componentVersion.version, componentVersionArtifactMapper.mapToFullDTO(it)
+                                componentName, componentVersion.version, it.toFullDTO()
                             )
                         )
                     }
@@ -149,7 +148,7 @@ class ComponentServiceImpl(
                 componentVersionArtifactRepository.findByComponentVersion(it).forEach { componentVersionArtifact ->
                     applicationEventPublisher.publishEvent(
                         DeleteComponentVersionArtifactEvent(
-                            componentName, it.version,  componentVersionArtifactMapper.mapToFullDTO(componentVersionArtifact)
+                            componentName, it.version, componentVersionArtifact.toFullDTO()
                         )
                     )
                 }
@@ -189,7 +188,8 @@ class ComponentServiceImpl(
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val build = releaseManagementService.getComponentBuild(componentName, buildVersion, type)
-        val artifacts = componentVersionArtifactMapper.mapToShortDTOList(
+        return ArtifactsDTO(
+            build,
             if (type == null) {
                 componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersion(
                     componentName,
@@ -201,11 +201,7 @@ class ComponentServiceImpl(
                     buildVersion,
                     type
                 )
-            }
-        )
-        return ArtifactsDTO(
-            build,
-            artifacts //TODO: filter distribution artifacts if version status is RC?
+            }.map { it.toShortDTO() } //TODO: filter distribution artifacts if version status is RC?
         )
     }
 
@@ -216,10 +212,9 @@ class ComponentServiceImpl(
         log.info("Get artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        return componentVersionArtifactMapper.mapToFullDTO(getOrElseThrow(componentName, buildVersion, artifactId))
-            .also {
-                releaseManagementService.getComponentBuild(componentName, buildVersion, it.type)
-            }
+        return getOrElseThrow(componentName, buildVersion, artifactId).toFullDTO().also {
+            releaseManagementService.getComponentBuild(componentName, buildVersion, it.type)
+        }
     }
 
     @Transactional(readOnly = true)
@@ -283,7 +278,7 @@ class ComponentServiceImpl(
                     type = registerArtifactDTO.type
                 )
             )
-        return componentVersionArtifactMapper.mapToFullDTO(componentVersionArtifact).also {
+        return componentVersionArtifact.toFullDTO().also {
             applicationEventPublisher.publishEvent(
                 RegisterComponentVersionArtifactEvent(componentName, buildVersion, it)
             )
@@ -304,11 +299,7 @@ class ComponentServiceImpl(
         )?.let {
             if (!dryRun) {
                 applicationEventPublisher.publishEvent(
-                    DeleteComponentVersionArtifactEvent(
-                        componentName,
-                        buildVersion,
-                        componentVersionArtifactMapper.mapToFullDTO(it)
-                    )
+                    DeleteComponentVersionArtifactEvent(componentName, buildVersion, it.toFullDTO())
                 )
                 componentVersionArtifactRepository.delete(it)
             }

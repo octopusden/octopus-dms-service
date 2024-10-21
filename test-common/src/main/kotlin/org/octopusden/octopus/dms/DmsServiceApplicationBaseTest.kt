@@ -465,11 +465,9 @@ abstract class DmsServiceApplicationBaseTest {
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
-        val actualComponentVersionArtifact = client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         assertEquals(
             componentVersionArtifact,
-            actualComponentVersionArtifact,
-            "Expected: $componentVersionArtifact, actual: $actualComponentVersionArtifact"
+            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
         )
         client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
             .use { response ->
@@ -564,8 +562,7 @@ abstract class DmsServiceApplicationBaseTest {
             ArtifactType.DISTRIBUTION
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
-        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact,
-            "Expected: $componentVersionArtifact, actual: ${componentVersionArtifacts.artifacts.first()}")
+        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
         assertEquals(
             componentVersionArtifact,
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)

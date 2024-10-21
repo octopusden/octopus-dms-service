@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.octopusden.octopus.dms.service.impl.ComponentVersionArtifactMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -50,8 +49,7 @@ class ArtifactControllerV1(
     private val relengService: ReleaseManagementService,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val storageProperties: StorageProperties,
-    private val componentVersionArtifactMapper: ComponentVersionArtifactMapper
+    private val storageProperties: StorageProperties
 ) {
     @Operation(summary = "Download Artifact")
     @GetMapping(
@@ -185,7 +183,7 @@ class ArtifactControllerV1(
     ): GavDTO {
         val buildVersion = getBuildVersion(component, version)
         return if (!generateGAV) {
-            val artifactDTO = componentVersionArtifactMapper.mapToFullDTO(getArtifact(component, buildVersion, type, artifact, classifier))
+            val artifactDTO = getArtifact(component, buildVersion, type, artifact, classifier).toFullDTO()
             if (artifactDTO.repositoryType == RepositoryType.MAVEN) {
                 (artifactDTO as MavenArtifactFullDTO).gav
             } else {
@@ -426,7 +424,7 @@ class ArtifactControllerV1(
         }.filter {
             it.artifact.repositoryType == RepositoryType.MAVEN
         }.map {
-            val mavenArtifactDTO = componentVersionArtifactMapper.mapToFullDTO(it) as MavenArtifactFullDTO
+            val mavenArtifactDTO = it.toFullDTO() as MavenArtifactFullDTO
             LegacyArtifactDTO(
                 mavenArtifactDTO.id,
                 mavenArtifactDTO.repositoryType,

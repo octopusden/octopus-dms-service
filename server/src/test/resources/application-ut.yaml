@@ -20,7 +20,6 @@ auth-server:
 dms-service:
   webhook:
     enabled: false
-  docker-registry: docker.io
 
 storage:
   maven-group-prefix: corp.domain.dms
@@ -29,8 +28,11 @@ storage:
     user: admin
     password: password
     upload-repositories:
+      DOCKER: docker-repo-local
       MAVEN: maven-upload-repo-local
     staging-repositories:
+      DOCKER:
+        - docker-repo-local
       MAVEN:
         - maven-dev-repo-local
       DEBIAN:

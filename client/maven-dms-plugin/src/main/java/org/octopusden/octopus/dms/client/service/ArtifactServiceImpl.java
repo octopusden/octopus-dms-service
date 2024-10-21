@@ -61,25 +61,17 @@ public class ArtifactServiceImpl implements ArtifactService {
      * @param creater                 - function to create entity
      * @param pattern                 - pattern to validate entity
      * @param message                 - message for exception
-     * @param isSingle                - flag to indicate that only one entity is expected
      * @return list of entities with their creators
      */
     private List<Pair<String, Function<String, ArtifactCoordinatesDTO>>> createEntities(String artifactsCoordinates,
                                 EscrowExpressionContext escrowExpressionContext,
                                 Function<String, ArtifactCoordinatesDTO> creater,
                                 Pattern pattern,
-                                String message,
-                                boolean isSingle) {
+                                String message) {
         if (StringUtils.isBlank(artifactsCoordinates)) {
             return Collections.emptyList();
         }
         String entitiesStr = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
-        if (isSingle) {
-            if (!pattern.matcher(entitiesStr).matches()) {
-                throw new IllegalArgumentException(String.format(message, entitiesStr, pattern));
-            }
-            return Collections.singletonList(new ImmutablePair<>(entitiesStr, creater));
-        }
         return Arrays.stream(entitiesStr.split(",")).map(item -> {
             if (!pattern.matcher(item).matches()) {
                 throw new IllegalArgumentException(String.format(message, item, pattern));
@@ -210,22 +202,19 @@ public class ArtifactServiceImpl implements ArtifactService {
                 escrowExpressionContext,
                 DebianArtifactCoordinatesDTO::new,
                 DEB_PATTERN,
-                "DEB entity '%s' does not match '%s'",
-                false)
+                "DEB entity '%s' does not match '%s'")
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesRpm,
                 escrowExpressionContext,
                 RpmArtifactCoordinatesDTO::new,
                 RPM_PATTERN,
-                "RPM entity '%s' does not match '%s",
-                false)
+                "RPM entity '%s' does not match '%s")
         );
         entitiesRep.addAll(createEntities(artifactsCoordinatesDocker,
                 escrowExpressionContext,
                 image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion),
                 DOCKER_PATTERN,
-                "DOCKER entity '%s' does not match '%s",
-                true)
+                "DOCKER entity '%s' does not match '%s")
         );
         for (Pair<String, Function<String, ArtifactCoordinatesDTO>> pair : entitiesRep) {
             String entity = pair.getLeft();
