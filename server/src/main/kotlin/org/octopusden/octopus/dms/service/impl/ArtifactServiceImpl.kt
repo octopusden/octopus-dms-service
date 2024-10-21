@@ -30,7 +30,8 @@ class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val componentVersionArtifactMapper: ComponentVersionArtifactMapper
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -116,7 +117,9 @@ class ArtifactServiceImpl(
                 componentVersionArtifactRepository.findByArtifact(artifact).forEach {
                     applicationEventPublisher.publishEvent(
                         DeleteComponentVersionArtifactEvent(
-                            it.componentVersion.component.name, it.componentVersion.version, it.toFullDTO()
+                            it.componentVersion.component.name,
+                            it.componentVersion.version,
+                            componentVersionArtifactMapper.mapToFullDTO(it)
                         )
                     )
                 }

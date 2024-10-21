@@ -20,6 +20,7 @@ import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
+import org.octopusden.octopus.dms.service.impl.ComponentVersionArtifactMapper
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,7 +43,8 @@ class ArtifactControllerV2(
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val relengService: ReleaseManagementService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val componentVersionArtifactMapper: ComponentVersionArtifactMapper
 ) {
     @Operation(summary = "List of Component Versions")
     @GetMapping("component/{component}/versions", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -181,7 +183,7 @@ class ArtifactControllerV2(
         }.filter {
             it.artifact.repositoryType == RepositoryType.MAVEN
         }.map {
-            val mavenArtifactDTO = it.toFullDTO() as MavenArtifactFullDTO
+            val mavenArtifactDTO = componentVersionArtifactMapper.mapToFullDTO(it) as MavenArtifactFullDTO
             LegacyArtifactDTO(
                 mavenArtifactDTO.id,
                 mavenArtifactDTO.repositoryType,
