@@ -11,9 +11,9 @@ import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class ComponentVersionArtifactMapper(
     @Value("\${dms-service.docker-registry}") private val dockerRegistry: String
 ) {
