@@ -16,7 +16,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonSubTypes(
     JsonSubTypes.Type(MavenArtifactCoordinatesDTO::class, name = "MAVEN"),
     JsonSubTypes.Type(DebianArtifactCoordinatesDTO::class, name = "DEBIAN"),
-    JsonSubTypes.Type(RpmArtifactCoordinatesDTO::class, name = "RPM")
+    JsonSubTypes.Type(RpmArtifactCoordinatesDTO::class, name = "RPM"),
+    JsonSubTypes.Type(DockerArtifactCoordinatesDTO::class, name = "DOCKER")
 )
 @Schema(
     description = "Artifact coordinates",
@@ -24,7 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
     discriminatorMapping = [
         DiscriminatorMapping("MAVEN", schema = MavenArtifactCoordinatesDTO::class),
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactCoordinatesDTO::class),
-        DiscriminatorMapping("RPM", schema = RpmArtifactCoordinatesDTO::class)
+        DiscriminatorMapping("RPM", schema = RpmArtifactCoordinatesDTO::class),
+        DiscriminatorMapping("DOCKER", schema = DockerArtifactCoordinatesDTO::class)
     ]
 )
 abstract class ArtifactCoordinatesDTO(

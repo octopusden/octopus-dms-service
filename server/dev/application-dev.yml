@@ -33,6 +33,7 @@ storage:
 dms-service:
   webhook:
     url: http://localhost:1080/webhook
+  docker-registry: docker.io
 
 components-registry-service:
   url: # set via env

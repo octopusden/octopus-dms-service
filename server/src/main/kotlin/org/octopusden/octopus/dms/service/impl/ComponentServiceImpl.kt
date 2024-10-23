@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Component
@@ -43,7 +44,8 @@ class ComponentServiceImpl(
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val releaseManagementServiceClient: ReleaseManagementServiceClient
+    private val releaseManagementServiceClient: ReleaseManagementServiceClient,
+    private val mapper: ComponentVersionArtifactMapper
 ) : ComponentService {
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
@@ -81,7 +83,7 @@ class ComponentServiceImpl(
                     componentVersionArtifactRepository.findByComponentVersion(componentVersion).forEach {
                         applicationEventPublisher.publishEvent(
                             DeleteComponentVersionArtifactEvent(
-                                componentName, componentVersion.version, it.toFullDTO()
+                                componentName, componentVersion.version, mapper.mapToFullDTO(it)
                             )
                         )
                     }
@@ -147,7 +149,7 @@ class ComponentServiceImpl(
                 componentVersionArtifactRepository.findByComponentVersion(it).forEach { componentVersionArtifact ->
                     applicationEventPublisher.publishEvent(
                         DeleteComponentVersionArtifactEvent(
-                            componentName, it.version, componentVersionArtifact.toFullDTO()
+                            componentName, it.version, mapper.mapToFullDTO(componentVersionArtifact)
                         )
                     )
                 }
@@ -200,7 +202,7 @@ class ComponentServiceImpl(
                     buildVersion,
                     type
                 )
-            }.map { it.toShortDTO() } //TODO: filter distribution artifacts if version status is RC?
+            }.map { mapper.mapToShortDTO(it) } //TODO: filter distribution artifacts if version status is RC?
         )
     }
 
@@ -211,7 +213,7 @@ class ComponentServiceImpl(
         log.info("Get artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
-        return getOrElseThrow(componentName, buildVersion, artifactId).toFullDTO().also {
+        return mapper.mapToFullDTO(getOrElseThrow(componentName, buildVersion, artifactId)).also {
             releaseManagementService.getComponentBuild(componentName, buildVersion, it.type)
         }
     }
@@ -224,6 +226,9 @@ class ComponentServiceImpl(
         componentsRegistryService.checkComponent(componentName)
         val (_, buildVersion) = normalizeComponentVersion(componentName, version)
         val componentVersionArtifactEntity = getOrElseThrow(componentName, buildVersion, artifactId)
+        if (componentVersionArtifactEntity.artifact.repositoryType == RepositoryType.DOCKER) {
+            throw UnsupportedOperationException("Downloading of Docker artifacts is not supported.")
+        }
         releaseManagementService.getComponentBuild(componentName, buildVersion, componentVersionArtifactEntity.type)
         return DownloadArtifactDTO(
             componentVersionArtifactEntity.artifact.fileName,
@@ -274,7 +279,7 @@ class ComponentServiceImpl(
                     type = registerArtifactDTO.type
                 )
             )
-        return componentVersionArtifact.toFullDTO().also {
+        return mapper.mapToFullDTO(componentVersionArtifact).also {
             applicationEventPublisher.publishEvent(
                 RegisterComponentVersionArtifactEvent(componentName, buildVersion, it)
             )
@@ -295,7 +300,7 @@ class ComponentServiceImpl(
         )?.let {
             if (!dryRun) {
                 applicationEventPublisher.publishEvent(
-                    DeleteComponentVersionArtifactEvent(componentName, buildVersion, it.toFullDTO())
+                    DeleteComponentVersionArtifactEvent(componentName, buildVersion, mapper.mapToFullDTO(it))
                 )
                 componentVersionArtifactRepository.delete(it)
             }
