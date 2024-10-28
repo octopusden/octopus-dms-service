@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="Generate and upload HTML release notes to DMS">
+    <description>Compose "Generate HTML release notes" and "Upload Artifact To Distribution Management System (New)" runner</description>
+    <settings>
+        <parameters>
+            <param name="START_VERSION" value="%START_VERSION%" />
+            <param name="BUILD_VERSION" value="%BUILD_VERSION%" />
+            <param name="COMPONENT_NAME" value="%COMPONENT_NAME%" />
+            <param name="RELEASE_NOTES_REPORT_FILE_NAME" value="%RELEASE_NOTES_REPORT_FILE_NAME%" />
+            <param name="RELEASE_NOTES_REPORT_FILE" value="%teamcity.build.checkoutDir%/%RELEASE_NOTES_REPORT_FILE_NAME%" />
+            <param name="RELEASE_NOTES_REPORT_LANGUAGE" value="%RELEASE_NOTES_REPORT_LANGUAGE%" />
+            <param name="RELEASE_NOTES_REPORT_TEMPLATE_VCS_URL" value="%RELEASE_NOTES_REPORT_TEMPLATE_VCS_URL%" />
+            <param name="RELEASE_NOTES_REPORT_TEMPLATE_CHECKOUT_DIR" value="client-release-notes-report-templates" />
+            <param name="RELEASE_NOTES_REPORT_TEMPLATE_FILE_NAME" value="%RELEASE_NOTES_REPORT_TEMPLATE_FILE_NAME%" />
+            <param name="SKIP_CRN_REPORT_GENERATION" value="%SKIP_CRN_REPORT_GENERATION%" />
+            <param name="SKIP_CRN_REPORT_DEPLOY_TO_DMS" value="%SKIP_CRN_REPORT_DEPLOY_TO_DMS%" />
+            <param name="MAVEN_CRM_PLUGIN_VERSION" value="%MAVEN_CRM_PLUGIN_VERSION%" />
+        </parameters>
+        <build-runners>
+            <runner name="Generate HTML release notes" type="GenerateHtmlReleaseNotes">
+                <parameters>
+                    <param name="SKIP_GENERATING_HTML_RELEASE_NOTES" value="%SKIP_CRN_REPORT_GENERATION%" />
+                    <param name="COMPONENTS" value="%COMPONENT_NAME%:[%START_VERSION%,%BUILD_VERSION%]" />
+                    <param name="RELEASE_NOTES_REPORT_LANGUAGE" value="%RELEASE_NOTES_REPORT_LANGUAGE%" />
+                    <param name="RELEASE_NOTES_REPORT_TEMPLATE_VCS_URL" value="%RELEASE_NOTES_REPORT_TEMPLATE_VCS_URL%" />
+                    <param name="RELEASE_NOTES_REPORT_TEMPLATE_CHECKOUT_DIR" value="%RELEASE_NOTES_REPORT_TEMPLATE_CHECKOUT_DIR%" />
+                    <param name="RELEASE_NOTES_REPORT_TEMPLATE_FILE_NAME" value="%RELEASE_NOTES_REPORT_TEMPLATE_FILE_NAME%" />
+                    <param name="RELEASE_NOTES_REPORT_TARGET_PATH" value="%RELEASE_NOTES_REPORT_FILE%" />
+                    <param name="MAVEN_CRM_PLUGIN_VERSION" value="%MAVEN_CRM_PLUGIN_VERSION%" />
+                </parameters>
+            </runner>
+            <runner name="Upload HTML release notes into DMS" type="UploadArtifactsToDMS">
+                <parameters>
+                    <param name="ARTIFACT_TYPE" value="report" />
+                    <param name="BUILD_VERSION" value="%BUILD_VERSION%" />
+                    <param name="COMPONENT_NAME" value="%COMPONENT_NAME%" />
+                    <param name="EXTRA_PARAMETERS" value="-Dreplace=true" />
+                    <param name="ARTIFACTS_COORDINATES" value="file:///%RELEASE_NOTES_REPORT_FILE%" />
+                    <param name="ARTIFACTS_COORDINATES_VERSION" value="" />
+                    <param name="ARTIFACTS_COORDINATES_DEB" value="" />
+                    <param name="ARTIFACTS_COORDINATES_RPM" value="" />
+                    <param name="ARTIFACTS_COORDINATES_DOCKER" value="" />
+                    <param name="SKIP_UPLOAD_TO_DMS" value="%SKIP_CRN_REPORT_DEPLOY_TO_DMS%" />
+                    <param name="MAVEN_CRM_PLUGIN_VERSION" value="%MAVEN_CRM_PLUGIN_VERSION%" />
+                </parameters>
+            </runner>
+        </build-runners>
+    </settings>
+</meta-runner>
