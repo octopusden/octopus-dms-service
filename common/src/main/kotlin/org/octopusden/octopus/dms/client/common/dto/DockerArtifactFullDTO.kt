@@ -11,8 +11,8 @@ import java.util.Objects
             "  \"type\": \"distribution\",\n" +
             "  \"displayName\": \"test/test-component\",\n" +
             "  \"fileName\": \"docker.io/test/test-component:1.2.3\"\n" +
-            " \"tag\": \"1.2.3\",\n" +
-            " \"image\": \"test/test-component\"\n" +
+            "  \"tag\": \"1.2.3\",\n" +
+            "  \"image\": \"test/test-component\"\n" +
             "}"
 )
 class DockerArtifactFullDTO(

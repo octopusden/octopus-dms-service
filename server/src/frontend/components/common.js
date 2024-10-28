@@ -22,11 +22,11 @@ export function isPrintableArtifact(artifact) {
 }
 
 /**
- * Get artifacts by types
+ * Converts array of artifacts to array of arrays of artifacts by type
  * @param {Array} artifacts
  * @returns {Array} - array of arrays of artifacts by type [printable, non-printable, docker]
  */
-export function getArtifactsByTypes(artifacts) {
+export function convertArtifactsByTypes(artifacts) {
     return artifacts.reduce((acc, artifact) => {
         if (isPrintableArtifact(artifact)) {
             acc[0].push(artifact)

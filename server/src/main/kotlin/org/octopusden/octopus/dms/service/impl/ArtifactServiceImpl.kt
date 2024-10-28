@@ -12,15 +12,12 @@ import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
-import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
-import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -29,9 +26,7 @@ import org.springframework.web.multipart.MultipartFile
 class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
-    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher,
-    private val componentVersionArtifactMapper: ComponentVersionArtifactMapper
+    private val componentServiceImpl: ComponentServiceImpl
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -59,9 +54,6 @@ class ArtifactServiceImpl(
         log.info("Download artifact with ID '$id'")
         val artifact = artifactRepository.findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
-        if (artifact.repositoryType == RepositoryType.DOCKER) {
-            throw UnsupportedOperationException("Downloading of Docker artifacts is not supported.")
-        }
         return DownloadArtifactDTO(
             artifact.fileName,
             storageService.download(artifact, true)
@@ -114,16 +106,7 @@ class ArtifactServiceImpl(
         log.info("Delete artifact with ID '$id'")
         artifactRepository.findById(id).ifPresent { artifact ->
             if (!dryRun) {
-                componentVersionArtifactRepository.findByArtifact(artifact).forEach {
-                    applicationEventPublisher.publishEvent(
-                        DeleteComponentVersionArtifactEvent(
-                            it.componentVersion.component.name,
-                            it.componentVersion.version,
-                            componentVersionArtifactMapper.mapToFullDTO(it)
-                        )
-                    )
-                }
-                artifactRepository.delete(artifact)
+                componentServiceImpl.deleteArtifact(artifact)
             }
             log.info("$artifact deleted")
         }

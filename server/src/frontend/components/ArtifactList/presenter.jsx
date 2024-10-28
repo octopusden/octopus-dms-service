@@ -1,5 +1,5 @@
 import {H4, Icon, Spinner} from "@blueprintjs/core";
-import {getArtifactsByTypes, isPrintableArtifact} from "../common";
+import {convertArtifactsByTypes, isPrintableArtifact} from "../common";
 import React from "react";
 import './style.css'
 
@@ -20,7 +20,7 @@ export default function artifactList({
             <Spinner size={50} intent="primary"/>
         </div>
     } else {
-        const [printableArtifacts, binaryArtifacts, dockerImages] = getArtifactsByTypes(artifacts)
+        const [printableArtifacts, binaryArtifacts, dockerImages] = convertArtifactsByTypes(artifacts)
         return <div className='artifacts-component-list-block'>
             {printableArtifacts.length > 0 &&
                 <div className='box'>
