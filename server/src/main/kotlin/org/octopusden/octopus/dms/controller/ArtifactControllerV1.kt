@@ -93,6 +93,7 @@ class ArtifactControllerV1(
         @RequestParam("classifier", required = false) classifier: String? = null,
         response: HttpServletResponse
     ) {
+        logger.warn("Deprecated call! V1 downloadArtifact($component, $version, $type, $name)")
         val buildVersion = getBuildVersion(component, version)
         val componentVersionArtifactEntity = getArtifact(component, buildVersion, type, name, classifier)
         response.contentType = when {
@@ -136,7 +137,9 @@ class ArtifactControllerV1(
         @PathVariable(required = true) component: String
     ) = VersionsDTO(
         componentService.getComponentVersions(component, emptyList(), true).map { it.version }.sortedDescending()
-    )
+    ).also{
+        logger.warn("Deprecated call! V1 getVersions($component)")
+    }
 
     @Operation(summary = "Get component GAV")
     @GetMapping("component/{component}/version/{version}/{type}/{artifact}/gav")
@@ -183,6 +186,7 @@ class ArtifactControllerV1(
         @Parameter(description = "Generate or get GAV of existed component", example = "false")
         @RequestParam("generateGAV", required = false) generateGAV: Boolean = false
     ): GavDTO {
+        logger.warn("Deprecated call! V1 getArtifactGAV($component, $version, $type, $artifact, $classifier, $packaging, $generateGAV)")
         val buildVersion = getBuildVersion(component, version)
         return if (!generateGAV) {
             val artifactDTO = componentVersionArtifactMapper.mapToFullDTO(getArtifact(component, buildVersion, type, artifact, classifier))
@@ -232,6 +236,7 @@ class ArtifactControllerV1(
         @PathVariable(required = true) artifact: String,
         @RequestParam("classifier", required = false) classifier: String?
     ): ComponentUrlDTO {
+        logger.warn("Deprecated call! V1 getArtifactUrl($component, $version, $type, $artifact, $classifier)")
         val buildVersion = getBuildVersion(component, version)
         val host = storageProperties.artifactory.externalRequestHost ?: storageProperties.artifactory.host
         val componentVersionArtifactEntity = getArtifact(component, buildVersion, type, artifact, classifier)
@@ -267,6 +272,7 @@ class ArtifactControllerV1(
         )
         @PathVariable(required = true) type: ArtifactType
     ): List<String> {
+        logger.warn("Deprecated call! V1 getList($component, $version, $type)")
         val buildVersion = getBuildVersion(component, version)
         val result = getArtifacts(component, buildVersion, type).map { it.name }
         logger.debug("Get list of names $component:$buildVersion:$type with result=$result")
@@ -305,6 +311,7 @@ class ArtifactControllerV1(
         @PathVariable(required = true) type: ArtifactType,
         @PathVariable name: String
     ): String {
+        logger.warn("Deprecated call! V1 getPreviousVersionOfArtifact($component, $version, $type)")
         val buildVersion = getBuildVersion(component, version)
         try {
             val versions = componentVersionRepository.findByComponentName(component).filter { componentVersionEntity ->
@@ -349,6 +356,7 @@ class ArtifactControllerV1(
         @PathVariable(required = true) version: String,
         @RequestParam(value = "includeRc", required = false, defaultValue = "false") includeRc: Boolean
     ): List<String> {
+        logger.warn("Deprecated call! V1 getPreviousLines($component, $version)")
         val buildVersion = getBuildVersion(component, version)
         return try {
             val versions = componentVersionRepository.findByComponentName(component).map { it.version }
@@ -371,6 +379,7 @@ class ArtifactControllerV1(
     @Operation(summary = "Get Artifacts repository")
     @GetMapping("repositories", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getArtifactsRepository(): ComponentUrlDTO {
+        logger.warn("Deprecated call! V1 getArtifactsRepository()")
         val host = storageProperties.artifactory.externalRequestHost ?: storageProperties.artifactory.host
         return ComponentUrlDTO(
             "$host/artifactory/${storageProperties.artifactory.uploadRepositories[RepositoryType.MAVEN]!!}"
@@ -379,7 +388,9 @@ class ArtifactControllerV1(
 
     @GetMapping("error")
     fun error(request: HttpServletRequest): ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(request.getParameter("message") ?: "")
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(request.getParameter("message") ?: "").also {
+            logger.warn("Deprecated call! V1 error(${request.queryString})")
+        }
     }
 
     private fun getBuildVersion(component: String, version: String): String {
