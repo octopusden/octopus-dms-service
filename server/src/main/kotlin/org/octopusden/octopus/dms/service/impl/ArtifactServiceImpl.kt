@@ -16,6 +16,7 @@ import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
+import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -26,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile
 class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
-    private val componentServiceImpl: ComponentServiceImpl
+    private val componentService: ComponentService
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -106,7 +107,7 @@ class ArtifactServiceImpl(
         log.info("Delete artifact with ID '$id'")
         artifactRepository.findById(id).ifPresent { artifact ->
             if (!dryRun) {
-                componentServiceImpl.deleteArtifact(artifact)
+                componentService.deleteArtifact(artifact)
             }
             log.info("$artifact deleted")
         }
