@@ -61,8 +61,8 @@ public class DMSServiceImpl implements DMSService {
                 }
                 throw new RuntimeMojoExecutionException(String.format("Failed to validate artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
-            Utils.writeToLogFile(String.format("Artifact '%s' is validated.", coordinates), validationLog);
-            log.info(String.format("Validated artifact '%s' for component '%s' version '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion()));
+            Utils.writeToLogFile(String.format("Artifact '%s' is validated.", coordinates.toPath()), validationLog);
+            log.info(String.format("Validated artifact '%s' for component '%s' version '%s'", coordinates.toPath(), componentVersion.getComponentName(), componentVersion.getVersion()));
         }
     }
 
@@ -101,7 +101,7 @@ public class DMSServiceImpl implements DMSService {
                 }
                 throw new RuntimeMojoExecutionException(String.format("Failed to upload %s artifact '%s' for component '%s' version '%s'", type.value(), coordinates, componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
-            log.info(String.format("Uploaded %s artifact '%s' for component '%s' version '%s'", type.value(), coordinates, componentVersion.getComponentName(), componentVersion.getVersion()));
+            log.info(String.format("Uploaded %s artifact '%s' for component '%s' version '%s'", type.value(), coordinates.toPath(), componentVersion.getComponentName(), componentVersion.getVersion()));
         }
     }
 
@@ -141,13 +141,13 @@ public class DMSServiceImpl implements DMSService {
                 artifactTempFile
         );
         if (validationErrors.size() > 0) {
-            StringBuilder message = new StringBuilder(String.format("Artifact '%s' validation errors:", coordinates));
+            StringBuilder message = new StringBuilder(String.format("Artifact '%s' validation errors:", coordinates.toPath()));
             for (String validationError : validationErrors) {
                 message.append('\n').append(validationError);
             }
             log.error(message.toString());
             Utils.writeToLogFile(message.toString(), validationLog);
-            throw new Exception(String.format("Artifact '%s' is invalidated.", coordinates));
+            throw new Exception(String.format("Artifact '%s' is invalidated.", coordinates.toPath()));
         }
     }
 }

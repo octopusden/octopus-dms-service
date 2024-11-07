@@ -21,5 +21,5 @@ data class GavDTO(
 ) {
     fun toPath() = groupId.replace('.', '/') + "/$artifactId/$version/$artifactId-$version" + (classifier?.let { "-$classifier." } ?: ".") + packaging
 
-    override fun toString() = "$groupId:$artifactId:$version:$packaging" + (classifier?.let { c -> ":$c" } ?: "")
+    override fun toString() = "GavDTO(groupId='$groupId', artifactId='$artifactId', version='$version', packaging='$packaging', classifier=$classifier)"
 }

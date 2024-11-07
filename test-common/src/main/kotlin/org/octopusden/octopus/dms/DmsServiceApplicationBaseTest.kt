@@ -691,6 +691,20 @@ abstract class DmsServiceApplicationBaseTest {
         val releaseDockerDistributionCoordinates =
             DockerArtifactCoordinatesDTO("test/test-component", "1.0")
 
+        private val DEV_GAV = devMavenDistributionCoordinates.gav
+        private val DEV_ARTIFACTS_COORDINATES_GAV = "${DEV_GAV.groupId}:${DEV_GAV.artifactId}:${DEV_GAV.version}:${DEV_GAV.packaging}" + (DEV_GAV.classifier?.let { c -> ":$c" } ?: "")
+        val DEV_ARTIFACTS_COORDINATES = DEV_ARTIFACTS_COORDINATES_GAV.replace(":1.0:", ":")
+
+        private val RELEASE_GAV = releaseMavenDistributionCoordinates.gav
+        private val RELEASE_ARTIFACTS_COORDINATES_GAV = "${RELEASE_GAV.groupId}:${RELEASE_GAV.artifactId}:${RELEASE_GAV.version}:${RELEASE_GAV.packaging}" + (RELEASE_GAV.classifier?.let { c -> ":$c" } ?: "")
+        val RELEASE_ARTIFACTS_COORDINATES = RELEASE_ARTIFACTS_COORDINATES_GAV.replace(":1.0:", ":")
+
+        val DEV_DEB_ARTIFACTS_COORDINATES = devDebianDistributionCoordinates.deb
+        val RELEASE_DEB_ARTIFACTS_COORDINATES = releaseDebianDistributionCoordinates.deb
+        val DEV_RPM_ARTIFACTS_COORDINATES = devRpmDistributionCoordinates.rpm
+        val RELEASE_RPM_ARTIFACTS_COORDINATES = releaseRpmDistributionCoordinates.rpm
+        val RELEASE_DOCKER_ARTIFACTS_COORDINATES = releaseDockerDistributionCoordinates.image
+
         @JvmStatic
         private fun repositories(): Stream<Arguments> = Stream.of(
             Arguments.of(

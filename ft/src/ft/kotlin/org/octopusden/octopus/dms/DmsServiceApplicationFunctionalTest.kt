@@ -145,20 +145,20 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("different-repos.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=${devMavenDistributionCoordinates.toString().replace(":1.0:", ":")},${releaseMavenDistributionCoordinates.toString().replace(":1.0:", ":")}",
+            "-Dartifacts.coordinates=${DEV_ARTIFACTS_COORDINATES},${RELEASE_ARTIFACTS_COORDINATES}",
             "-Dartifacts.coordinates.version=1.0",
-            "-Dartifacts.coordinates.deb=$devDebianDistributionCoordinates,$releaseDebianDistributionCoordinates",
-            "-Dartifacts.coordinates.rpm=$devRpmDistributionCoordinates,$releaseRpmDistributionCoordinates"
+            "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
+            "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES"
         ))) {
             assertEquals(1, this.first)
-            assertTrue(this.second.contains("[ERROR] Artifact '$devMavenDistributionCoordinates' validation errors:"))
-            assertTrue(this.second.contains("${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found"))
-            assertTrue(this.second.contains("[ERROR] Artifact '$releaseMavenDistributionCoordinates' validation errors:"))
-            assertTrue(this.second.contains("${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found"))
-            assertTrue(this.second.contains("[INFO] Validated artifact '$devDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Validated artifact '$releaseDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Validated artifact '$devRpmDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Validated artifact '$releaseRpmDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[ERROR] Artifact '${devMavenDistributionCoordinates.toPath()}' validation errors:")
+            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found")
+            assertContains(this.second, "[ERROR] Artifact '${releaseMavenDistributionCoordinates.toPath()}' validation errors:")
+            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: third party license file does not found")
+            assertContains(this.second, "[INFO] Validated artifact '${devDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Validated artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Validated artifact '${devRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
     }
 
@@ -170,9 +170,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates=file:///${File("").absolutePath}/\${env.DMS_FT_RESOURCES_PATH}/test-maven-dms-plugin/\${component}-0\${major}.\${minor}.\${service}.\${fix}-\${build}.zip?artifactId=distribution"
         ))) {
             assertEquals(1, this.first)
-            assertTrue(this.second.contains("[ERROR] Artifact 'corp.domain.dms.ee-component.distribution:distribution:03.54.30.64-1:zip' validation errors:"))
-            assertTrue(this.second.contains("distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'"))
-            assertTrue(this.second.contains("distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'"))
+            assertContains(this.second, "[ERROR] Artifact 'corp/domain/dms/ee-component/distribution/distribution/03.54.30.64-1/distribution-03.54.30.64-1.zip' validation errors:")
+            assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
+            assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
         }
     }
 
@@ -185,7 +185,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-DexcludeFiles=forbidden.xml"
         ))) {
             assertEquals(0, this.first)
-            assertTrue(this.second.contains("[INFO] Validated artifact 'corp.domain.dms.$eeComponent.distribution:distribution:${eeComponentReleaseVersion0354.buildVersion}:zip:test' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
     }
 
@@ -198,7 +198,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json"
         ))) {
             assertEquals(0, this.first)
-            assertTrue(this.second.contains("[INFO] Validated artifact 'corp.domain.dms.$eeComponent.distribution:distribution:${eeComponentReleaseVersion0354.buildVersion}:zip:test' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
     }
 
@@ -209,19 +209,19 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "different-repos.log", "upload-artifacts", listOf(
                     "-Dcomponent=$eeComponent",
                     "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-                    "-Dartifacts.coordinates=${releaseMavenDistributionCoordinates.toString().replace(":1.0:", ":")}",
+                    "-Dartifacts.coordinates=${RELEASE_ARTIFACTS_COORDINATES}",
                     "-Dartifacts.coordinates.version=1.0",
-                    "-Dartifacts.coordinates.deb=$releaseDebianDistributionCoordinates",
-                    "-Dartifacts.coordinates.rpm=$releaseRpmDistributionCoordinates",
-                    "-Dartifacts.coordinates.docker=$releaseDockerDistributionCoordinates"
+                    "-Dartifacts.coordinates.deb=$RELEASE_DEB_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.rpm=$RELEASE_RPM_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES"
                 )
             )
         ) {
             assertEquals(0, this.first, this.second.joinToString("\n"))
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseMavenDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseDebianDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseRpmDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$releaseDockerDistributionCoordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseMavenDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseDockerDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
         assertEquals(
             releaseMavenDistributionCoordinates.gav,
@@ -263,8 +263,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates=${distribution1.toPath().toUri()}?artifactId=distribution1,${distribution2.toPath().toUri()}?artifactId=distribution2"
         ))) {
             assertEquals(0, this.first)
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$distribution1Coordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$distribution2Coordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${distribution1Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${distribution2Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
         client.downloadComponentVersionArtifact(
             eeComponent,
@@ -302,7 +302,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dfile=${file.absolutePath}"
         ))) {
             assertEquals(0, this.first)
-            assertTrue(this.second.contains("[INFO] Uploaded distribution artifact '$coordinates' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'"))
+            assertContains(this.second, "[INFO] Uploaded distribution artifact '${coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
         }
         client.downloadComponentVersionArtifact(
             eeComponent,
@@ -336,5 +336,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             .start()
         process.waitFor(5, MINUTES)
         return process.exitValue() to outputFile.readLines(UTF_8)
+    }
+
+    private fun assertContains(source: List<String>, actual: String) {
+        assertTrue(source.contains(actual), "Expected the source $source to contain $actual")
     }
 }

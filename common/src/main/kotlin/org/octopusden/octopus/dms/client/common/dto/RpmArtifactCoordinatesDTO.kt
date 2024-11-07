@@ -12,5 +12,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 class RpmArtifactCoordinatesDTO(val rpm: String): ArtifactCoordinatesDTO(RepositoryType.RPM) {
     override fun toPath() = rpm
 
-    override fun toString() = rpm
+    override fun toString() = "RpmArtifactCoordinatesDTO(rpm='$rpm')"
 }

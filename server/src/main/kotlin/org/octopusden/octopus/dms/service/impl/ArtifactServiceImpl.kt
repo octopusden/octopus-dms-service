@@ -70,7 +70,7 @@ class ArtifactServiceImpl(
         val artifact = artifactCoordinates.createArtifact(false)
         storageService.find(artifact, true)
         return (artifactRepository.findByPath(artifact.path)?.let {
-            with("Artifact with coordinates '$artifactCoordinates' already added") {
+            with("Artifact with coordinates '${artifactCoordinates.toPath()}' already added") {
                 if (failOnAlreadyExists) {
                     throw ArtifactAlreadyExistsException(this)
                 }
