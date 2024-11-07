@@ -334,13 +334,13 @@ class ComponentServiceImpl(
     fun ComponentVersionArtifact.toShortDTO(): ArtifactShortDTO {
         return when (this.artifact.repositoryType) {
             RepositoryType.DOCKER -> {
-                val artifact = this.artifact as DockerArtifact
+                this.artifact as DockerArtifact
                 ArtifactShortDTO(
                     this.artifact.id,
                     this.artifact.repositoryType,
                     this.type,
                     this.displayName,
-                    "$dockerRegistry/${artifact.image}:${artifact.tag}"
+                    this.artifact.imageIdentifier()
                 )
             }
 
@@ -392,13 +392,15 @@ class ComponentServiceImpl(
                     this.artifact.id,
                     this.type,
                     this.displayName,
-                    "$dockerRegistry/${this.artifact.image}:${this.artifact.tag}",
+                    this.artifact.imageIdentifier(),
                     this.artifact.image,
                     this.artifact.tag
                 )
             }
         }
     }
+
+    private fun DockerArtifact.imageIdentifier() = "$dockerRegistry/${this.image}:${this.tag}"
 
     private fun getOrElseThrow(componentName: String, version: String, artifactId: Long) =
         componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
