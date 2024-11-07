@@ -124,14 +124,6 @@ public class ArtifactServiceImpl implements ArtifactService {
                 "RPM entity '%s' does not match '%s",
                 errors)
         );
-        entitiesRep.putAll(createEntities(artifactsCoordinatesDocker,
-                escrowExpressionContext,
-                image -> new DockerArtifactCoordinatesDTO(image, absoluteVersion),
-                DOCKER_PATTERN,
-                "DOCKER entity '%s' does not match '%s",
-                errors)
-        );
-
         if (!errors.isEmpty()) {
             throw new MojoFailureException(errors.stream().collect(Collectors.joining("\n")));
         }
@@ -196,6 +188,12 @@ public class ArtifactServiceImpl implements ArtifactService {
                     processFunction.accept(new TargetArtifact(targetType, creater.apply(key), null))
             ))
         );
+
+        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
+            results.add(executorService.submit(() ->
+                    processFunction.accept(new TargetArtifact(targetType, new DockerArtifactCoordinatesDTO(artifactsCoordinatesDocker, absoluteVersion), null))
+            ));
+        }
 
         executorService.shutdown();
         try {
