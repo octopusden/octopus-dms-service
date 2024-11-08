@@ -90,7 +90,7 @@ public class ArtifactServiceImpl implements ArtifactService {
             errors.add("Docker image tag " + absoluteVersion + " is not allowed. Tag must not be 'latest'.");
         }
         if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && !DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
-            errors.add("Docker image tag contains invalid characters. The value must match pattern: " + DOCKER_TAG_PATTERN.pattern());
+            errors.add("Docker image tag '" + absoluteVersion + "' contains invalid characters. The value must match pattern: " + DOCKER_TAG_PATTERN.pattern());
         }
 
         final EscrowExpressionContext escrowExpressionContext = createEscrowExpressionContext(component, version);
