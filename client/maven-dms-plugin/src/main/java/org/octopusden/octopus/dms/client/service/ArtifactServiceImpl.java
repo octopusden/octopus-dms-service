@@ -86,7 +86,7 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && "latest".equalsIgnoreCase(absoluteVersion)) {
-            errors.add("Docker image version cannot be 'latest' for artifact '" + artifactsCoordinatesDocker + "'");
+            errors.add("Docker image tag " + absoluteVersion + " is not allowed. Tag must not be 'latest'.");
         }
 
         final EscrowExpressionContext escrowExpressionContext = createEscrowExpressionContext(component, version);
