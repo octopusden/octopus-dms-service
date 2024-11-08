@@ -86,7 +86,7 @@ public class ArtifactServiceImpl implements ArtifactService {
             errors.add("Docker image name contains invalid characters. The value must match pattern: " + DOCKER_PATTERN.pattern());
         }
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
-        if (StringUtils.isNotBlank(artifactsCoordinatesDocker) {
+        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
             if ("latest".equalsIgnoreCase(absoluteVersion)) {
                 errors.add("Docker image tag " + absoluteVersion + " is not allowed. Tag must not be 'latest'.");
             }
