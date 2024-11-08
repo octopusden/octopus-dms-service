@@ -51,6 +51,7 @@ public class ArtifactServiceImpl implements ArtifactService {
     private static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
     private static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
     private static final Pattern DOCKER_PATTERN = Pattern.compile("^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*$");
+    private static final Pattern DOCKER_TAG_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]+$");
 
     @Override
     public void processArtifacts(Log log,
@@ -87,6 +88,9 @@ public class ArtifactServiceImpl implements ArtifactService {
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && "latest".equalsIgnoreCase(absoluteVersion)) {
             errors.add("Docker image tag " + absoluteVersion + " is not allowed. Tag must not be 'latest'.");
+        }
+        if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && !DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
+            errors.add("Docker image tag contains invalid characters. The value must match pattern: " + DOCKER_TAG_PATTERN.pattern());
         }
 
         final EscrowExpressionContext escrowExpressionContext = createEscrowExpressionContext(component, version);
