@@ -3,22 +3,22 @@ package org.octopusden.octopus.dms.service.impl
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.DebianArtifact
+import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
-import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
-import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
+import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -27,8 +27,7 @@ import org.springframework.web.multipart.MultipartFile
 class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
-    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val componentService: ComponentService
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -47,7 +46,7 @@ class ArtifactServiceImpl(
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
         log.info("Find artifact with coordinates '$artifactCoordinates'")
         return (artifactRepository.findByPath(artifactCoordinates.toPath())
-            ?: throw NotFoundException("Artifact with coordinates '$artifactCoordinates' is not found")
+            ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
                 ).toDTO()
     }
 
@@ -71,7 +70,7 @@ class ArtifactServiceImpl(
         val artifact = artifactCoordinates.createArtifact(false)
         storageService.find(artifact, true)
         return (artifactRepository.findByPath(artifact.path)?.let {
-            with("Artifact with coordinates '$artifactCoordinates' already added") {
+            with("Artifact with coordinates '${artifactCoordinates.toPath()}' already added") {
                 if (failOnAlreadyExists) {
                     throw ArtifactAlreadyExistsException(this)
                 }
@@ -108,14 +107,7 @@ class ArtifactServiceImpl(
         log.info("Delete artifact with ID '$id'")
         artifactRepository.findById(id).ifPresent { artifact ->
             if (!dryRun) {
-                componentVersionArtifactRepository.findByArtifact(artifact).forEach {
-                    applicationEventPublisher.publishEvent(
-                        DeleteComponentVersionArtifactEvent(
-                            it.componentVersion.component.name, it.componentVersion.version, it.toFullDTO()
-                        )
-                    )
-                }
-                artifactRepository.delete(artifact)
+                componentService.deleteArtifact(artifact)
             }
             log.info("$artifact deleted")
         }
@@ -123,6 +115,17 @@ class ArtifactServiceImpl(
 
 
     private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
+
+        RepositoryType.DOCKER -> {
+            this as DockerArtifactCoordinatesDTO
+            DockerArtifact(
+                uploaded = uploaded,
+                path = toPath(),
+                image = image,
+                tag = tag
+            )
+        }
+
         RepositoryType.MAVEN -> {
             this as MavenArtifactCoordinatesDTO
             MavenArtifact(

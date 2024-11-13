@@ -1,18 +1,27 @@
 package org.octopusden.octopus.dms.service.impl
 
 import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactShortDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.BuildStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.DebianArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
+import org.octopusden.octopus.dms.client.common.dto.RpmArtifactFullDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionStatusWithInfoDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
+import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
+import org.octopusden.octopus.dms.entity.DockerArtifact
+import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
@@ -29,6 +38,7 @@ import org.octopusden.octopus.dms.service.StorageService
 import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -43,7 +53,8 @@ class ComponentServiceImpl(
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val releaseManagementServiceClient: ReleaseManagementServiceClient
+    private val releaseManagementServiceClient: ReleaseManagementServiceClient,
+    @Value("\${dms-service.docker-registry}") private val dockerRegistry: String
 ) : ComponentService {
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
@@ -302,6 +313,94 @@ class ComponentServiceImpl(
             log.info("$it deleted")
         }
     }
+
+    @Transactional(readOnly = false)
+    override fun deleteArtifact(artifact: Artifact) {
+        componentVersionArtifactRepository.findByArtifact(artifact).forEach {
+            applicationEventPublisher.publishEvent(
+                DeleteComponentVersionArtifactEvent(
+                    it.componentVersion.component.name,
+                    it.componentVersion.version,
+                    it.toFullDTO()
+                )
+            )
+        }
+        artifactRepository.delete(artifact)
+    }
+
+    /**
+     * Maps [ComponentVersionArtifact] to [ArtifactShortDTO]
+     */
+    fun ComponentVersionArtifact.toShortDTO(): ArtifactShortDTO {
+        return when (this.artifact.repositoryType) {
+            RepositoryType.DOCKER -> {
+                this.artifact as DockerArtifact
+                ArtifactShortDTO(
+                    this.artifact.id,
+                    this.artifact.repositoryType,
+                    this.type,
+                    this.displayName,
+                    this.artifact.imageIdentifier()
+                )
+            }
+
+            else -> ArtifactShortDTO(
+                this.artifact.id,
+                this.artifact.repositoryType,
+                this.type,
+                this.displayName,
+                this.artifact.fileName
+            )
+        }
+    }
+
+    /**
+     * Maps [ComponentVersionArtifact] to [ArtifactFullDTO]
+     */
+    fun ComponentVersionArtifact.toFullDTO(): ArtifactFullDTO {
+        return when (this.artifact.repositoryType) {
+            RepositoryType.MAVEN -> {
+                this.artifact as MavenArtifact
+                MavenArtifactFullDTO(
+                    this.artifact.id,
+                    this.type,
+                    this.displayName,
+                    this.artifact.fileName,
+                    this.artifact.gav
+                )
+            }
+
+            RepositoryType.DEBIAN -> DebianArtifactFullDTO(
+                this.artifact.id,
+                this.type,
+                this.displayName,
+                this.artifact.fileName,
+                this.artifact.path
+            )
+
+            RepositoryType.RPM -> RpmArtifactFullDTO(
+                this.artifact.id,
+                this.type,
+                this.displayName,
+                this.artifact.fileName,
+                this.artifact.path
+            )
+
+            RepositoryType.DOCKER -> {
+                this.artifact as DockerArtifact
+                DockerArtifactFullDTO(
+                    this.artifact.id,
+                    this.type,
+                    this.displayName,
+                    this.artifact.imageIdentifier(),
+                    this.artifact.image,
+                    this.artifact.tag
+                )
+            }
+        }
+    }
+
+    private fun DockerArtifact.imageIdentifier() = "$dockerRegistry/${this.image}:${this.tag}"
 
     private fun getOrElseThrow(componentName: String, version: String, artifactId: Long) =
         componentVersionArtifactRepository.findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(

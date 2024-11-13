@@ -12,5 +12,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 class DebianArtifactCoordinatesDTO(val deb: String): ArtifactCoordinatesDTO(RepositoryType.DEBIAN) {
     override fun toPath() = deb
 
-    override fun toString() = deb
+    override fun toString() = "DebianArtifactCoordinatesDTO(deb='$deb')"
 }

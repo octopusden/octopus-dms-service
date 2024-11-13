@@ -196,6 +196,31 @@
             <enableFileListsIndexing>false</enableFileListsIndexing>
             <dockerTagRetention>1</dockerTagRetention>
         </localRepository>
+	<localRepository>
+            <key>docker-repo-local</key>
+            <type>generic</type>
+            <includesPattern>**/*</includesPattern>
+            <repoLayoutRef>simple-default</repoLayoutRef>
+            <dockerApiVersion>V2</dockerApiVersion>
+            <forceNugetAuthentication>false</forceNugetAuthentication>
+            <blackedOut>false</blackedOut>
+            <handleReleases>true</handleReleases>
+            <handleSnapshots>true</handleSnapshots>
+            <maxUniqueSnapshots>0</maxUniqueSnapshots>
+            <maxUniqueTags>0</maxUniqueTags>
+            <blockPushingSchema1>true</blockPushingSchema1>
+            <suppressPomConsistencyChecks>true</suppressPomConsistencyChecks>
+            <propertySets/>
+            <archiveBrowsingEnabled>false</archiveBrowsingEnabled>
+            <priorityResolution>false</priorityResolution>
+            <snapshotVersionBehavior>unique</snapshotVersionBehavior>
+            <localRepoChecksumPolicyType>client-checksums</localRepoChecksumPolicyType>
+            <calculateYumMetadata>false</calculateYumMetadata>
+            <yumRootDepth>0</yumRootDepth>
+            <debianTrivialLayout>false</debianTrivialLayout>
+            <enableFileListsIndexing>false</enableFileListsIndexing>
+            <dockerTagRetention>1</dockerTagRetention>
+        </localRepository>
         <localRepository>
             <key>maven-dev-repo-local</key>
             <type>maven</type>

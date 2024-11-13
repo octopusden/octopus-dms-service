@@ -63,8 +63,12 @@ class StorageServiceImpl(
         throw UnableToFindArtifactException("Artifact ${artifact.path} not found in repositories $repositories")
     }
 
-    override fun download(artifact: Artifact, includeStaging: Boolean): InputStream =
-        client.repository(find(artifact, includeStaging)).download(artifact.path).doDownload()
+    override fun download(artifact: Artifact, includeStaging: Boolean): InputStream {
+        if (artifact.repositoryType == RepositoryType.DOCKER) {
+            throw UnsupportedOperationException("Downloading of Docker artifacts is not supported.")
+        }
+        return client.repository(find(artifact, includeStaging)).download(artifact.path).doDownload()
+    }
 
     override fun health(): Health {
         return try {

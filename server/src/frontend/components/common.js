@@ -21,6 +21,26 @@ export function isPrintableArtifact(artifact) {
     return !!artifact && printableArtifactTypes.includes(artifact.type)
 }
 
+/**
+ * Converts array of artifacts to array of arrays of artifacts by type
+ * @param {Array} artifacts
+ * @returns {Array} - array of arrays of artifacts by type [printable, non-printable, docker]
+ */
+export function convertArtifactsByTypes(artifacts) {
+    return artifacts.reduce((acc, artifact) => {
+        if (isPrintableArtifact(artifact)) {
+            acc[0].push(artifact)
+        } else {
+            if (artifact.repositoryType === 'DOCKER') {
+                acc[2].push(artifact)
+            } else {
+                acc[1].push(artifact)
+            }
+        }
+        return acc
+    }, [[], [], []])
+}
+
 export function isHtml(fileName) {
     return htmlRegex.test(fileName)
 }

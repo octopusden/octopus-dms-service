@@ -17,6 +17,7 @@
     distribution {
         external = true
         explicit = true
+        docker = "test/test-component"
     }
 }
 

@@ -16,7 +16,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 @JsonSubTypes(
     JsonSubTypes.Type(MavenArtifactDTO::class, name = "MAVEN"),
     JsonSubTypes.Type(DebianArtifactDTO::class, name = "DEBIAN"),
-    JsonSubTypes.Type(RpmArtifactDTO::class, name = "RPM")
+    JsonSubTypes.Type(RpmArtifactDTO::class, name = "RPM"),
+    JsonSubTypes.Type(DockerArtifactDTO::class, name = "DOCKER")
 )
 @Schema(
     description = "Artifact info",
@@ -24,7 +25,8 @@ import io.swagger.v3.oas.annotations.media.Schema
     discriminatorMapping = [
         DiscriminatorMapping("MAVEN", schema = MavenArtifactDTO::class),
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactDTO::class),
-        DiscriminatorMapping("RPM", schema = RpmArtifactDTO::class)
+        DiscriminatorMapping("RPM", schema = RpmArtifactDTO::class),
+        DiscriminatorMapping("DOCKER", schema = DockerArtifactDTO::class)
     ]
 )
 abstract class ArtifactDTO(

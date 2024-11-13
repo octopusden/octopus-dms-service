@@ -18,5 +18,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 class MavenArtifactCoordinatesDTO(val gav: GavDTO): ArtifactCoordinatesDTO(RepositoryType.MAVEN) {
     override fun toPath() = gav.toPath()
 
-    override fun toString() = gav.toString()
+    override fun toString() = "MavenArtifactCoordinatesDTO(gav=$gav)"
 }

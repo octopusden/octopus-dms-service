@@ -98,6 +98,7 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 artifactsCoordinates, artifactsCoordinatesVersion,
                 artifactsCoordinatesDeb,
                 artifactsCoordinatesRpm,
+                artifactsCoordinatesDocker,
                 parallelism,
                 targetArtifact ->
                         dmsService.validateArtifact(log,

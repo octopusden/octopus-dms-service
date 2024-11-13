@@ -26,6 +26,7 @@ dms-service:
     url: http://mockserver:1080/webhook
     user: webhook-user
     password: webhook-password
+  docker-registry: docker.io
 
 storage:
   maven-group-prefix: corp.domain.dms
@@ -45,6 +46,8 @@ storage:
       RPM:
         - rpm-dev-repo-local
     release-repositories:
+      DOCKER:
+        - docker-repo-local
       MAVEN:
         - maven-release-repo-local
       DEBIAN:

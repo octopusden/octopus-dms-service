@@ -11,4 +11,6 @@ abstract public class AbstractArtifactCoordinatesMojo extends AbstractArtifactMo
     protected String artifactsCoordinatesDeb;
     @Parameter(property = "artifacts.coordinates.rpm")
     protected String artifactsCoordinatesRpm;
+    @Parameter(property = "artifacts.coordinates.docker")
+    protected String artifactsCoordinatesDocker;
 }

@@ -20,6 +20,7 @@ auth-server:
 dms-service:
   webhook:
     enabled: false
+  docker-registry: docker.io
 
 storage:
   maven-group-prefix: corp.domain.dms
@@ -38,6 +39,8 @@ storage:
       RPM:
         - rpm-dev-repo-local
     release-repositories:
+      DOCKER:
+        - docker-repo-local
       MAVEN:
         - maven-release-repo-local
       DEBIAN:
