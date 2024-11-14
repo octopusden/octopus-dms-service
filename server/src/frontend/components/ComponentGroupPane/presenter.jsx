@@ -11,7 +11,7 @@ export default function componentGroupPane(props) {
     return <div className="component-group-pane-wrapper">
         <Tabs id="left-column-tabs" onChange={handleComponentGroupTabChange} selectedTabId={selectedComponentGroupTab}
               large={true} renderActiveTabPanelOnly={true}>
-            <Tab id="components" icon="application" title="Components" panel={<ComponentsTree/>}/>
+            <Tab id="components" icon="application" title="All" panel={<ComponentsTree/>}/>
             <Tab id="solutions" icon="applications" title="Solutions" panel={<SolutionTree/>}/>
             <Tab id="custom" icon="fork" title="Custom" panel={<GroupedComponentsTree getGroupedComponents={getCustomComponents} icon="fork"/>}/>
             <Tab id="clients" icon="dollar" title="Clients" panel={<GroupedComponentsTree getGroupedComponents={getClientsComponents} icon="dollar"/>}/>
