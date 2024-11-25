@@ -10,6 +10,7 @@
             <param name="ARTIFACTS_COORDINATES_VERSION" value="" />
             <param name="ARTIFACTS_COORDINATES_DEB" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DEB%" />
             <param name="ARTIFACTS_COORDINATES_RPM" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_RPM%" />
+            <param name="ARTIFACTS_COORDINATES_DOCKER" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DOCKER%" />
             <param name="EXTRA_PARAMETERS" value="" />
             <param name="SKIP_VALIDATION_IN_DMS" value="%SKIP_UPLOAD_DISTRIBUTION_TO_DMS%" />
             <param name="DMS_SERVICE_URL" value="%DMS_SERVICE_URL%" />
@@ -27,7 +28,7 @@
                     <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% -Djava.util.concurrent.ForkJoinPool.common.parallelism=10 %RELENG_JVM_OPTS%" />
                     <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/3.6.0" />
                     <param name="runnerArgs"
-                           value="-e -Pstaging -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dtype=%ARTIFACT_TYPE% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -DwlIgnore=%WL_IGNORE_FILE% -DexcludeFiles=%WL_EXCLUDE_FILES% -Dskip=%SKIP_VALIDATION_IN_DMS% %EXTRA_PARAMETERS%"/>
+                           value="-e -Pstaging -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dtype=%ARTIFACT_TYPE% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -DwlIgnore=%WL_IGNORE_FILE% -DexcludeFiles=%WL_EXCLUDE_FILES% -Dskip=%SKIP_VALIDATION_IN_DMS% %EXTRA_PARAMETERS%"/>
                     <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/1.8" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />
