@@ -167,10 +167,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("invalid-distribution.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/\${env.DMS_FT_RESOURCES_PATH}/test-maven-dms-plugin/\${component}-0\${major}.\${minor}.\${service}.\${fix}-\${build}.zip?artifactId=distribution"
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution"
         ))) {
             assertEquals(1, this.first)
-            assertContains(this.second, "[ERROR] Artifact 'corp/domain/dms/ee-component/distribution/distribution/03.54.30.64-1/distribution-03.54.30.64-1.zip' validation errors:")
+            assertContains(this.second, "[ERROR] Artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}.zip' validation errors:")
             assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
             assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
         }
@@ -181,7 +181,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("exclude-file.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/\${env.DMS_FT_RESOURCES_PATH}/test-maven-dms-plugin/\${component}-\${version}.zip?artifactId=distribution&classifier=test",
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
             "-DexcludeFiles=forbidden.xml"
         ))) {
             assertEquals(0, this.first)
@@ -194,7 +194,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("wl-ignore.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/\${env.DMS_FT_RESOURCES_PATH}/test-maven-dms-plugin/\${component}-\${version}.zip?artifactId=distribution&classifier=test",
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
             "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json"
         ))) {
             assertEquals(0, this.first)
