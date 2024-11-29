@@ -70,7 +70,12 @@ const getClientComponents = (onSuccess) => (dispatch) => {
                         acc[clientCode].subComponents[component.id] = component;
                         return acc;
                     }, {})
-                dispatch(actions.receiveComponents(parents))
+                const sortedParents = Object.values(parents).sort((a, b) => {
+                    if (a.clientCode < b.clientCode) return -1;
+                    if (a.clientCode > b.clientCode) return 1;
+                    return 0;
+                })
+                dispatch(actions.receiveComponents(sortedParents))
                 if (onSuccess) {
                     onSuccess()
                 }
