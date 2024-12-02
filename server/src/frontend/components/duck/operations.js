@@ -70,11 +70,9 @@ const getClientComponents = (onSuccess) => (dispatch) => {
                         acc[clientCode].subComponents[component.id] = component;
                         return acc;
                     }, {})
-                const sortedParents = Object.values(parents).sort((a, b) => {
-                    if (a.clientCode < b.clientCode) return -1;
-                    if (a.clientCode > b.clientCode) return 1;
-                    return 0;
-                })
+                const sortedParents = Object.fromEntries(
+                    Object.entries(parents).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                )
                 dispatch(actions.receiveComponents(sortedParents))
                 if (onSuccess) {
                     onSuccess()
