@@ -71,7 +71,7 @@ const getClientComponents = (onSuccess) => (dispatch) => {
                         return acc;
                     }, {})
                 const sortedParents = Object.fromEntries(
-                    Object.entries(parents).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                    Object.entries(parents).sort(([keyA], [keyB]) => keyA.toLowerCase().localeCompare(keyB.toLowerCase()))
                 )
                 dispatch(actions.receiveComponents(sortedParents))
                 if (onSuccess) {
