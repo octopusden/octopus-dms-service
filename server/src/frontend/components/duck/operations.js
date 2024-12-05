@@ -61,6 +61,7 @@ const getClientComponents = (onSuccess) => (dispatch) => {
             response.json().then((data) => {
                 const parents = data.components
                     .filter(c => c.clientCode)
+                    .sort((a, b) => a.clientCode.toLowerCase().localeCompare(b.clientCode.toLowerCase()))
                     .reduce(function (acc, component) {
                         const clientCode = component.clientCode
                         if (!acc[clientCode]) {
@@ -70,10 +71,7 @@ const getClientComponents = (onSuccess) => (dispatch) => {
                         acc[clientCode].subComponents[component.id] = component;
                         return acc;
                     }, {})
-                const sortedParents = Object.fromEntries(
-                    Object.entries(parents).sort(([keyA], [keyB]) => keyA.toLowerCase().localeCompare(keyB.toLowerCase()))
-                )
-                dispatch(actions.receiveComponents(sortedParents))
+                dispatch(actions.receiveComponents(parents))
                 if (onSuccess) {
                     onSuccess()
                 }
