@@ -3,7 +3,6 @@ package org.octopusden.octopus.dms.client.service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO;
@@ -18,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,23 +33,18 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.octopusden.octopus.escrow.dto.DistributionEntity;
-import org.octopusden.octopus.escrow.dto.EscrowExpressionContext;
 import org.octopusden.octopus.escrow.dto.FileDistributionEntity;
 import org.octopusden.octopus.escrow.dto.MavenArtifactDistributionEntity;
 import org.octopusden.octopus.escrow.utilities.DistributionUtilities;
-import org.octopusden.octopus.escrow.utilities.EscrowExpressionParser;
-import org.octopusden.releng.versions.NumericVersionFactory;
-import org.octopusden.releng.versions.VersionNames;
 
 @Named
 @Singleton
 public class ArtifactServiceImpl implements ArtifactService {
     private static final String PROHIBITED_SYMBOLS = ":,\\s";
     private static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
-    private static final Pattern DEB_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.deb", PROHIBITED_SYMBOLS));
-    private static final Pattern RPM_PATTERN = Pattern.compile(String.format("[^%1$s]+\\.rpm", PROHIBITED_SYMBOLS));
-    private static final Pattern DOCKER_PATTERN = Pattern.compile("^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*$");
-    private static final Pattern DOCKER_TAG_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]+$");
+    private static final Pattern DEB_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.deb$", PROHIBITED_SYMBOLS));
+    private static final Pattern RPM_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.rpm$", PROHIBITED_SYMBOLS));
+    private static final Pattern DOCKER_PATTERN = Pattern.compile("^([a-z0-9]+([_.-][a-z0-9]+)*/)*[a-z0-9]+([_.-][a-z0-9]+)*:\\w[\\w.-]{0,127}$");
 
     @Override
     public void processArtifacts(Log log,
@@ -72,33 +65,14 @@ public class ArtifactServiceImpl implements ArtifactService {
         if (targetType == null) {
             throw new MojoExecutionException(String.format("type %s is not recognized", type));
         }
-        if (
-                (StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)
-                ) &&
-                        targetType != ArtifactType.DISTRIBUTION
-        ) {
+        if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)) && targetType != ArtifactType.DISTRIBUTION) {
             throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
 
         //Bulk validation
         final List<String> errors = new ArrayList<>();
-        if (StringUtils.isNotBlank(artifactsCoordinatesDocker) && !DOCKER_PATTERN.matcher(artifactsCoordinatesDocker).matches()) {
-            errors.add("Docker image name contains invalid characters. The value must match pattern: " + DOCKER_PATTERN.pattern());
-        }
-        final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
-        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
-            if ("latest".equalsIgnoreCase(absoluteVersion)) {
-                errors.add("Docker image tag " + absoluteVersion + " is not allowed. Tag must not be 'latest'.");
-            }
-            if (!DOCKER_TAG_PATTERN.matcher(absoluteVersion).matches()) {
-                errors.add("Docker image tag '" + absoluteVersion + "' contains invalid characters. The value must match pattern: " + DOCKER_TAG_PATTERN.pattern());
-            }
-        }
-
-        final EscrowExpressionContext escrowExpressionContext = createEscrowExpressionContext(component, version);
-        final Collection<DistributionEntity> entities = parseDistributionEntities(artifactsCoordinates, escrowExpressionContext, name);
-
-        for (DistributionEntity entity : entities) {
+        final Collection<DistributionEntity> distributionEntities = parseDistributionEntities(artifactsCoordinates, name);
+        for (DistributionEntity entity : distributionEntities) {
             log.debug(String.format("Validate: '%s'", entity));
             if (entity instanceof FileDistributionEntity) {
                 final URI fileURI = ((FileDistributionEntity) entity).getUri();
@@ -114,35 +88,49 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors.add("Not supported distribution entity: " + entity);
             }
         }
-        final Map<String, Function<String, ArtifactCoordinatesDTO>> entitiesRep = new HashMap<>();
-        entitiesRep.putAll(createEntities(artifactsCoordinatesDeb,
-                escrowExpressionContext,
+        final Map<String, Function<String, ArtifactCoordinatesDTO>> entities = new HashMap<>();
+        prepareEntities(
+                artifactsCoordinatesDeb,
                 DebianArtifactCoordinatesDTO::new,
                 DEB_PATTERN,
                 "DEB entity '%s' does not match '%s'",
-                errors)
+                entities,
+                errors
         );
-        entitiesRep.putAll(createEntities(artifactsCoordinatesRpm,
-                escrowExpressionContext,
+        prepareEntities(
+                artifactsCoordinatesRpm,
                 RpmArtifactCoordinatesDTO::new,
                 RPM_PATTERN,
                 "RPM entity '%s' does not match '%s",
-                errors)
+                entities,
+                errors
+        );
+        prepareEntities(
+                artifactsCoordinatesDocker,
+                dockerEntity -> {
+                    String[] imageAndTag = dockerEntity.split(":");
+                    return new DockerArtifactCoordinatesDTO(imageAndTag[0], imageAndTag[1]);
+                },
+                DOCKER_PATTERN,
+                "Docker entity '%s' does not match '%s",
+                entities,
+                errors
         );
         if (!errors.isEmpty()) {
-            throw new MojoFailureException(errors.stream().collect(Collectors.joining("\n")));
+            throw new MojoFailureException(String.join("\n", errors));
         }
 
         //Bulk processing
         final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
-        final List<Future<?>> results = new ArrayList<>(entities.size());
+        final List<Future<?>> results = new ArrayList<>(distributionEntities.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
-        for (DistributionEntity entity : entities) {
+        final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
+        for (DistributionEntity distributionEntity : distributionEntities) {
             File targetFile;
             MavenArtifactCoordinatesDTO targetCoordinates;
-            log.info(String.format("Processing: '%s'", entity));
-            if (entity instanceof FileDistributionEntity) {
-                final FileDistributionEntity fileDistributionEntity = (FileDistributionEntity) entity;
+            log.info(String.format("Processing: '%s'", distributionEntity));
+            if (distributionEntity instanceof FileDistributionEntity) {
+                final FileDistributionEntity fileDistributionEntity = (FileDistributionEntity) distributionEntity;
                 final Path filePath = Paths.get(fileDistributionEntity.getUri());
                 targetFile = filePath.toFile();
                 final String[] fileName = targetFile.getName().split("\\.");
@@ -165,9 +153,9 @@ public class ArtifactServiceImpl implements ArtifactService {
                         (fileName.length > 1) ? fileName[fileName.length - 1] : "jar",
                         fileDistributionEntity.getClassifier().orElse(classifier)
                 ));
-            } else if (entity instanceof MavenArtifactDistributionEntity) {
+            } else if (distributionEntity instanceof MavenArtifactDistributionEntity) {
                 targetFile = null;
-                final String gav = ((MavenArtifactDistributionEntity) entity).getGav();
+                final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
                 final String[] structuredGav = gav.split(":");
                 int structuredGavSize = structuredGav.length;
                 if (structuredGavSize < 2 || structuredGavSize > 4) {
@@ -181,25 +169,17 @@ public class ArtifactServiceImpl implements ArtifactService {
                         (structuredGavSize > 3) ? structuredGav[3] : null
                 ));
             } else {
-                throw new MojoFailureException("Not supported distribution entity: " + entity);
+                throw new MojoFailureException("Not supported distribution entity: " + distributionEntity);
             }
             results.add(executorService.submit(() ->
                     processFunction.accept(new TargetArtifact(targetType, targetCoordinates, targetFile))
             ));
         }
-
-        entitiesRep.forEach((key, creater) ->
-            results.add(executorService.submit(() ->
-                    processFunction.accept(new TargetArtifact(targetType, creater.apply(key), null))
-            ))
+        entities.forEach((entity, creater) ->
+                results.add(executorService.submit(() ->
+                        processFunction.accept(new TargetArtifact(targetType, creater.apply(entity), null))
+                ))
         );
-
-        if (StringUtils.isNotBlank(artifactsCoordinatesDocker)) {
-            results.add(executorService.submit(() ->
-                    processFunction.accept(new TargetArtifact(targetType, new DockerArtifactCoordinatesDTO(artifactsCoordinatesDocker, absoluteVersion), null))
-            ));
-        }
-
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(2, TimeUnit.HOURS)) {
@@ -210,24 +190,23 @@ public class ArtifactServiceImpl implements ArtifactService {
             throw new MojoFailureException("Process interrupted", e);
         }
         List<Exception> exceptions = new ArrayList<>(results.size());
-        for (Future<?> result: results) {
+        for (Future<?> result : results) {
             try {
                 result.get();
             } catch (Exception e) {
                 exceptions.add(e);
             }
         }
-        if (exceptions.size() > 0) {
+        if (!exceptions.isEmpty()) {
             exceptions.forEach(log::error);
             throw new MojoFailureException(exceptions.size() + " exception(s) occurred");
         }
     }
 
-    private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, EscrowExpressionContext escrowExpressionContext, String name) throws MojoExecutionException {
+    private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, String name) throws MojoExecutionException {
         Collection<DistributionEntity> entities = Collections.emptyList();
         if (StringUtils.isNotBlank(artifactsCoordinates)) {
-            String gav = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
-            entities = DistributionUtilities.parseDistributionGAV(gav);
+            entities = DistributionUtilities.parseDistributionGAV(artifactsCoordinates);
             if (entities.size() > 1 && name != null) {
                 throw new MojoExecutionException("The 'name' parameter should be set only if one artifact is specified in 'artifactsCoordinates' property");
             }
@@ -235,49 +214,33 @@ public class ArtifactServiceImpl implements ArtifactService {
         return entities;
     }
 
-        private EscrowExpressionContext createEscrowExpressionContext(String component, String version) {
-        final VersionNames versionNamesStub = new VersionNames("", "", ""); //IMPORTANT: does not affect EscrowExpressionContext evaluation
-        return new EscrowExpressionContext(
-                component, version, null, new NumericVersionFactory(versionNamesStub)
-        ); //TODO: get version names from components registry even if
-    }
-
-    private List<String> validateEntities(String[] entities, Pattern pattern, String message) {
-        return Arrays.stream(entities)
-                .filter(entity -> !pattern.matcher(entity).matches())
-                .map(entity -> String.format(message, entity, pattern))
-                .collect(Collectors.toList());
-    }
-
     /**
-     * List of entities
+     * Prepare entities
      *
-     * @param artifactsCoordinates    - comma separated list of entities
-     * @param escrowExpressionContext - context for expression evaluation
-     * @param creater                 - function to create entity
-     * @param pattern                 - pattern to validate entity
-     * @param message                 - message for exception
-     * @param errorsList              - list of errors
-     * @return map of entities
+     * @param artifactsCoordinates - comma separated list of entities
+     * @param creater              - function to create entity
+     * @param pattern              - pattern to validate entity
+     * @param message              - message for exception
+     * @param entities             - cumulative map of entities
+     * @param errors               - cumulative list of errors
      */
-    private Map<String, Function<String, ArtifactCoordinatesDTO>> createEntities(String artifactsCoordinates,
-                                                                                 EscrowExpressionContext escrowExpressionContext,
-                                                                                 Function<String, ArtifactCoordinatesDTO> creater,
-                                                                                 Pattern pattern,
-                                                                                 String message,
-                                                                                 List<String> errorsList) {
-        if (StringUtils.isBlank(artifactsCoordinates)) {
-            return Collections.emptyMap();
+    private void prepareEntities(
+            String artifactsCoordinates,
+            Function<String, ArtifactCoordinatesDTO> creater,
+            Pattern pattern,
+            String message,
+            Map<String, Function<String, ArtifactCoordinatesDTO>> entities,
+            List<String> errors
+    ) {
+        if (StringUtils.isNotBlank(artifactsCoordinates)) {
+            for (String entity : artifactsCoordinates.split(",")) {
+                if (pattern.matcher(entity).matches()) {
+                    entities.put(entity, creater);
+                } else {
+                    errors.add(String.format(message, entity, pattern));
+                }
+            }
         }
-        String entitiesStr = (String) EscrowExpressionParser.getInstance().parseAndEvaluate(artifactsCoordinates, escrowExpressionContext);
-        final String[] entities = entitiesStr.split(",");
-        final List<String> errors = validateEntities(entities, pattern, message);
-        if (!errors.isEmpty()) {
-            errorsList.addAll(errors);
-            return Collections.emptyMap();
-        }
-        return Arrays.stream(entities)
-                .collect(Collectors.toMap(Function.identity(), entity -> creater));
     }
 
     public static class TargetArtifact {
