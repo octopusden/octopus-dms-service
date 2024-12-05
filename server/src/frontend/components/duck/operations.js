@@ -61,6 +61,7 @@ const getClientComponents = (onSuccess) => (dispatch) => {
             response.json().then((data) => {
                 const parents = data.components
                     .filter(c => c.clientCode)
+                    .sort((a, b) => a.clientCode.toLowerCase().localeCompare(b.clientCode.toLowerCase()))
                     .reduce(function (acc, component) {
                         const clientCode = component.clientCode
                         if (!acc[clientCode]) {
