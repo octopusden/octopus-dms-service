@@ -19,7 +19,10 @@ class WebhookEventListener(
         try {
             webhookFeignClient.post(event)
         } catch (e: Exception) {
-            log.warn("Unable to send webhook", e)
+            with("Exception when sending ${event.type} webhook") {
+                log.warn("$this: ${e.message}")
+                log.debug(this, e)
+            }
         }
     }
 
