@@ -52,7 +52,6 @@ val ft by tasks.creating(Test::class) {
     doFirst {
         extValidateFun.invoke(listOf("dmsServiceUser", "dmsServicePassword"))
     }
-    environment["DMS_FT_RESOURCES_PATH"] = "src/ft/resources"
     systemProperties.putAll(mapOf(
             "dms-service.version" to project.version,
             "dms-service.user" to "dmsServiceUser".getExt(),

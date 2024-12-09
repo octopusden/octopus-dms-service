@@ -703,7 +703,7 @@ abstract class DmsServiceApplicationBaseTest {
         val RELEASE_DEB_ARTIFACTS_COORDINATES = releaseDebianDistributionCoordinates.deb
         val DEV_RPM_ARTIFACTS_COORDINATES = devRpmDistributionCoordinates.rpm
         val RELEASE_RPM_ARTIFACTS_COORDINATES = releaseRpmDistributionCoordinates.rpm
-        val RELEASE_DOCKER_ARTIFACTS_COORDINATES = releaseDockerDistributionCoordinates.image
+        val RELEASE_DOCKER_ARTIFACTS_COORDINATES = "${releaseDockerDistributionCoordinates.image}:${releaseDockerDistributionCoordinates.tag}"
 
         @JvmStatic
         private fun repositories(): Stream<Arguments> = Stream.of(

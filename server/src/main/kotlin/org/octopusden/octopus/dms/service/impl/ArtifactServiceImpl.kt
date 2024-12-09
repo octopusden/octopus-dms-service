@@ -13,6 +13,7 @@ import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
@@ -115,17 +116,6 @@ class ArtifactServiceImpl(
 
 
     private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
-
-        RepositoryType.DOCKER -> {
-            this as DockerArtifactCoordinatesDTO
-            DockerArtifact(
-                uploaded = uploaded,
-                path = toPath(),
-                image = image,
-                tag = tag
-            )
-        }
-
         RepositoryType.MAVEN -> {
             this as MavenArtifactCoordinatesDTO
             MavenArtifact(
@@ -150,6 +140,20 @@ class ArtifactServiceImpl(
             this as RpmArtifactCoordinatesDTO
             RpmArtifact(
                 uploaded = uploaded, path = toPath()
+            )
+        }
+
+
+        RepositoryType.DOCKER -> {
+            this as DockerArtifactCoordinatesDTO
+            if (tag.equals("latest", true)) {
+                throw GeneralArtifactStoreException("Docker tag 'latest' is forbidden for registration")
+            }
+            DockerArtifact(
+                uploaded = uploaded,
+                path = toPath(),
+                image = image,
+                tag = tag
             )
         }
     }
