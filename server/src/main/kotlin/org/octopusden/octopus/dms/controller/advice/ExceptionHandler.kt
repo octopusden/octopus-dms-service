@@ -1,22 +1,21 @@
 package org.octopusden.octopus.dms.controller.advice
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import feign.FeignException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.ComponentIsNotRegisteredAsExplicitAndExternalException
 import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.DownloadResultFailureException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.PackagingIsNotSpecifiedException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
-import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
-import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
-import feign.FeignException
-import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
@@ -41,7 +40,6 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         UnableToFindArtifactException::class,
         PackagingIsNotSpecifiedException::class,
         DownloadResultFailureException::class,
-        VersionFormatIsNotValidException::class,
         IllegalVersionStatusException::class,
         IllegalComponentRenamingException::class
     )

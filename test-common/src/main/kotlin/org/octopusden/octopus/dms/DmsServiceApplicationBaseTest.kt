@@ -4,12 +4,31 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import java.sql.Connection
+import java.sql.DriverManager
+import java.util.Properties
+import java.util.stream.Stream
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertIterableEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertThrowsExactly
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
@@ -18,25 +37,10 @@ import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
-import org.octopusden.octopus.dms.exception.VersionFormatIsNotValidException
-import java.sql.Connection
-import java.sql.DriverManager
-import java.util.Properties
-import java.util.stream.Stream
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class DmsServiceApplicationBaseTest {
@@ -68,9 +72,11 @@ abstract class DmsServiceApplicationBaseTest {
     fun close() = dmsDbConnection.close()
 
     private fun insertVersion(component: String, version: Version) = dmsDbConnection.createStatement().use {
-        it.executeUpdate("INSERT INTO component_version(component_id, minor_version, version)" +
-                    " SELECT id, '${version.minorVersion}', '${version.buildVersion}'" +
-                " FROM component WHERE name = '$component'")
+        it.executeUpdate(
+            "INSERT INTO component_version(component_id, minor_version, version, published)" +
+                    " SELECT id, '${version.minorVersion}', '${version.buildVersion}', false" +
+                    " FROM component WHERE name = '$component'"
+        )
     }
 
     /**
@@ -254,7 +260,7 @@ abstract class DmsServiceApplicationBaseTest {
     @Test
     fun testGetComponentVersions() {
         assertEquals(
-            ComponentVersionsStatusesDTO(emptyList()),
+            ComponentVersionsDTO(emptyList()),
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
@@ -279,18 +285,18 @@ abstract class DmsServiceApplicationBaseTest {
         )
         insertVersion(eeComponent, eeComponentBuildVersion0355)
         assertEquals(
-            ComponentVersionsStatusesDTO(emptyList()),
+            ComponentVersionsDTO(emptyList()),
             client.getComponentVersions(eeComponent, eeComponentBuildVersion0356.minorVersion)
         )
         assertEquals(
             getResource("component-versions.json").openStream().use {
-                objectMapper.readValue(it, ComponentVersionsStatusesDTO::class.java)
+                objectMapper.readValue(it, ComponentVersionsDTO::class.java)
             },
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
         )
         assertEquals(
             getResource("component-versions-no-rc.json").openStream().use {
-                objectMapper.readValue(it, ComponentVersionsStatusesDTO::class.java)
+                objectMapper.readValue(it, ComponentVersionsDTO::class.java)
             },
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion, false)
         )
@@ -418,7 +424,7 @@ abstract class DmsServiceApplicationBaseTest {
 
     @Test
     fun testGetPreviousLinesLatestVersionsForInvalidVersion() {
-        assertThrowsExactly(VersionFormatIsNotValidException::class.java) {
+        assertThrowsExactly(NotFoundException::class.java) {
             client.getPreviousLinesLatestVersions(eeComponent, eeComponentBuildVersion0356.minorVersion)
         }
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
@@ -487,9 +493,9 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
-    fun testGetDependencies() {
+    fun testGetComponentVersionDependencies() {
         assertEquals(
-            ComponentVersionsStatusesDTO(emptyList()),
+            ComponentVersionsDTO(emptyList()),
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
         )
 
@@ -515,10 +521,12 @@ abstract class DmsServiceApplicationBaseTest {
             )
         }
 
-        val dependencies = client.getDependencies(eeComponent, eeComponentReleaseVersion0354.buildVersion)
+        val dependencies = client.getComponentVersionDependencies(
+            eeComponent, eeComponentReleaseVersion0354.buildVersion
+        )
         assertIterableEquals(
-            listOf("Dependency 1", "Dependency 2", "Dependency 3"),
-            dependencies.map { it.component.name })
+            listOf("dependency1", "dependency2", "dependency3"),
+            dependencies.map { it.component })
     }
 
     @ParameterizedTest
@@ -619,7 +627,7 @@ abstract class DmsServiceApplicationBaseTest {
     @Test
     fun testRegisterInvalidVersion() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        assertThrowsExactly(VersionFormatIsNotValidException::class.java) {
+        assertThrowsExactly(NotFoundException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.minorVersion,
@@ -670,7 +678,7 @@ abstract class DmsServiceApplicationBaseTest {
         val eeComponentReleaseVersion0354 = Version("03.54.31", "03.54.30.64-1", "03.54.30.64")
         val eeComponentBuildVersion0355 = Version("03.55.31", "03.55.30.42-1", "03.55.30.42")
         val eeComponentRCVersion0355 = Version("03.55.31", "03.55.30.53-1", "03.55.30.53")
-        val eeComponentBuildVersion0356 = Version("03.56.31", "03.56.30.42-1", "03.56.30.42")
+        val eeComponentBuildVersion0356 = Version("03.56.31", "03.56.30.42-1", "03.56.30.56")
         val eeComponentNonExistsVersion0357 = Version("03.57.31", "03.57.30.64-1", "03.57.30.64")
         const val devReleaseNotesFileName = "release-notes-RC.txt"
         const val releaseReleaseNotesFileName = "release-notes-RELEASE.txt"

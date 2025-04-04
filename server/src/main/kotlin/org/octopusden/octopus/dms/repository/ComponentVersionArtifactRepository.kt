@@ -11,16 +11,7 @@ interface ComponentVersionArtifactRepository : JpaRepository<ComponentVersionArt
 
     fun findByComponentVersion(componentVersion: ComponentVersion): List<ComponentVersionArtifact>
 
-    fun findByComponentVersionComponentNameAndComponentVersionVersion(
-        componentVersionComponentName: String,
-        componentVersionVersion: String
-    ): List<ComponentVersionArtifact>
-
-    fun findByComponentVersionComponentNameAndComponentVersionVersionAndType(
-        componentVersionComponentName: String,
-        componentVersionVersion: String,
-        type: ArtifactType
-    ): List<ComponentVersionArtifact>
+    fun findByComponentVersionAndType(componentVersion: ComponentVersion, type: ArtifactType): List<ComponentVersionArtifact>
 
     fun findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
         componentVersionComponentName: String,

@@ -1,17 +1,11 @@
 package org.octopusden.octopus.dms.service
 
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.BuildDTO
-import org.octopusden.octopus.dms.client.common.dto.BuildStatus
-import org.octopusden.octopus.dms.dto.ComponentBuild
+import org.octopusden.octopus.dms.dto.ReleaseDTO
+import org.octopusden.octopus.dms.dto.ReleaseFullDTO
 
 interface ReleaseManagementService {
-    fun componentExists(component: String): Boolean
-    fun getComponentBuilds(
-        component: String,
-        buildStatuses: Array<BuildStatus>,
-        versions: Set<String>
-    ): List<ComponentBuild>
-    fun getComponentBuild(component: String, version: String, type: ArtifactType? = null): BuildDTO
-    fun getComponentBuild(component: String, version: String): ComponentBuild
+    fun isComponentExists(component: String): Boolean
+    fun findReleases(component: String, versions: List<String>, includeRc: Boolean): List<ReleaseDTO>
+    fun getRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO
+    fun findRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO?
 }

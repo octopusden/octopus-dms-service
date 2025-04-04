@@ -3,7 +3,6 @@ package org.octopusden.octopus.dms.webhook
 import org.octopusden.octopus.dms.event.Event
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
 
@@ -12,7 +11,6 @@ import org.springframework.transaction.event.TransactionalEventListener
 class WebhookEventListener(
     val webhookFeignClient: WebhookFeignClient
 ) {
-    @Async
     @TransactionalEventListener
     fun onEvent(event: Event) {
         log.info("Sending ${event.type} webhook")

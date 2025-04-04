@@ -12,9 +12,9 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -37,7 +37,15 @@ interface DmsServiceFeignClient {
         @Param("component-name") componentName: String,
         @Param("filter-by-minor") minorVersion: String,
         @Param("include-rc") includeRc: Boolean? = null
-    ): ComponentVersionsStatusesDTO
+    ): ComponentVersionsDTO
+
+    @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/dependencies")
+    fun getComponentVersionDependencies(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+    ): List<ComponentVersionFullDTO>
+
+    //TODO: add patchComponentVersion
 
     @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/previous-lines-latest-versions?include-rc={include-rc}")
     fun getPreviousLinesLatestVersions(
@@ -83,12 +91,6 @@ interface DmsServiceFeignClient {
         @Param("version") version: String,
         @Param("artifact-id") artifactId: Long
     )
-
-    @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/dependencies")
-    fun getDependencies(
-        @Param("component-name") componentName: String,
-        @Param("version") version: String,
-    ): List<DependencyDTO>
 
     @RequestLine("POST /rest/api/3/admin/rename-component/{component-name}/{new-component-name}?dry-run=false")
     @Headers("Accept: application/json")

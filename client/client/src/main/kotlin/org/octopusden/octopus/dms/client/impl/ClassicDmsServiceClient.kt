@@ -3,18 +3,6 @@ package org.octopusden.octopus.dms.client.impl
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import org.octopusden.octopus.dms.client.DmsClientErrorDecoder
-import org.octopusden.octopus.dms.client.DmsServiceFeignClient
-import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
-import org.octopusden.octopus.dms.client.TextBodyDecoder
-import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
-import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.RepositoryType
-import org.octopusden.octopus.dms.exception.DMSException
 import feign.Feign
 import feign.Logger
 import feign.Request
@@ -33,8 +21,19 @@ import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.StringBody
 import org.apache.http.impl.client.HttpClientBuilder
+import org.octopusden.octopus.dms.client.DmsClientErrorDecoder
+import org.octopusden.octopus.dms.client.DmsServiceFeignClient
+import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
+import org.octopusden.octopus.dms.client.TextBodyDecoder
+import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
+import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
+import org.octopusden.octopus.dms.exception.DMSException
 
 class ClassicDmsServiceClient(
     private val parametersProvider: DmsServiceClientParametersProvider, private val objectMapper: ObjectMapper
@@ -55,6 +54,9 @@ class ClassicDmsServiceClient(
     override fun getComponentVersions(
         componentName: String, minorVersion: String, includeRc: Boolean?
     ) = client.getComponentVersions(componentName, minorVersion, includeRc)
+
+    override fun getComponentVersionDependencies(componentName: String, version: String) =
+        client.getComponentVersionDependencies(componentName, version)
 
     override fun getPreviousLinesLatestVersions(
         componentName: String, version: String, includeRc: Boolean?
@@ -89,9 +91,6 @@ class ClassicDmsServiceClient(
     override fun deleteComponentVersionArtifact(
         componentName: String, version: String, artifactId: Long
     ) = client.deleteComponentVersionArtifact(componentName, version, artifactId)
-
-    override fun getDependencies(componentName: String, version: String): List<DependencyDTO> =
-        client.getDependencies(componentName, version)
 
     override fun renameComponent(componentName: String, newComponentName: String) =
         client.renameComponent(componentName, newComponentName)

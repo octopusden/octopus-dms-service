@@ -12,14 +12,17 @@ import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
+import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
+import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
-import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -27,8 +30,10 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ArtifactServiceImpl(
     private val storageService: StorageService,
+    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
-    private val componentService: ComponentService
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    @Value("\${dms-service.docker-registry}") private val dockerRegistry: String
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -108,7 +113,16 @@ class ArtifactServiceImpl(
         log.info("Delete artifact with ID '$id'")
         artifactRepository.findById(id).ifPresent { artifact ->
             if (!dryRun) {
-                componentService.deleteArtifact(artifact)
+                componentVersionArtifactRepository.findByArtifact(artifact).forEach {
+                    applicationEventPublisher.publishEvent(
+                        DeleteComponentVersionArtifactEvent(
+                            it.componentVersion.component.name,
+                            it.componentVersion.version,
+                            it.toFullDTO(dockerRegistry)
+                        )
+                    )
+                }
+                artifactRepository.delete(artifact)
             }
             log.info("$artifact deleted")
         }

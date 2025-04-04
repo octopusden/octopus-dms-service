@@ -318,7 +318,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.RECEIVE_ARTIFACTS: {
             const {artifacts} = action
-            const build = artifacts.build
+            const componentVersion = artifacts.componentVersion
             return {
                 ...state,
                 loadingArtifacts: false,
@@ -328,10 +328,10 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     meta: {
                         ...state.currentArtifacts.meta,
                         ready: true,
-                        componentId: build.component,
-                        version: build.version,
-                        status: build.status,
-                        promoted: build.promotedAt
+                        componentId: componentVersion.component,
+                        version: componentVersion.version,
+                        status: componentVersion.status + " ("  + (!!componentVersion.promotedAt ? new Date(componentVersion.promotedAt).toLocaleString("ru-RU") : "unknown") + ")",
+                        published: componentVersion.published
                     },
                     preview: {}
                 }

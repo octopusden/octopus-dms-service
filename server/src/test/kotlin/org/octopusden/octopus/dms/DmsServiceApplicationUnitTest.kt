@@ -15,9 +15,9 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsStatusesDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.DependencyDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
@@ -54,7 +54,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
     override val client = object : DmsServiceUploadingClient {
         override fun getComponents(filter: ComponentRequestFilter): ComponentsDTO {
             val params = LinkedMultiValueMap<String, String>()
-            params.setAll(objectMapper.convertValue(filter,  object : TypeReference<Map<String, String>>() {}))
+            params.setAll(objectMapper.convertValue(filter, object : TypeReference<Map<String, String>>() {}))
             return mockMvc.perform(
                 MockMvcRequestBuilders.get("/rest/api/3/components")
                     .queryParams(params)
@@ -76,7 +76,13 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 .also {
                     if (includeRc != null) it.param("include-rc", includeRc.toString())
                 }.accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<ComponentVersionsStatusesDTO>() {})
+        ).andReturn().response.toObject(object : TypeReference<ComponentVersionsDTO>() {})
+
+        override fun getComponentVersionDependencies(componentName: String, version: String) = mockMvc.perform(
+            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/dependencies")
+                .accept(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andReturn().response.toObject(object : TypeReference<List<ComponentVersionFullDTO>>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,
@@ -139,13 +145,6 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 MockMvcRequestBuilders.delete("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId?dry-run=false")
                     .with(SecurityMockMvcRequestPostProcessors.csrf())
             ).andReturn().response.processError()
-
-        override fun getDependencies(componentName: String, version: String): List<DependencyDTO> =
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/dependencies")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-            ).andReturn().response.toObject(object : TypeReference<List<DependencyDTO>>() {})
 
         override fun renameComponent(componentName: String, newComponentName: String) = mockMvc.perform(
             MockMvcRequestBuilders.post("/rest/api/3/admin/rename-component/$componentName/$newComponentName")

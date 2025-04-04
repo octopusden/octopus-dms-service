@@ -42,7 +42,8 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     override fun deleteInvalidComponentsVersions(dryRun: Boolean) {
         log.info("Delete invalid components versions")
         componentService.getComponents().forEach {
-            val validComponentVersions = componentService.getComponentVersions(it.name, emptyList(), true).map { v -> v.version }
+            val validComponentVersions = componentService.getComponentVersionsWithInfo(it.name, emptyList(), true)
+                .map { v -> v.version.version }.toSet()
             componentVersionRepository.findByComponentName(it.name).filter { v ->
                 !validComponentVersions.contains(v.version)
             }.forEach { v -> componentService.deleteComponentVersion(v.component.name, v.version, dryRun) }
@@ -52,7 +53,8 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     override fun recalculateMinorVersions(dryRun: Boolean) {
         log.info("Recalculate minor versions")
         componentVersionRepository.findAll().forEach {
-            val detailedComponentVersion = componentsRegistryService.getDetailedComponentVersion(it.component.name, it.version)
+            val detailedComponentVersion =
+                componentsRegistryService.getDetailedComponentVersion(it.component.name, it.version)
             if (it.minorVersion != detailedComponentVersion.minorVersion.version) {
                 if (!dryRun) {
                     it.minorVersion = detailedComponentVersion.minorVersion.version
@@ -68,7 +70,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         artifactRepository.findAll().forEach {
             try {
                 storageService.find(it, true)
-            } catch (e: UnableToFindArtifactException) {
+            } catch (_: UnableToFindArtifactException) {
                 artifactService.delete(it.id, dryRun)
             }
         }
@@ -94,7 +96,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             log.error("Component with name $newName not found in components registry")
             throw NotFoundException("Component with name $newName not found in components registry")
         }
-        if (!relengService.componentExists(newName)) {
+        if (!relengService.isComponentExists(newName)) {
             throw NotFoundException("Component with name $newName not found in releng")
         }
         val component = componentRepository.findByName(newName)
