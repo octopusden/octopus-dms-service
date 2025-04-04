@@ -25,14 +25,18 @@ class DockerArtifactFullDTO(
 ) : ArtifactFullDTO(id, RepositoryType.DOCKER, type, displayName, fileName) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is DockerArtifactFullDTO) return false
+        if (javaClass != other?.javaClass) return false
         if (!super.equals(other)) return false
+
+        other as DockerArtifactFullDTO
+
         if (image != other.image) return false
         if (tag != other.tag) return false
+
         return true
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(super.hashCode(), image, tag)
-    }
+    override fun hashCode() = Objects.hash(id, type, displayName, fileName, image, tag)
+
+    override fun toString() = "DockerArtifactFullDTO(id=$id, type=$type, displayName='$displayName', fileName='$fileName', image='$image', tag='$tag')"
 }

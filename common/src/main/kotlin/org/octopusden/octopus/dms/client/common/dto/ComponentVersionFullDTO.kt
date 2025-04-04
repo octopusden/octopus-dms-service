@@ -2,6 +2,7 @@ package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import java.util.Date
+import java.util.Objects
 
 @Schema(
     description = "Full component version info",
@@ -22,18 +23,14 @@ class ComponentVersionFullDTO(
 ) : ComponentVersionDTO(component, version, published, status) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ComponentVersionFullDTO) return false
+        if (javaClass != other?.javaClass) return false
         if (!super.equals(other)) return false
-        if (promotedAt != other.promotedAt) return false
-        return true
-    }
 
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + (promotedAt?.hashCode() ?: 0)
-        return result
-    }
+        other as ComponentVersionFullDTO
 
-    override fun toString() =
-        "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, promotedAt=$promotedAt)"
+        return promotedAt == other.promotedAt
+    }
+    override fun hashCode() = Objects.hash(component, version, published, status, promotedAt)
+
+    override fun toString() = "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, promotedAt=$promotedAt)"
 }

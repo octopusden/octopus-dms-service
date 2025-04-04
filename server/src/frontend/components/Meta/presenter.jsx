@@ -16,7 +16,7 @@ export default function meta(props) {
                 <MetaItem icon='dollar' keyName='Client Code' value={!!meta.clientCode ? meta.clientCode : "none"}/>
                 <MetaItem icon='fork' keyName='Parent Component ID' value={!!meta.parentComponent ? meta.parentComponent : "none"}/>
                 <MetaItem icon='build' keyName='Status' value={meta.status}/>
-                <MetaItem icon='calendar' keyName='Published' value={meta.published ? "yes" : "no"}/>
+                <MetaItem icon='git-push' keyName='Published' value={meta.published ? "yes" : "no"}/>
             </div>
         </div>
     } else {

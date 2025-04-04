@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @Schema(
     description = "MAVEN artifact info",
@@ -22,22 +23,17 @@ class MavenArtifactDTO(
     uploaded: Boolean,
     val gav: GavDTO
 ): ArtifactDTO(id, RepositoryType.MAVEN, uploaded) {
-    override fun toString() = "MavenArtifactDTO(id=$id, uploaded=$uploaded, gav=$gav)"
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
         other as MavenArtifactDTO
-        if (id != other.id) return false
-        if (uploaded != other.uploaded) return false
-        if (gav != other.gav) return false
-        return true
+
+        return gav == other.gav
     }
 
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + uploaded.hashCode()
-        result = 31 * result + gav.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(id, uploaded, gav)
+
+    override fun toString() = "MavenArtifactDTO(id=$id, uploaded=$uploaded, gav=$gav)"
 }

@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @Schema(
     description = "RPM artifact info",
@@ -16,22 +17,17 @@ class RpmArtifactDTO(
     uploaded: Boolean,
     val rpm: String
 ): ArtifactDTO(id, RepositoryType.RPM, uploaded) {
-    override fun toString() = "RpmArtifactDTO(id=$id, uploaded=$uploaded, rpm=$rpm)"
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
         other as RpmArtifactDTO
-        if (id != other.id) return false
-        if (uploaded != other.uploaded) return false
-        if (rpm != other.rpm) return false
-        return true
+
+        return rpm == other.rpm
     }
 
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + uploaded.hashCode()
-        result = 31 * result + rpm.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(id, uploaded, rpm)
+
+    override fun toString() = "RpmArtifactDTO(id=$id, uploaded=$uploaded, rpm=$rpm)"
 }

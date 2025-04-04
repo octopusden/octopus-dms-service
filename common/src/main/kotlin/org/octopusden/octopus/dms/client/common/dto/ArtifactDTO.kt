@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
@@ -33,4 +34,19 @@ abstract class ArtifactDTO(
     val id: Long,
     val repositoryType: RepositoryType,
     val uploaded: Boolean
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ArtifactDTO
+
+        if (id != other.id) return false
+        if (repositoryType != other.repositoryType) return false
+        if (uploaded != other.uploaded) return false
+
+        return true
+    }
+
+    override fun hashCode() = Objects.hash(id, repositoryType, uploaded)
+}
