@@ -35,4 +35,6 @@ abstract class ArtifactFullDTO(
     type: ArtifactType,
     displayName: String,
     fileName: String
-): ArtifactShortDTO(id, repositoryType, type, displayName, fileName)
+): ArtifactShortDTO(id, repositoryType, type, displayName, fileName) {
+    fun toShortDTO() = ArtifactShortDTO(id, repositoryType, type, displayName, fileName)
+}

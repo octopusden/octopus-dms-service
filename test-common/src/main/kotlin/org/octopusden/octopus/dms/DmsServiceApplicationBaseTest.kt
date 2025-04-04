@@ -470,7 +470,7 @@ abstract class DmsServiceApplicationBaseTest {
             ArtifactType.NOTES
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
-        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
+        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact.toShortDTO())
         assertEquals(
             componentVersionArtifact,
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
@@ -570,7 +570,7 @@ abstract class DmsServiceApplicationBaseTest {
             ArtifactType.DISTRIBUTION
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
-        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact)
+        assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact.toShortDTO())
         assertEquals(
             componentVersionArtifact,
             client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id)
