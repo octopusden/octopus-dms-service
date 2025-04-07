@@ -16,7 +16,6 @@ import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException as ComponentsRegistryNotFoundException
 
 @Service
 @Transactional(readOnly = false)
@@ -88,11 +87,11 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
     override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
         log.info("Update component name from '$name' to '$newName'")
 
-        if (isComponentPresentInRegistry(name)) {
+        if (componentsRegistryService.isComponentExists(name)) {
             log.error("Component with name $name exists in components registry")
             throw IllegalComponentRenamingException("Component with name $name exists in components registry")
         }
-        if (!isComponentPresentInRegistry(newName)) {
+        if (!componentsRegistryService.isComponentExists(newName)) {
             log.error("Component with name $newName not found in components registry")
             throw NotFoundException("Component with name $newName not found in components registry")
         }
@@ -123,19 +122,6 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             }
             log.info("Component $name already renamed to $newName")
         }
-    }
-
-    /**
-     * Check if component with name [name] exists in components registry
-     * @param name - the component name
-     * @return true if component with name [name] exists in components registry
-     */
-    private fun isComponentPresentInRegistry(name: String) = try {
-        componentsRegistryService.getComponent(name)
-        true
-    } catch (e: ComponentsRegistryNotFoundException) {
-        log.info("Component with name $name not found in components registry")
-        false
     }
 
     companion object {

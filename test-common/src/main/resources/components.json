@@ -3,6 +3,8 @@
     {
       "id": "dependency1",
       "name": "Dependency 1",
+      "solution": false,
+      "explicit": true,
       "clientCode": null,
       "parentComponent": null,
       "securityGroups": {
@@ -14,6 +16,8 @@
     {
       "id": "dependency2",
       "name": "Dependency 2",
+      "solution": false,
+      "explicit": true,
       "clientCode": null,
       "parentComponent": null,
       "securityGroups": {
@@ -25,6 +29,8 @@
     {
       "id": "dependency3",
       "name": "Dependency 3",
+      "solution": false,
+      "explicit": true,
       "clientCode": null,
       "parentComponent": null,
       "securityGroups": {
@@ -36,6 +42,8 @@
     {
       "id": "ee-client-specific-component",
       "name": "EE Client Specific Component",
+      "solution": false,
+      "explicit": true,
       "clientCode": "CLIENT_CODE",
       "parentComponent": "ee-component",
       "securityGroups": {
@@ -50,6 +58,7 @@
       "clientCode": null,
       "parentComponent": null,
       "solution": true,
+      "explicit": true,
       "securityGroups": {
         "read": [
           "Production Security"
@@ -59,6 +68,8 @@
     {
       "id": "ie-component",
       "name": "IE Component",
+      "solution": false,
+      "explicit": false,
       "clientCode": null,
       "parentComponent": null,
       "securityGroups": {

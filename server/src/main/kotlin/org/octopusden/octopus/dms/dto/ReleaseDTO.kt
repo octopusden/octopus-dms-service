@@ -4,8 +4,8 @@ import java.util.Objects
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 
 open class ReleaseDTO(
-    val componentName: String,
-    val buildVersion: String,
+    val component: String,
+    val version: String,
     val status: ComponentVersionStatus,
 ) {
     override fun equals(other: Any?): Boolean {
@@ -14,16 +14,16 @@ open class ReleaseDTO(
 
         other as ReleaseDTO
 
-        if (componentName != other.componentName) return false
-        if (buildVersion != other.buildVersion) return false
+        if (component != other.component) return false
+        if (version != other.version) return false
         if (status != other.status) return false
 
         return true
     }
 
-    override fun hashCode() = Objects.hash(componentName, buildVersion, status)
+    override fun hashCode() = Objects.hash(component, version, status)
 
     override fun toString(): String {
-        return "ReleaseDTO(componentName='$componentName', buildVersion='$buildVersion', status=$status)"
+        return "ReleaseDTO(component='$component', version='$version', status=$status)"
     }
 }

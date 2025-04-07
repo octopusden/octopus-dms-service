@@ -1,25 +1,35 @@
 package org.octopusden.octopus.dms.service.impl
 
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
-import org.octopusden.octopus.dms.dto.DependencyDTO
+import org.octopusden.octopus.dms.configuration.ReleaseManagementServiceProperties
+import org.octopusden.octopus.dms.dto.BuildDTO
 import org.octopusden.octopus.dms.dto.ReleaseDTO
 import org.octopusden.octopus.dms.dto.ReleaseFullDTO
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
-import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.service.ReleaseManagementService
-import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildFilterDTO
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildStatus
+import org.octopusden.octopus.releasemanagementservice.client.common.dto.ShortBuildDTO
+import org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException
+import org.octopusden.octopus.releasemanagementservice.client.impl.ClassicReleaseManagementServiceClient
+import org.octopusden.octopus.releasemanagementservice.client.impl.ReleaseManagementServiceClientParametersProvider
 import org.springframework.stereotype.Service
-import org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException as RmNotFoundException
 
 @Service
 class ReleaseManagementServiceImpl(
-    private val client: ReleaseManagementServiceClient
+    private val releaseManagementServiceProperties: ReleaseManagementServiceProperties
 ) : ReleaseManagementService {
+    private val client = ClassicReleaseManagementServiceClient(
+        object : ReleaseManagementServiceClientParametersProvider {
+            override fun getApiUrl() = releaseManagementServiceProperties.url
+
+            override fun getTimeRetryInMillis() = releaseManagementServiceProperties.retry
+        }
+    )
+
     override fun isComponentExists(component: String) = try {
         client.getComponent(component).id == component
-    } catch (_: RmNotFoundException) {
+    } catch (_: NotFoundException) {
         false
     }
 
@@ -37,20 +47,19 @@ class ReleaseManagementServiceImpl(
         }
     }
 
-    override fun getRelease(component: String, version: String, includeRc: Boolean) = try {
+    override fun getRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO {
         val allowedStatuses = getAllowedStatuses(includeRc)
         val build = client.getBuild(component, version)
-        if (allowedStatuses.contains(build.status)) ReleaseFullDTO(
+        return if (allowedStatuses.contains(build.status)) ReleaseFullDTO(
             build.component,
             build.version,
             ComponentVersionStatus.valueOf(build.status.name),
             build.statusHistory[build.status],
-            build.dependencies.map { DependencyDTO(it.component, it.version) }
+            build.parents.map { it.toBuildDTO() },
+            build.dependencies.map { it.toBuildDTO() }
         ) else throw IllegalVersionStatusException(
             "Build for version '$version' of component '$component' has status ${build.status}. Allowed statuses are $allowedStatuses"
         )
-    } catch (_: RmNotFoundException) {
-        throw NotFoundException("Build is not found for version '$version' of component '$component'")
     }
 
     override fun findRelease(component: String, version: String, includeRc: Boolean) = try {
@@ -64,5 +73,7 @@ class ReleaseManagementServiceImpl(
         private val NO_LESS_THAN_RC = BuildStatus.RC.noLessThan()
 
         private fun getAllowedStatuses(includeRc: Boolean) = if (includeRc) NO_LESS_THAN_RC else NO_LESS_THAN_RELEASE
+
+        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version)
     }
 }

@@ -37,7 +37,9 @@ import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
+import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
@@ -251,8 +253,8 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("nonEEComponents")
-    fun testGetComponentMinorVersionsForNonEEComponent(component: String) {
-        assertThrowsExactly(NotFoundException::class.java) {
+    fun testGetComponentMinorVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
+        assertThrowsExactly(exception) {
             client.getComponentMinorVersions(component)
         }
     }
@@ -304,8 +306,8 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("nonEEComponents")
-    fun testGetComponentVersionsForNonEEComponent(component: String) {
-        assertThrowsExactly(NotFoundException::class.java) {
+    fun testGetComponentVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
+        assertThrowsExactly(exception) {
             client.getComponentVersions(component, eeComponentBuildVersion0356.minorVersion)
         }
     }
@@ -416,8 +418,8 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("nonEEComponents")
-    fun testGetPreviousLinesLatestVersionsForNonEEComponent(component: String) {
-        assertThrowsExactly(NotFoundException::class.java) {
+    fun testGetPreviousLinesLatestVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
+        assertThrowsExactly(exception) {
             client.getPreviousLinesLatestVersions(component, eeComponentBuildVersion0356.minorVersion)
         }
     }
@@ -492,8 +494,11 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(artifact, client.getArtifact(artifact.id))
     }
 
+    //TODO: testPatchComponentVersion
+
     @Test
     fun testGetComponentVersionDependencies() {
+        //TODO: enhance test cases related to parents/dependencies builds
         assertEquals(
             ComponentVersionsDTO(emptyList()),
             client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
@@ -584,9 +589,9 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("nonEEComponents")
-    fun testRegisterArtifactForNonEEComponent(component: String) {
+    fun testRegisterArtifactForNonEEComponent(component: String, exception: Class<out DMSException>) {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        assertThrowsExactly(NotFoundException::class.java) {
+        assertThrowsExactly(exception) {
             client.registerComponentVersionArtifact(
                 component,
                 eeComponentReleaseVersion0354.buildVersion,
@@ -731,10 +736,10 @@ abstract class DmsServiceApplicationBaseTest {
 
         @JvmStatic
         private fun nonEEComponents(): Stream<Arguments> = Stream.of(
-            Arguments.of("ie-component"),
-            Arguments.of("ei-component"),
-            Arguments.of("ii-component"),
-            Arguments.of("no-component")
+            Arguments.of("ie-component", IllegalComponentTypeException::class.java),
+            Arguments.of("ei-component", IllegalComponentTypeException::class.java),
+            Arguments.of("ii-component", IllegalComponentTypeException::class.java),
+            Arguments.of("no-component", NotFoundException::class.java)
         )
 
         @JvmStatic

@@ -1,19 +1,19 @@
 package org.octopusden.octopus.dms.controller.advice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import feign.FeignException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
-import org.octopusden.octopus.dms.exception.ComponentIsNotRegisteredAsExplicitAndExternalException
 import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.DownloadResultFailureException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
+import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.PackagingIsNotSpecifiedException
+import org.octopusden.octopus.dms.exception.PublishingException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
 import org.slf4j.Logger
@@ -34,33 +34,31 @@ data class ErrorResponse(val statusCode: Int, val statusMessage: String, val mes
 class ExceptionHandler(private val objectMapper: ObjectMapper) {
     @ExceptionHandler(
         GeneralArtifactStoreException::class,
-        ComponentIsNotRegisteredAsExplicitAndExternalException::class,
+        IllegalComponentTypeException::class,
         UnknownArtifactTypeException::class,
         ArtifactAlreadyExistsException::class,
         UnableToFindArtifactException::class,
         PackagingIsNotSpecifiedException::class,
         DownloadResultFailureException::class,
         IllegalVersionStatusException::class,
-        IllegalComponentRenamingException::class
+        IllegalComponentRenamingException::class,
+        PublishingException::class
     )
     @Order(5)
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: DMSException) =
         createHttpResponse(request, e, HttpStatus.BAD_REQUEST)
-
-    @ExceptionHandler(FeignException.NotFound::class)
-    @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: FeignException.NotFound) =
-        createHttpResponse(request, e, HttpStatus.BAD_REQUEST, "DMS-40011")
 
     @ExceptionHandler(NotFoundException::class)
     @Order(5)
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: NotFoundException) =
         createHttpResponse(request, e, HttpStatus.NOT_FOUND)
 
-
-    @ExceptionHandler(org.octopusden.octopus.components.registry.core.exceptions.NotFoundException::class)
+    @ExceptionHandler(
+        org.octopusden.octopus.components.registry.core.exceptions.NotFoundException::class,
+        org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException::class
+    )
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: org.octopusden.octopus.components.registry.core.exceptions.NotFoundException) =
+    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: Exception) =
         createHttpResponse(request, e, HttpStatus.NOT_FOUND, "DMS-40011")
 
     @ExceptionHandler(AccessDeniedException::class)
@@ -72,7 +70,7 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
     @ResponseBody
     @Order(5)
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: UnsupportedOperationException) =
-        createHttpResponse(request, e, HttpStatus.NOT_IMPLEMENTED, e.message ?: "")
+        createHttpResponse(request, e, HttpStatus.NOT_IMPLEMENTED, "")
 
     @ExceptionHandler(Throwable::class)
     @ResponseBody

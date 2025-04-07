@@ -99,6 +99,7 @@ abstract class ConfigureMockServer : DefaultTask() {
                         JSONObject().put("component", component)
                             .put("version", build.getString("version"))
                             .put("status", build.getString("status"))
+                            .put("parents", build.getJSONArray("parents"))
                             .put("dependencies", build.getJSONArray("dependencies"))
                             .put("commits", build.getJSONArray("commits"))
                             .put("statusHistory", build.getJSONObject("statusHistory"))

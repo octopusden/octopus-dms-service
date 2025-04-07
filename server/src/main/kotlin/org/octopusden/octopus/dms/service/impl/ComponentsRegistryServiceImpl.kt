@@ -5,11 +5,12 @@ import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsR
 import org.octopusden.octopus.components.registry.core.dto.Component
 import org.octopusden.octopus.components.registry.core.dto.DetailedComponentVersion
 import org.octopusden.octopus.components.registry.core.dto.VersionRequest
+import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.SecurityGroupsDTO
 import org.octopusden.octopus.dms.configuration.ComponentsRegistryServiceProperties
-import org.octopusden.octopus.dms.exception.NotFoundException
+import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.releng.versions.NumericVersionFactory
 import org.octopusden.releng.versions.ReversedVersionComparator
@@ -29,32 +30,27 @@ class ComponentsRegistryServiceImpl(
         }
     )
 
-    override fun getComponent(name: String): ComponentDTO = client.getById(name).toComponentDTO()
+    override fun isComponentExists(component: String) = try {
+        client.getById(component).id == component
+    } catch (_: NotFoundException) {
+        false
+    }
+
+    override fun getExternalComponent(component: String) = client.getById(component).let {
+        if (it.distribution?.external != true) {
+            throw IllegalComponentTypeException("Component '$component' is not external")
+        }
+        it.toComponentDTO()
+    }
 
     override fun getExternalComponents(filter: ComponentRequestFilter?) =
         client.getAllComponents(solution = filter?.solution).components
-            .filter { component ->
+            .filter { component -> //TODO: filter archived components?
                 component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit) } ?: false
             }
             .map {
                 it.toComponentDTO()
             }
-
-    private fun Component.toComponentDTO() = ComponentDTO(
-        id,
-        name ?: id,
-        solution == true,
-        clientCode,
-        parentComponent,
-        SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
-    )
-
-    override fun checkComponent(component: String) {
-        val distribution = client.getById(component).distribution
-        if (distribution == null || !distribution.explicit || !distribution.external) {
-            throw NotFoundException("'$component' is not explicit and external component")
-        }
-    }
 
     override fun getDetailedComponentVersion(component: String, version: String) =
         client.getDetailedComponentVersion(component, version)
@@ -91,34 +87,44 @@ class ComponentsRegistryServiceImpl(
             .reversed()
     }
 
-    private fun matches(
-        component: String,
-        versionNames: VersionNames,
-        currentVersion: DetailedComponentVersion,
-        versionToBeCheck: DetailedComponentVersion
-    ): Boolean {
-        val minorOfCurrentVersion = currentVersion.lineVersion
-        val minorOfVersionToBeCheck = versionToBeCheck.lineVersion
-        return (minorOfCurrentVersion == minorOfVersionToBeCheck
-                && ReversedVersionComparator(versionNames).compare(
-            currentVersion.releaseVersion.version,
-            versionToBeCheck.releaseVersion.version
-        ) < 0
-                )
-            .also {
-                log.debug(
-                    "Comparing {} versions {}(minor={}) and {}(minor={}) with result {}",
-                    component,
-                    currentVersion.releaseVersion.version,
-                    minorOfCurrentVersion,
-                    versionToBeCheck.releaseVersion.version,
-                    minorOfVersionToBeCheck.version,
-                    it
-                )
-            }
-    }
-
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)
+
+        private fun Component.toComponentDTO() = ComponentDTO(
+            id,
+            name ?: id,
+            solution == true,
+            distribution?.explicit == true,
+            clientCode,
+            parentComponent,
+            SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
+        )
+
+        private fun matches(
+            component: String,
+            versionNames: VersionNames,
+            currentVersion: DetailedComponentVersion,
+            versionToBeCheck: DetailedComponentVersion
+        ): Boolean {
+            val minorOfCurrentVersion = currentVersion.lineVersion
+            val minorOfVersionToBeCheck = versionToBeCheck.lineVersion
+            return (minorOfCurrentVersion == minorOfVersionToBeCheck
+                    && ReversedVersionComparator(versionNames).compare(
+                currentVersion.releaseVersion.version,
+                versionToBeCheck.releaseVersion.version
+            ) < 0
+                    )
+                .also {
+                    log.debug(
+                        "Comparing {} versions {}(minor={}) and {}(minor={}) with result {}",
+                        component,
+                        currentVersion.releaseVersion.version,
+                        minorOfCurrentVersion,
+                        versionToBeCheck.releaseVersion.version,
+                        minorOfVersionToBeCheck.version,
+                        it
+                    )
+                }
+        }
     }
 }
