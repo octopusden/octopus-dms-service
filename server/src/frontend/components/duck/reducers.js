@@ -188,8 +188,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
 
         case types.SELECT_VERSION: {
             const {componentId, minorVersion, version} = action
-            const {currentArtifacts, components} = state
-            const selectedComponent = get(components, [componentId])
+            const {currentArtifacts} = state
             return {
                 ...state,
                 loadingArtifacts: false,
@@ -200,27 +199,14 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     selectedMinor: minorVersion,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifacts: [],
-                    meta: {
-                        componentId: componentId,
-                        componentName: selectedComponent.name,
-                        solution: selectedComponent.solution,
-                        clientCode: selectedComponent.clientCode,
-                        parentComponent: selectedComponent.parentComponent
-                    }
+                    artifacts: []
                 }
             }
         }
 
         case types.SELECT_DEPENDENCY: {
             const {solutionId, solutionMinor, solutionVersion, componentId, version} = action
-            const {currentArtifacts, components} = state
-            const dependencyId = `${componentId}:${version}`
-
-            const selectedComponent = solutionId === componentId && solutionVersion === version
-                ? get(components, [componentId])
-                : get(components, [solutionId, 'minorVersions', solutionMinor, 'versions', solutionVersion, 'dependencies', dependencyId, 'component'])
-
+            const {currentArtifacts} = state
             return {
                 ...state,
                 loadingArtifacts: false,
@@ -234,22 +220,14 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     selectedMinor: null,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifacts: [],
-                    meta: {
-                        componentId: componentId,
-                        componentName: selectedComponent.name,
-                        solution: selectedComponent.solution,
-                        clientCode: selectedComponent.clientCode,
-                        parentComponent: selectedComponent.parentComponent
-                    }
+                    artifacts: []
                 }
             }
         }
 
         case types.SELECT_GROUPED_COMPONENT_VERSION: {
             const {groupId, componentId, minorVersion, version} = action
-            const {currentArtifacts, components} = state
-            const selectedComponent = get(components, [groupId, 'subComponents', componentId])
+            const {currentArtifacts} = state
             return {
                 ...state,
                 loadingArtifacts: false,
@@ -261,14 +239,7 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     selectedMinor: minorVersion,
                     selectedVersion: version,
                     selectedDocument: {},
-                    artifacts: [],
-                    meta: {
-                        componentId: componentId,
-                        componentName: selectedComponent.name,
-                        solution: selectedComponent.solution,
-                        clientCode: selectedComponent.clientCode,
-                        parentComponent: selectedComponent.parentComponent
-                    }
+                    artifacts: []
                 }
             }
         }
@@ -326,9 +297,12 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
                     ...state.currentArtifacts,
                     artifacts: artifacts.artifacts,
                     meta: {
-                        ...state.currentArtifacts.meta,
                         ready: true,
                         componentId: componentVersion.component,
+                        componentName: componentVersion.displayName,
+                        solution: componentVersion.solution,
+                        clientCode: componentVersion.clientCode,
+                        parentComponent: componentVersion.parentComponent,
                         version: componentVersion.version,
                         status: componentVersion.status + " ("  + (!!componentVersion.promotedAt ? new Date(componentVersion.promotedAt).toLocaleString("ru-RU") : "unknown") + ")",
                         published: componentVersion.published

@@ -15,7 +15,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
@@ -82,7 +82,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/dependencies")
                 .accept(MediaType.APPLICATION_JSON)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<List<ComponentVersionFullDTO>>() {})
+        ).andReturn().response.toObject(object : TypeReference<List<ComponentVersionDTO>>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,

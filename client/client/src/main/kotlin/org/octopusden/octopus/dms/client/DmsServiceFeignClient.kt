@@ -12,7 +12,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
@@ -43,7 +43,7 @@ interface DmsServiceFeignClient {
     fun getComponentVersionDependencies(
         @Param("component-name") componentName: String,
         @Param("version") version: String,
-    ): List<ComponentVersionFullDTO>
+    ): List<ComponentVersionDTO>
 
     //TODO: add patchComponentVersion
 

@@ -141,7 +141,7 @@ class ComponentServiceImpl(
     @Transactional(readOnly = false)
     override fun patchComponentVersion(
         componentName: String, version: String, patchComponentVersionDTO: PatchComponentVersionDTO
-    ): ComponentVersionFullDTO {
+    ): ComponentVersionDTO {
         log.info("${if (patchComponentVersionDTO.published) "Publish" else "Revoke"} version '$version' of component '$componentName'")
         val component = getExternalExplicitComponent(componentName)
         val release = releaseManagementService.getRelease(componentName, version, !patchComponentVersionDTO.published)
@@ -154,7 +154,7 @@ class ComponentServiceImpl(
         }*/
         return componentVersionRepository.save(
             componentVersionEntity.apply { published = patchComponentVersionDTO.published }
-        ).toFullDTO(release)
+        ).toDTO(release)
     }
 
     @Transactional(readOnly = true)
@@ -174,9 +174,8 @@ class ComponentServiceImpl(
     override fun getComponentVersionArtifacts(
         componentName: String, version: String, type: ArtifactType?
     ): ArtifactsDTO {
-        log.info("Get artifacts" + (type?.let { " with type '$it'" }
-            ?: "") + " for version '$version' of component '$componentName'")
-        getExternalExplicitComponent(componentName)
+        log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
+        val component = getExternalExplicitComponent(componentName)
         val release = releaseManagementService.getRelease(componentName, version, true)
         val componentVersion = componentVersionRepository.findByComponentNameAndVersion(componentName, release.version)
         val componentVersionArtifacts = if (componentVersion != null)
@@ -184,7 +183,7 @@ class ComponentServiceImpl(
             else componentVersionArtifactRepository.findByComponentVersion(componentVersion)
         else emptyList()
         return ArtifactsDTO(
-            componentVersion?.toFullDTO(release) ?: release.toComponentVersionFullDTO(),
+            componentVersion?.toFullDTO(component, release) ?: release.toComponentVersionFullDTO(component),
             componentVersionArtifacts.map { it.toShortDTO(dockerRegistry) }
         )
     }
@@ -320,16 +319,16 @@ class ComponentServiceImpl(
         )
     }
 
-    private fun ReleaseFullDTO.toComponentVersionFullDTO() = ComponentVersionFullDTO(
-        component, version, false, status, promotedAt
-    )
-
     private fun ComponentVersion.toDTO(release: ReleaseDTO) = ComponentVersionDTO(
         component.name, version, published, release.status
     )
 
-    private fun ComponentVersion.toFullDTO(release: ReleaseFullDTO) = ComponentVersionFullDTO(
-        component.name, version, published, release.status, release.promotedAt
+    private fun ComponentVersion.toFullDTO(component: ComponentDTO, release: ReleaseFullDTO) = ComponentVersionFullDTO(
+        component.id, version, published, release.status, release.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
+    )
+
+    private fun ReleaseFullDTO.toComponentVersionFullDTO(component: ComponentDTO) = ComponentVersionFullDTO(
+        component.id, version, false, status, promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
     )
 
     companion object {
