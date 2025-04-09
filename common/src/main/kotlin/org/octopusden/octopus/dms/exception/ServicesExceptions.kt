@@ -13,7 +13,7 @@ abstract class DMSException(message: String, val code: String) : RuntimeExceptio
             "DMS-40011" to { message: String -> NotFoundException(message) },
             "DMS-40012" to { message: String -> IllegalVersionStatusException(message) },
             "DMS-40013" to { message: String -> IllegalComponentRenamingException(message) },
-            "DMS-40014" to { message: String -> PublishingException(message) }
+            "DMS-40014" to { message: String -> VersionPublishedException(message) }
         )
     }
 }
@@ -28,4 +28,4 @@ class DownloadResultFailureException(message: String) : DMSException(message, "D
 class NotFoundException(message: String) : DMSException(message, "DMS-40011")
 class IllegalVersionStatusException(message: String) : DMSException(message, "DMS-40012")
 class IllegalComponentRenamingException(message: String) : DMSException(message, "DMS-40013")
-class PublishingException(message: String) : DMSException(message, "DMS-40014")
+class VersionPublishedException(message: String) : DMSException(message, "DMS-40014")

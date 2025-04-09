@@ -57,11 +57,6 @@
     "parents": [],
     "dependencies": [
       {
-        "component": "dependency3",
-        "version": "3.0.1",
-        "status": "RELEASE"
-      },
-      {
         "component": "dependency1",
         "version": "1.0.1",
         "status": "RELEASE"
@@ -69,6 +64,16 @@
       {
         "component": "dependency2",
         "version": "2.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "dependency3",
+        "version": "3.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "ie-component",
+        "version": "4.0.1",
         "status": "RELEASE"
       }
     ],
@@ -142,6 +147,22 @@
     "status": "RELEASE",
     "version": "3.0.1",
     "release_version": "3.0.1",
+    "parents": [
+      {
+        "component": "ee-component",
+        "version": "03.54.30.64-1",
+        "status": "RELEASE"
+      }
+    ],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ie-component",
+    "status": "RELEASE",
+    "version": "4.0.1",
+    "release_version": "4.0.1",
     "parents": [
       {
         "component": "ee-component",

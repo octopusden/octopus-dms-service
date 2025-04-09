@@ -13,7 +13,7 @@ import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.PackagingIsNotSpecifiedException
-import org.octopusden.octopus.dms.exception.PublishingException
+import org.octopusden.octopus.dms.exception.VersionPublishedException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
 import org.slf4j.Logger
@@ -42,7 +42,7 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         DownloadResultFailureException::class,
         IllegalVersionStatusException::class,
         IllegalComponentRenamingException::class,
-        PublishingException::class
+        VersionPublishedException::class
     )
     @Order(5)
     fun handle(request: HttpServletRequest, response: HttpServletResponse, e: DMSException) =

@@ -12,7 +12,6 @@ import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
-import org.octopusden.octopus.dms.event.DeleteComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.NotFoundException
@@ -107,27 +106,6 @@ class ArtifactServiceImpl(
         file.inputStream.use { storageService.upload(artifact, it) }
         return artifact.toDTO()
     }
-
-    @Transactional(readOnly = false)
-    override fun delete(id: Long, dryRun: Boolean) {
-        log.info("Delete artifact with ID '$id'")
-        artifactRepository.findById(id).ifPresent { artifact ->
-            if (!dryRun) {
-                componentVersionArtifactRepository.findByArtifact(artifact).forEach {
-                    applicationEventPublisher.publishEvent(
-                        DeleteComponentVersionArtifactEvent(
-                            it.componentVersion.component.name,
-                            it.componentVersion.version,
-                            it.toFullDTO(dockerRegistry)
-                        )
-                    )
-                }
-                artifactRepository.delete(artifact)
-            }
-            log.info("$artifact deleted")
-        }
-    }
-
 
     private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
         RepositoryType.MAVEN -> {

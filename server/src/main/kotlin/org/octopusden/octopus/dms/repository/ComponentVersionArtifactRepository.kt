@@ -20,6 +20,10 @@ interface ComponentVersionArtifactRepository : JpaRepository<ComponentVersionArt
         componentVersionComponentName: String, componentVersionVersion: String, artifactId: Long
     ): ComponentVersionArtifact?
 
+    fun findByComponentVersionAndArtifactId(
+        componentVersion: ComponentVersion, artifactId: Long
+    ): ComponentVersionArtifact?
+
     fun findByComponentVersionAndArtifact(
         componentVersion: ComponentVersion, artifact: Artifact
     ): ComponentVersionArtifact?

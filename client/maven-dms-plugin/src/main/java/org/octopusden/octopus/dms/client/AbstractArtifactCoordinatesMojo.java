@@ -13,4 +13,6 @@ abstract public class AbstractArtifactCoordinatesMojo extends AbstractArtifactMo
     protected String artifactsCoordinatesRpm;
     @Parameter(property = "artifacts.coordinates.docker")
     protected String artifactsCoordinatesDocker;
+    @Parameter(property = "parallelism", defaultValue = "10")
+    protected int parallelism;
 }

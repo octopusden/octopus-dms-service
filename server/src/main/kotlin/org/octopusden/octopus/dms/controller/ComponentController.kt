@@ -45,14 +45,6 @@ class ComponentController(
             .toMutableList() //Required for PostAuthorize
     )
 
-    @Operation(summary = "Delete Component")
-    @DeleteMapping("{component-name}")
-    @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
-    fun deleteComponent(
-        @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
-    ) = componentService.deleteComponent(componentName, dryRun)
-
     @Operation(
         summary = "List of Component Minor Versions",
         description = "Returns list of minor versions that have at least one artifact"
@@ -93,24 +85,18 @@ class ComponentController(
     )
 
     @GetMapping("{component-name}/versions/{version}/dependencies")
-    //TODO: PreAuthorize
+    @PreAuthorize(
+        "@permissionEvaluator.hasPermission('ACCESS_META') or " +
+                "@permissionEvaluator.hasPermissionByComponent(#componentName)"
+    )
     fun getComponentVersionDependencies(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
         @Parameter(description = "Build version") @PathVariable("version") version: String
     ) = componentService.getComponentVersionDependencies(componentName, version)
         .sortedWith(compareBy({ it.version.component }, { it.versionInfo })).map { it.version }
 
-    @Operation(summary = "Delete Component Version")
-    @DeleteMapping("{component-name}/versions/{version}")
-    @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
-    fun deleteComponentVersion(
-        @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
-        @Parameter(description = "Build version") @PathVariable("version") version: String,
-        @RequestParam(defaultValue = "true", required = false) dryRun: Boolean
-    ) = componentService.deleteComponentVersion(componentName, version, dryRun)
-
     @PatchMapping("{component-name}/versions/{version}")
-    //TODO: PreAuthorize
+    @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun patchComponentVersion(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
         @Parameter(description = "Build version") @PathVariable("version") version: String,

@@ -11,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 abstract public class AbstractDmsMojo extends AbstractMojo {
-    //TODO: implement publish mojo and add metarunner
-
     @Parameter(property = "dms.url", required = true)
     protected String dmsUrl;
 
@@ -36,9 +34,6 @@ abstract public class AbstractDmsMojo extends AbstractMojo {
 
     @Parameter(property = "dryRun", defaultValue = "false")
     protected boolean dryRun;
-
-    @Parameter(property = "parallelism", defaultValue = "10")
-    protected int parallelism;
 
     protected void validateCredentials() throws MojoFailureException {
         if (isBlank(token) && (isBlank(username) || isBlank(password))) {

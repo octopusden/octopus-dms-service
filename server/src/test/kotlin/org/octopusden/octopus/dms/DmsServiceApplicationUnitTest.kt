@@ -20,6 +20,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -83,6 +84,18 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andReturn().response.toObject(object : TypeReference<List<ComponentVersionDTO>>() {})
+
+        override fun patchComponentVersion(
+            componentName: String,
+            version: String,
+            patchComponentVersionDTO: PatchComponentVersionDTO
+        ) = mockMvc.perform(
+            MockMvcRequestBuilders.patch("/rest/api/3/components/$componentName/versions/$version")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(patchComponentVersionDTO))
+                .accept(MediaType.APPLICATION_JSON)
+                .with(SecurityMockMvcRequestPostProcessors.csrf())
+        ).andReturn().response.toObject(object : TypeReference<ComponentVersionDTO>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,
@@ -192,11 +205,6 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 .accept(MediaType.APPLICATION_JSON)
                 .with(SecurityMockMvcRequestPostProcessors.csrf())
         ).andReturn().response.toObject(object : TypeReference<ArtifactDTO>() {})
-
-        override fun deleteArtifact(id: Long) = mockMvc.perform(
-            MockMvcRequestBuilders.delete("/rest/api/3/artifacts/$id?dry-run=false")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.processError()
 
         override fun uploadArtifact(
             artifactCoordinates: MavenArtifactCoordinatesDTO,

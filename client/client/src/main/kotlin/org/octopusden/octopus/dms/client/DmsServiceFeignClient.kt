@@ -15,6 +15,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
+import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -42,10 +43,16 @@ interface DmsServiceFeignClient {
     @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/dependencies")
     fun getComponentVersionDependencies(
         @Param("component-name") componentName: String,
-        @Param("version") version: String,
+        @Param("version") version: String
     ): List<ComponentVersionDTO>
 
-    //TODO: add patchComponentVersion
+    @RequestLine("PATCH rest/api/3/components/{component-name}/versions/{version}")
+    @Headers("Content-Type: application/json")
+    fun patchComponentVersion(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+        patchComponentVersionDTO: PatchComponentVersionDTO
+    ): ComponentVersionDTO
 
     @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/previous-lines-latest-versions?include-rc={include-rc}")
     fun getPreviousLinesLatestVersions(
@@ -129,9 +136,4 @@ interface DmsServiceFeignClient {
         artifactCoordinates: ArtifactCoordinatesDTO,
         @Param("fail-on-already-exists") failOnAlreadyExists: Boolean? = null
     ): ArtifactDTO
-
-    @RequestLine("DELETE rest/api/3/artifacts/{id}?dry-run=false")
-    fun deleteArtifact(
-        @Param("id") id: Long
-    )
 }

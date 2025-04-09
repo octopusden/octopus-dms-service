@@ -31,6 +31,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.exception.DMSException
@@ -57,6 +58,10 @@ class ClassicDmsServiceClient(
 
     override fun getComponentVersionDependencies(componentName: String, version: String) =
         client.getComponentVersionDependencies(componentName, version)
+
+    override fun patchComponentVersion(
+        componentName: String, version: String, patchComponentVersionDTO: PatchComponentVersionDTO
+    ) = client.patchComponentVersion(componentName, version, patchComponentVersionDTO)
 
     override fun getPreviousLinesLatestVersions(
         componentName: String, version: String, includeRc: Boolean?
@@ -116,10 +121,6 @@ class ClassicDmsServiceClient(
     override fun addArtifact(
         artifactCoordinates: ArtifactCoordinatesDTO, failOnAlreadyExists: Boolean?
     ) = client.addArtifact(artifactCoordinates, failOnAlreadyExists)
-
-    override fun deleteArtifact(
-        id: Long
-    ) = client.deleteArtifact(id)
 
     override fun uploadArtifact(
         artifactCoordinates: MavenArtifactCoordinatesDTO,

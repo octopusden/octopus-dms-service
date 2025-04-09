@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import javax.servlet.http.HttpServletResponse
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -87,12 +86,4 @@ class ArtifactController(
         @Parameter(schema = Schema(implementation = MavenArtifactCoordinatesDTO::class)) @RequestPart("artifact") artifactCoordinates: ArtifactCoordinatesDTO,
         @Parameter(description = "Artifact file") @RequestPart("file") file: MultipartFile
     ) = artifactService.upload(failOnAlreadyExists, artifactCoordinates, file)
-
-    @Operation(summary = "Delete Artifact")
-    @DeleteMapping("{id}")
-    @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
-    fun delete(
-        @Parameter(description = "ID") @PathVariable("id") id: Long,
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
-    ) = artifactService.delete(id, dryRun)
 }

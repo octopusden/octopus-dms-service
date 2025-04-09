@@ -47,8 +47,7 @@ class ComponentsRegistryServiceImpl(
         client.getAllComponents(solution = filter?.solution).components
             .filter { component -> //TODO: filter archived components?
                 component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit) } ?: false
-            }
-            .map {
+            }.map {
                 it.toComponentDTO()
             }
 
