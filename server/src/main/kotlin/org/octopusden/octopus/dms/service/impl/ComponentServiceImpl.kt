@@ -117,7 +117,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentRepository.lock(component.id.hashCode())
         val componentVersion = componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
         return if (componentVersion.published == patchComponentVersionDTO.published) {
-            componentVersion
+            componentVersion.toDTO(release)
         } else {
             if (patchComponentVersionDTO.published && component.solution) {
                 release.dependencies.filter {
@@ -142,8 +142,10 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                     RevokeComponentVersionEvent(component.id, release.version, artifacts)
                 }
             )
-            componentVersionRepository.save(componentVersion.apply { published = patchComponentVersionDTO.published })
-        }.toDTO(release)
+            componentVersionRepository.save(componentVersion.apply {
+                published = patchComponentVersionDTO.published
+            }).toDTO(release)
+        }
     }
 
     @Transactional(readOnly = true)
@@ -228,29 +230,29 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                     version = release.version
                 )
             )
-        if (componentVersion.published) {
-            throw VersionPublishedException("Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version")
-        }
-        val componentVersionArtifact =
-            componentVersionArtifactRepository.findByComponentVersionAndArtifact(componentVersion, artifact)?.let {
-                with("Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'") {
-                    if (failOnAlreadyExists) {
-                        throw ArtifactAlreadyExistsException(this)
-                    }
-                    log.info(this)
-                }
-                it
-            } ?: componentVersionArtifactRepository.save(
+        val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
+            componentVersion, artifact
+        )
+        return if (componentVersionArtifact != null) {
+            val message = "Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'"
+            if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(message)
+            else log.info(message)
+            componentVersionArtifact.toFullDTO(dockerRegistry)
+        } else {
+            if (componentVersion.published) {
+                throw VersionPublishedException("Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version")
+            }
+            componentVersionArtifactRepository.save(
                 ComponentVersionArtifact(
                     componentVersion = componentVersion,
                     artifact = artifact,
                     type = registerArtifactDTO.type
                 )
-            )
-        return componentVersionArtifact.toFullDTO(dockerRegistry).also {
-            applicationEventPublisher.publishEvent(
-                RegisterComponentVersionArtifactEvent(componentName, release.version, it)
-            )
+            ).toFullDTO(dockerRegistry).also {
+                applicationEventPublisher.publishEvent(
+                    RegisterComponentVersionArtifactEvent(componentName, release.version, it)
+                )
+            }
         }
     }
 
