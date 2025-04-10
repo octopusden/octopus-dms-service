@@ -16,12 +16,9 @@ import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
-import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -29,10 +26,7 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ArtifactServiceImpl(
     private val storageService: StorageService,
-    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val artifactRepository: ArtifactRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher,
-    @Value("\${dms-service.docker-registry}") private val dockerRegistry: String
+    private val artifactRepository: ArtifactRepository
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -100,6 +94,9 @@ class ArtifactServiceImpl(
                     }
                     log.info(this)
                 }
+                //NOTE:
+                // allowing of artifact re-uploading may be an issue if it is registered for published component version
+                // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
                 it
             } ?: artifactRepository.save(this)
         }
