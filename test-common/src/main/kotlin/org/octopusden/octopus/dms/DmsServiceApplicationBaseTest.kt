@@ -509,7 +509,7 @@ abstract class DmsServiceApplicationBaseTest {
             )
         }
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        val dto = client.registerComponentVersionArtifact(
+        val artifactDTO = client.registerComponentVersionArtifact(
             eeComponent,
             eeComponentReleaseVersion0354.releaseVersion,
             artifact.id,
@@ -545,13 +545,22 @@ abstract class DmsServiceApplicationBaseTest {
         dependencies.forEach { (componentName, version) ->
             client.patchComponentVersion(componentName, version, PatchComponentVersionDTO(true))
         }
+        val versionDTO = ComponentVersionDTO(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            true,
+            ComponentVersionStatus.RELEASE
+        )
         assertEquals(
-            ComponentVersionDTO(
+            versionDTO,
+            client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
-                true,
-                ComponentVersionStatus.RELEASE
-            ),
+                eeComponentReleaseVersion0354.releaseVersion,
+                PatchComponentVersionDTO(true)
+            )
+        )
+        assertEquals(
+            versionDTO,
             client.patchComponentVersion(
                 eeComponent,
                 eeComponentReleaseVersion0354.releaseVersion,
@@ -576,7 +585,7 @@ abstract class DmsServiceApplicationBaseTest {
             )
         }
         assertEquals(
-            dto,
+            artifactDTO,
             client.registerComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
