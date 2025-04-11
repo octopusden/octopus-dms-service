@@ -1,7 +1,5 @@
 package org.octopusden.octopus.dms.entity
 
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import java.util.regex.Pattern
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
@@ -11,6 +9,14 @@ import javax.persistence.GenerationType
 import javax.persistence.Id
 import javax.persistence.ManyToOne
 import javax.persistence.Table
+import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactShortDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactType
+import org.octopusden.octopus.dms.client.common.dto.DebianArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
+import org.octopusden.octopus.dms.client.common.dto.RpmArtifactFullDTO
 
 @Entity
 @Table(name = "component_version_artifact")
@@ -42,7 +48,73 @@ class ComponentVersionArtifact (
 
         RepositoryType.DOCKER -> {
             artifact as DockerArtifact
-            "${artifact.image}" + (if (artifact.tag == componentVersion.version) "" else ":${artifact.tag}")
+            artifact.image + (if (artifact.tag == componentVersion.version) "" else ":${artifact.tag}")
+        }
+    }
+
+    fun toShortDTO(dockerRegistry: String): ArtifactShortDTO {
+        return when (this.artifact.repositoryType) {
+            RepositoryType.DOCKER -> {
+                this.artifact as DockerArtifact
+                ArtifactShortDTO(
+                    this.artifact.id,
+                    this.artifact.repositoryType,
+                    this.type,
+                    this.displayName,
+                    this.artifact.imageIdentifier(dockerRegistry)
+                )
+            }
+
+            else -> ArtifactShortDTO(
+                this.artifact.id,
+                this.artifact.repositoryType,
+                this.type,
+                this.displayName,
+                this.artifact.fileName
+            )
+        }
+    }
+
+    fun toFullDTO(dockerRegistry: String): ArtifactFullDTO {
+        return when (this.artifact.repositoryType) {
+            RepositoryType.MAVEN -> {
+                this.artifact as MavenArtifact
+                MavenArtifactFullDTO(
+                    this.artifact.id,
+                    this.type,
+                    this.displayName,
+                    this.artifact.fileName,
+                    this.artifact.gav
+                )
+            }
+
+            RepositoryType.DEBIAN -> DebianArtifactFullDTO(
+                this.artifact.id,
+                this.type,
+                this.displayName,
+                this.artifact.fileName,
+                this.artifact.path
+            )
+
+            RepositoryType.RPM -> RpmArtifactFullDTO(
+                this.artifact.id,
+                this.type,
+                this.displayName,
+                this.artifact.fileName,
+                this.artifact.path
+            )
+
+            RepositoryType.DOCKER -> {
+                this.artifact as DockerArtifact
+                DockerArtifactFullDTO(
+                    this.artifact.id,
+                    this.type,
+                    this.displayName,
+                    this.artifact.imageIdentifier(dockerRegistry),
+                    this.artifact.image,
+                    this.artifact.tag
+                )
+            }
         }
     }
 

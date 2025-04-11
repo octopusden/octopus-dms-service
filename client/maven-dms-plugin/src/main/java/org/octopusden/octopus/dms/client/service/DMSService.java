@@ -10,23 +10,9 @@ import java.nio.file.Path;
 import org.apache.maven.plugin.logging.Log;
 
 public interface DMSService {
-    void validateArtifact(Log log,
-                          DmsServiceUploadingClient dmsServiceClient,
-                          File file,
-                          ComponentVersion componentVersion,
-                          ArtifactCoordinatesDTO coordinates,
-                          ValidationPropertiesDTO validationConfiguration,
-                          boolean failOnAlreadyExists,
-                          Path validationLog,
-                          boolean dryRun);
+    void validateArtifact(Log log, DmsServiceUploadingClient dmsServiceClient, File file, ComponentVersion componentVersion, ArtifactCoordinatesDTO coordinates, ValidationPropertiesDTO validationConfiguration, boolean failOnAlreadyExists, Path validationLog, boolean dryRun);
 
-    void uploadArtifact(Log log,
-                        DmsServiceUploadingClient dmsServiceClient,
-                        File file,
-                        ComponentVersion componentVersion,
-                        ArtifactType type,
-                        ArtifactCoordinatesDTO coordinates,
-                        boolean failOnAlreadyExists,
-                        Path validationLog,
-                        boolean dryRun);
+    void uploadArtifact(Log log, DmsServiceUploadingClient dmsServiceClient, File file, ComponentVersion componentVersion, ArtifactType type, ArtifactCoordinatesDTO coordinates, boolean failOnAlreadyExists, Path validationLog, boolean dryRun);
+
+    void publish(Log log, DmsServiceUploadingClient dmsServiceClient, ComponentVersion componentVersion, boolean dryRun);
 }

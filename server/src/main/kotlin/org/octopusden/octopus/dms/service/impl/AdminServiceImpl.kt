@@ -1,104 +1,128 @@
 package org.octopusden.octopus.dms.service.impl
 
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.NotFoundException
-import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentRepository
+import org.octopusden.octopus.dms.repository.ComponentVersionArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentVersionRepository
 import org.octopusden.octopus.dms.service.AdminService
-import org.octopusden.octopus.dms.service.ArtifactService
-import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.ReleaseManagementService
-import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.octopusden.octopus.components.registry.core.exceptions.NotFoundException as ComponentsRegistryNotFoundException
 
 @Service
 @Transactional(readOnly = false)
 class AdminServiceImpl( //TODO: move functionality to ComponentService and ArtifactService?
-    private val componentService: ComponentService,
-    private val artifactService: ArtifactService,
     private val componentsRegistryService: ComponentsRegistryService,
-    private val storageService: StorageService,
+    private val releaseManagementService: ReleaseManagementService,
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
-    private val artifactRepository: ArtifactRepository,
-    private val relengService: ReleaseManagementService
+    private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
+    private val artifactRepository: ArtifactRepository
 ) : AdminService {
-
+    /**
+     * Remove all implicit/internal components.
+     *
+     * Those components are non-accessible via DMS (filtered out) therefore no locking required.
+     * No "delete" events should be generated (this requirement could be changed later).
+     *
+     * @param dryRun - if true, do not delete versions
+     */
     override fun deleteInvalidComponents(dryRun: Boolean) {
-        log.info("Delete invalid components")
-        val validComponents = componentService.getComponents().map { it.name }
-        return componentRepository.findAll().filter {
-            !validComponents.contains(it.name)
-        }.forEach { componentService.deleteComponent(it.name, dryRun) }
+        val validComponents = componentsRegistryService.getExternalComponents(
+            ComponentRequestFilter()
+        ).map { it.name }.toSet()
+        val invalidComponents = componentRepository.findAll().filter { !validComponents.contains(it.name) }
+        log.info("Delete invalid components $invalidComponents")
+        if (!dryRun) {
+            componentRepository.deleteAll(invalidComponents)
+            log.info("${invalidComponents.size} invalid component(s) deleted")
+        }
     }
 
+    /**
+     * Remove all component versions in BUILD status.
+     *
+     * Those versions are non-accessible via DMS (filtered out) therefore no locking required.
+     * No "delete" events should be generated (this requirement could be changed later).
+     *
+     * @param dryRun - if true, do not delete versions
+     */
     override fun deleteInvalidComponentsVersions(dryRun: Boolean) {
-        log.info("Delete invalid components versions")
-        componentService.getComponents().forEach {
-            val validComponentVersions = componentService.getComponentVersions(it.name, emptyList(), true).map { v -> v.version }
-            componentVersionRepository.findByComponentName(it.name).filter { v ->
-                !validComponentVersions.contains(v.version)
-            }.forEach { v -> componentService.deleteComponentVersion(v.component.name, v.version, dryRun) }
-        }
-    }
-
-    override fun recalculateMinorVersions(dryRun: Boolean) {
-        log.info("Recalculate minor versions")
-        componentVersionRepository.findAll().forEach {
-            val detailedComponentVersion = componentsRegistryService.getDetailedComponentVersion(it.component.name, it.version)
-            if (it.minorVersion != detailedComponentVersion.minorVersion.version) {
-                if (!dryRun) {
-                    it.minorVersion = detailedComponentVersion.minorVersion.version
-                    componentVersionRepository.save(it)
-                }
-                log.info("Updated minor version for version '${it.version}' of component '${it.component.name}' from '${it.minorVersion}' to '${detailedComponentVersion.minorVersion.version}'")
+        val invalidComponentsVersions = componentVersionRepository.findAll().groupBy {
+            it.component.name
+        }.flatMap { (componentName, versions) ->
+            val validComponentVersions = releaseManagementService.findReleases(
+                componentName, versions.map { it.version }, true
+            ).map { it.version }.toSet()
+            componentVersionRepository.findByComponentName(componentName).filter {
+                !validComponentVersions.contains(it.version)
             }
         }
+        log.info("Delete invalid components versions $invalidComponentsVersions")
+        if (!dryRun) {
+            componentVersionRepository.deleteAll(invalidComponentsVersions)
+            log.info("${invalidComponentsVersions.size} invalid component version(s) deleted")
+        }
     }
 
+    /**
+     * Remove all artifacts not registered for at least one component version.
+     *
+     * This is "dummy" housekeeping of Artifact entities, use with extreme caution!
+     *
+     * @param dryRun - if true, do not delete artifacts
+     */
     override fun deleteOrphanedArtifacts(dryRun: Boolean) {
-        log.info("Delete orphaned artifacts")
-        artifactRepository.findAll().forEach {
-            try {
-                storageService.find(it, true)
-            } catch (e: UnableToFindArtifactException) {
-                artifactService.delete(it.id, dryRun)
-            }
+        //TODO:
+        // - add lock preventing from addition/uploading new artifacts during housekeeping
+        // - add artifact.createdAt column and use for filtering to prevent removing of newly added artifacts
+        // - remove "on delete cascade" from component_version_artifact.artifact_Id column
+        // - schedule execution
+        val orphanedArtifacts = artifactRepository.findAll().filter {
+            componentVersionArtifactRepository.findByArtifact(it).isEmpty()
+        }
+        log.info("Delete orphaned artifacts $orphanedArtifacts")
+        if (!dryRun) {
+            artifactRepository.deleteAll(orphanedArtifacts)
+            log.info("${orphanedArtifacts.size} orphaned artifact(s) deleted")
         }
     }
 
     /**
      * Update component name and return new component name.
+     *
      * By this point, the component should have already been renamed in 'releng'.
+     *
      * @param name - old component name
      * @param newName - new component name
      * @param dryRun - if true, do not update component name
-     * @throws NotFoundException if component with name [name] not found in releng
      */
     @Transactional(readOnly = false)
     override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
         log.info("Update component name from '$name' to '$newName'")
 
-        if (isComponentPresentInRegistry(name)) {
+        if (componentsRegistryService.isComponentExists(name)) {
             log.error("Component with name $name exists in components registry")
             throw IllegalComponentRenamingException("Component with name $name exists in components registry")
         }
-        if (!isComponentPresentInRegistry(newName)) {
+        if (!componentsRegistryService.isComponentExists(newName)) {
             log.error("Component with name $newName not found in components registry")
             throw NotFoundException("Component with name $newName not found in components registry")
         }
-        if (!relengService.componentExists(newName)) {
+        if (!releaseManagementService.isComponentExists(newName)) {
             throw NotFoundException("Component with name $newName not found in releng")
         }
-        val component = componentRepository.findByName(newName)
+
+        componentRepository.lock(name.hashCode())
         val existedComponent = componentRepository.findByName(name)
+        componentRepository.lock(newName.hashCode())
+        val component = componentRepository.findByName(newName)
 
         if (existedComponent != null && component != null) {
             with("Both component with name $name and name $newName exists in DMS") {
@@ -121,19 +145,6 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             }
             log.info("Component $name already renamed to $newName")
         }
-    }
-
-    /**
-     * Check if component with name [name] exists in components registry
-     * @param name - the component name
-     * @return true if component with name [name] exists in components registry
-     */
-    private fun isComponentPresentInRegistry(name: String) = try {
-        componentsRegistryService.getComponent(name)
-        true
-    } catch (e: ComponentsRegistryNotFoundException) {
-        log.info("Component with name $name not found in components registry")
-        false
     }
 
     companion object {

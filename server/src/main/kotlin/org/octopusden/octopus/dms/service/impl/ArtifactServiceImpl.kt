@@ -17,7 +17,6 @@ import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.service.ArtifactService
-import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -27,8 +26,7 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ArtifactServiceImpl(
     private val storageService: StorageService,
-    private val artifactRepository: ArtifactRepository,
-    private val componentService: ComponentService
+    private val artifactRepository: ArtifactRepository
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -96,24 +94,15 @@ class ArtifactServiceImpl(
                     }
                     log.info(this)
                 }
+                //NOTE:
+                // allowing of artifact re-uploading may be an issue if it is registered for published component version
+                // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
                 it
             } ?: artifactRepository.save(this)
         }
         file.inputStream.use { storageService.upload(artifact, it) }
         return artifact.toDTO()
     }
-
-    @Transactional(readOnly = false)
-    override fun delete(id: Long, dryRun: Boolean) {
-        log.info("Delete artifact with ID '$id'")
-        artifactRepository.findById(id).ifPresent { artifact ->
-            if (!dryRun) {
-                componentService.deleteArtifact(artifact)
-            }
-            log.info("$artifact deleted")
-        }
-    }
-
 
     private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
         RepositoryType.MAVEN -> {

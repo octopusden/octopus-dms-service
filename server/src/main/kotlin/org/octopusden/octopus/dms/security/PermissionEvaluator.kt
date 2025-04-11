@@ -1,12 +1,12 @@
 package org.octopusden.octopus.dms.security
 
+import org.octopusden.cloud.commons.security.BasePermissionEvaluator
+import org.octopusden.cloud.commons.security.SecurityService
+import org.octopusden.cloud.commons.security.dto.User
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.service.ComponentService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
-import org.octopusden.cloud.commons.security.BasePermissionEvaluator
-import org.octopusden.cloud.commons.security.SecurityService
-import org.octopusden.cloud.commons.security.dto.User
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -41,7 +41,7 @@ class PermissionEvaluator(
         securityService.getCurrentUser(),
         componentName,
         try {
-            componentsRegistryService.getComponent(componentName).securityGroups.read
+            componentsRegistryService.getExternalComponent(componentName).securityGroups.read
         } catch (e: Exception) {
             log.warn("Unable to get read security groups for component '$componentName'", e)
             emptyList()

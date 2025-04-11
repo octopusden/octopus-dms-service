@@ -35,9 +35,6 @@ abstract public class AbstractDmsMojo extends AbstractMojo {
     @Parameter(property = "dryRun", defaultValue = "false")
     protected boolean dryRun;
 
-    @Parameter(property = "parallelism", defaultValue = "10")
-    protected int parallelism;
-
     protected void validateCredentials() throws MojoFailureException {
         if (isBlank(token) && (isBlank(username) || isBlank(password))) {
             throw new MojoFailureException("Either dms.token or dms.username + dms.password must be provided");

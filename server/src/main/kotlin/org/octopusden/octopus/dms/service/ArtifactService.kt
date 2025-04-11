@@ -13,5 +13,4 @@ interface ArtifactService {
     fun download(id: Long): DownloadArtifactDTO
     fun add(failOnAlreadyExists: Boolean, artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO
     fun upload(failOnAlreadyExists: Boolean, artifactCoordinates: ArtifactCoordinatesDTO, file: MultipartFile): ArtifactDTO
-    fun delete(id: Long, dryRun: Boolean)
 }

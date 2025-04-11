@@ -1,71 +1,79 @@
 package org.octopusden.octopus.dms.service.impl
 
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.BuildDTO
-import org.octopusden.octopus.dms.client.common.dto.BuildStatus
-import org.octopusden.octopus.dms.dto.ComponentBuild
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
+import org.octopusden.octopus.dms.configuration.ReleaseManagementServiceProperties
+import org.octopusden.octopus.dms.dto.BuildDTO
+import org.octopusden.octopus.dms.dto.ReleaseDTO
+import org.octopusden.octopus.dms.dto.ReleaseFullDTO
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
-import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.service.ReleaseManagementService
-import org.octopusden.octopus.releasemanagementservice.client.ReleaseManagementServiceClient
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildFilterDTO
+import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildStatus
+import org.octopusden.octopus.releasemanagementservice.client.common.dto.ShortBuildDTO
+import org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException
+import org.octopusden.octopus.releasemanagementservice.client.impl.ClassicReleaseManagementServiceClient
+import org.octopusden.octopus.releasemanagementservice.client.impl.ReleaseManagementServiceClientParametersProvider
 import org.springframework.stereotype.Service
-import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildDTO as RmBuildDTO
-import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildStatus as rmServiceBuildStatus
 
 @Service
 class ReleaseManagementServiceImpl(
-    private val client: ReleaseManagementServiceClient
+    private val releaseManagementServiceProperties: ReleaseManagementServiceProperties
 ) : ReleaseManagementService {
-    private val artifactsAllowedStatuses = mapOf<ArtifactType?, List<rmServiceBuildStatus>>(
-        ArtifactType.DISTRIBUTION to listOf(rmServiceBuildStatus.RELEASE)
+    private val client = ClassicReleaseManagementServiceClient(
+        object : ReleaseManagementServiceClientParametersProvider {
+            override fun getApiUrl() = releaseManagementServiceProperties.url
+
+            override fun getTimeRetryInMillis() = releaseManagementServiceProperties.retry
+        }
     )
-    private val defaultAllowedStatuses = listOf(rmServiceBuildStatus.RELEASE, rmServiceBuildStatus.RC)
 
-    override fun getComponentBuild(component: String, version: String, type: ArtifactType?): BuildDTO {
-        return try {
-           client.getBuild(component, version).also { build ->
-               val versionStatus = build.status
-               if (!artifactsAllowedStatuses.getOrDefault(type, defaultAllowedStatuses).contains(versionStatus)) {
-                   throw IllegalVersionStatusException("Status '$versionStatus' of version '$version' of component '$component' is illegal${type?.let { " for $it artifact" } ?: ""}")
-               }
-            }.toBuildDTO()
-        } catch (e: org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException) {
-            throw NotFoundException(e.message ?: "")
+    override fun isComponentExists(component: String) = try {
+        client.getComponent(component).id == component
+    } catch (_: NotFoundException) {
+        false
+    }
+
+    override fun findReleases(component: String, versions: List<String>, includeRc: Boolean): List<ReleaseDTO> {
+        val allowedStatuses = getAllowedStatuses(includeRc)
+        return versions.chunked(20).flatMap {
+            client.getBuilds(component, BuildFilterDTO(statuses = allowedStatuses, versions = it.toSet()))
+                .map { build ->
+                    ReleaseDTO(
+                        build.component,
+                        build.version,
+                        ComponentVersionStatus.valueOf(build.status.name)
+                    )
+                }
         }
     }
 
-    override fun componentExists(component: String): Boolean {
-        return try {
-            client.getComponent(component).id == component
-        } catch (e: org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException) {
-            false
-        }
+    override fun getRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO {
+        val allowedStatuses = getAllowedStatuses(includeRc)
+        val build = client.getBuild(component, version)
+        return if (allowedStatuses.contains(build.status)) ReleaseFullDTO(
+            build.component,
+            build.version,
+            ComponentVersionStatus.valueOf(build.status.name),
+            build.statusHistory[build.status],
+            build.parents.map { it.toBuildDTO() },
+            build.dependencies.map { it.toBuildDTO() }
+        ) else throw IllegalVersionStatusException(
+            "Build for version '$version' of component '$component' has status ${build.status}. Allowed statuses are $allowedStatuses"
+        )
     }
 
-    override fun getComponentBuilds(component: String, buildStatuses: Array<BuildStatus>, versions: Set<String>)
-            : List<ComponentBuild> {
-        val statuses = buildStatuses.map { bs -> rmServiceBuildStatus.valueOf(bs.name) }.toSet()
-        return versions.chunked(20)
-            .flatMap { chunkVersions ->
-                client.getBuilds(component, BuildFilterDTO(statuses = statuses, versions = chunkVersions.toSet()))
-                    .map { b -> ComponentBuild(BuildStatus.valueOf(b.status.name), b.version) }
-            }
+    override fun findRelease(component: String, version: String, includeRc: Boolean) = try {
+        getRelease(component, version, includeRc)
+    } catch (_: Exception) {
+        null
     }
 
-    override fun getComponentBuild(component: String, version: String) =
-        try {
-            client.getBuild(component, version).toComponentBuild()
-        } catch (e: org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException) {
-            throw NotFoundException(e.message ?: "")
-        }
+    companion object {
+        private val NO_LESS_THAN_RELEASE = BuildStatus.RELEASE.noLessThan()
+        private val NO_LESS_THAN_RC = BuildStatus.RC.noLessThan()
 
+        private fun getAllowedStatuses(includeRc: Boolean) = if (includeRc) NO_LESS_THAN_RC else NO_LESS_THAN_RELEASE
 
-    fun RmBuildDTO.toComponentBuild(): ComponentBuild = ComponentBuild(BuildStatus.valueOf(status.name), version)
-
-    fun RmBuildDTO.toBuildDTO(): BuildDTO {
-        val buildStatus = BuildStatus.valueOf(status.name)
-        val promotedAt = statusHistory[status]
-        return BuildDTO(component, version, buildStatus, promotedAt)
+        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version)
     }
 }

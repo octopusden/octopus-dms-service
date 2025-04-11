@@ -19,20 +19,20 @@ class DockerArtifactDTO(
     val image: String,
     val tag: String,
 ): ArtifactDTO(id, RepositoryType.DOCKER, uploaded) {
-    override fun toString() = "DockerArtifactDTO(id=$id, uploaded=$uploaded, image=$image, tag=$tag)"
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
         other as DockerArtifactDTO
-        if (id != other.id) return false
-        if (uploaded != other.uploaded) return false
+
         if (image != other.image) return false
         if (tag != other.tag) return false
+
         return true
     }
 
-    override fun hashCode(): Int {
-        return Objects.hash(id, uploaded, image, tag)
-    }
+    override fun hashCode() = Objects.hash(id, uploaded, image, tag)
+
+    override fun toString() = "DockerArtifactDTO(id=$id, uploaded=$uploaded, image='$image', tag='$tag')"
 }

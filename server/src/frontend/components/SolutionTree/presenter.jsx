@@ -114,20 +114,19 @@ function renderDependencies(solutionId, solutionMinor, solutionVersion, dependen
     const {currentArtifacts} = props
     const {selectedSolutionId, selectedSolutionVersion, selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(dependencies).map(dependency => {
-        const dependencyId = dependency.component.id
-        const dependencyName = dependency.component.name
+        const componentId = dependency.component
         const version = dependency.version
-        const displayName = `${dependencyName}:${version}`
+        const displayName = `${componentId}:${version}`
         return {
             id: displayName,
             label: displayName,
             solutionId: solutionId,
             solutionVersion: solutionVersion,
             solutionMinor: solutionMinor,
-            componentId: dependencyId,
+            componentId: componentId,
             version: version,
             icon: 'inheritance',
-            isSelected: selectedComponent === dependencyId
+            isSelected: selectedComponent === componentId
                 && selectedVersion === version
                 && selectedSolutionId === solutionId
                 && selectedSolutionVersion === solutionVersion

@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @Schema(
     description = "Short artifact info",
@@ -21,21 +22,20 @@ open class ArtifactShortDTO(
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ArtifactShortDTO) return false
+        if (javaClass != other?.javaClass) return false
+
+        other as ArtifactShortDTO
+
         if (id != other.id) return false
         if (repositoryType != other.repositoryType) return false
         if (type != other.type) return false
         if (displayName != other.displayName) return false
         if (fileName != other.fileName) return false
+
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + repositoryType.hashCode()
-        result = 31 * result + type.hashCode()
-        result = 31 * result + displayName.hashCode()
-        result = 31 * result + fileName.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(id, repositoryType, type, displayName, fileName)
+
+    override fun toString() = "ArtifactShortDTO(id=$id, repositoryType=$repositoryType, type=$type, displayName='$displayName', fileName='$fileName')"
 }

@@ -4,6 +4,7 @@
     "status": "RELEASE",
     "version": "03.53.30.31-1",
     "release_version": "03.53.30.31",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -13,6 +14,7 @@
     "status": "BUILD",
     "version": "03.53.30.42-1",
     "release_version": "03.53.30.42",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -22,6 +24,7 @@
     "status": "RC",
     "version": "03.53.30.53-1",
     "release_version": "03.53.30.53",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -31,6 +34,7 @@
     "status": "BUILD",
     "version": "03.54.30.42-1",
     "release_version": "03.54.30.42",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -40,6 +44,7 @@
     "status": "RC",
     "version": "03.54.30.53-1",
     "release_version": "03.54.30.53",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -49,12 +54,8 @@
     "status": "RELEASE",
     "version": "03.54.30.64-1",
     "release_version": "03.54.30.64",
+    "parents": [],
     "dependencies": [
-      {
-        "component": "dependency3",
-        "version": "3.0.1",
-        "status": "RELEASE"
-      },
       {
         "component": "dependency1",
         "version": "1.0.1",
@@ -63,6 +64,16 @@
       {
         "component": "dependency2",
         "version": "2.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "dependency3",
+        "version": "3.0.1",
+        "status": "RELEASE"
+      },
+      {
+        "component": "ie-component",
+        "version": "4.0.1",
         "status": "RELEASE"
       }
     ],
@@ -74,6 +85,7 @@
     "status": "BUILD",
     "version": "03.55.30.42-1",
     "release_version": "03.55.30.42",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -83,6 +95,7 @@
     "status": "RC",
     "version": "03.55.30.53-1",
     "release_version": "03.55.30.53",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -92,6 +105,7 @@
     "status": "BUILD",
     "version": "03.56.30.42-1",
     "release_version": "03.56.30.42",
+    "parents": [],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -101,6 +115,13 @@
     "status": "RELEASE",
     "version": "1.0.1",
     "release_version": "1.0.1",
+    "parents": [
+      {
+        "component": "ee-component",
+        "version": "03.54.30.64-1",
+        "status": "RELEASE"
+      }
+    ],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -110,6 +131,13 @@
     "status": "RELEASE",
     "version": "2.0.1",
     "release_version": "2.0.1",
+    "parents": [
+      {
+        "component": "ee-component",
+        "version": "03.54.30.64-1",
+        "status": "RELEASE"
+      }
+    ],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
@@ -119,6 +147,29 @@
     "status": "RELEASE",
     "version": "3.0.1",
     "release_version": "3.0.1",
+    "parents": [
+      {
+        "component": "ee-component",
+        "version": "03.54.30.64-1",
+        "status": "RELEASE"
+      }
+    ],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ie-component",
+    "status": "RELEASE",
+    "version": "4.0.1",
+    "release_version": "4.0.1",
+    "parents": [
+      {
+        "component": "ee-component",
+        "version": "03.54.30.64-1",
+        "status": "RELEASE"
+      }
+    ],
     "dependencies": [],
     "commits": [],
     "statusHistory": {}

@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @Schema(
     description = "Full MAVEN artifact info",
@@ -28,15 +29,15 @@ class MavenArtifactFullDTO(
 ) : ArtifactFullDTO(id, RepositoryType.MAVEN, type, displayName, fileName) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is MavenArtifactFullDTO) return false
+        if (javaClass != other?.javaClass) return false
         if (!super.equals(other)) return false
-        if (gav != other.gav) return false
-        return true
+
+        other as MavenArtifactFullDTO
+
+        return gav == other.gav
     }
 
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + gav.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(id, type, displayName, fileName, gav)
+
+    override fun toString() = "MavenArtifactFullDTO(id=$id, type=$type, displayName='$displayName', fileName='$fileName', gav=$gav)"
 }

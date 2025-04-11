@@ -31,12 +31,6 @@ class AdminController(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
     ) = adminService.deleteInvalidComponentsVersions(dryRun)
 
-    @Operation(summary = "Recalculate Minor Versions")
-    @PostMapping("recalculate-minor-versions")
-    fun recalculateMinorVersions(
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
-    ) = adminService.recalculateMinorVersions(dryRun)
-
     @Operation(summary = "Delete Orphaned Artifacts")
     @DeleteMapping("orphaned-artifacts")
     fun deleteOrphanedArtifacts(

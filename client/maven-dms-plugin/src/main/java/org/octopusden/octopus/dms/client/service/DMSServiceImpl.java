@@ -17,6 +17,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
+import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO;
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
@@ -31,15 +32,17 @@ public class DMSServiceImpl implements DMSService {
     private static final EnumSet<RepositoryType> NOT_DOWNLOADABLE_REPOSITORY_TYPES = EnumSet.of(RepositoryType.DOCKER);
 
     @Override
-    public void validateArtifact(Log log,
-                                 DmsServiceUploadingClient dmsServiceClient,
-                                 File file,
-                                 ComponentVersion componentVersion,
-                                 ArtifactCoordinatesDTO coordinates,
-                                 ValidationPropertiesDTO validationConfiguration,
-                                 boolean failOnAlreadyExists,
-                                 Path validationLog,
-                                 boolean dryRun) {
+    public void validateArtifact(
+            Log log,
+            DmsServiceUploadingClient dmsServiceClient,
+            File file,
+            ComponentVersion componentVersion,
+            ArtifactCoordinatesDTO coordinates,
+            ValidationPropertiesDTO validationConfiguration,
+            boolean failOnAlreadyExists,
+            Path validationLog,
+            boolean dryRun
+    ) {
         log.info(String.format("Validate artifact '%s' for component '%s' version '%s', dry run '%s'", coordinates, componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
         if (!dryRun) {
             try {
@@ -67,15 +70,17 @@ public class DMSServiceImpl implements DMSService {
     }
 
     @Override
-    public void uploadArtifact(Log log,
-                               DmsServiceUploadingClient dmsServiceClient,
-                               File file,
-                               ComponentVersion componentVersion,
-                               ArtifactType type,
-                               ArtifactCoordinatesDTO coordinates,
-                               boolean failOnAlreadyExists,
-                               Path validationLog,
-                               boolean dryRun) {
+    public void uploadArtifact(
+            Log log,
+            DmsServiceUploadingClient dmsServiceClient,
+            File file,
+            ComponentVersion componentVersion,
+            ArtifactType type,
+            ArtifactCoordinatesDTO coordinates,
+            boolean failOnAlreadyExists,
+            Path validationLog,
+            boolean dryRun
+    ) {
         log.info(String.format("Upload %s artifact '%s' for component '%s' version '%s', dry run '%s'", type.value(), coordinates, componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
         if (!dryRun) {
             try {
@@ -105,6 +110,28 @@ public class DMSServiceImpl implements DMSService {
         }
     }
 
+    @Override
+    public void publish(
+            Log log,
+            DmsServiceUploadingClient dmsServiceClient,
+            ComponentVersion componentVersion,
+            boolean dryRun
+    ) {
+        log.info(String.format("Publish component '%s' version '%s', dry run '%s'", componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
+        if (!dryRun) {
+            try {
+                dmsServiceClient.patchComponentVersion(
+                        componentVersion.getComponentName(),
+                        componentVersion.getVersion(),
+                        new PatchComponentVersionDTO(true)
+                );
+            } catch (Exception e) {
+                throw new RuntimeMojoExecutionException(String.format("Failed to publish component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()), e);
+            }
+            log.info(String.format("Published component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()));
+        }
+    }
+
     /**
      * Validate artifact by downloading it and running validation rules.
      *
@@ -116,12 +143,14 @@ public class DMSServiceImpl implements DMSService {
      * @param artifactId              - artifact ID
      * @throws Exception
      */
-    private void validateArtifact(Log log,
-                                  DmsServiceUploadingClient dmsServiceClient,
-                                  ArtifactCoordinatesDTO coordinates,
-                                  ValidationPropertiesDTO validationConfiguration,
-                                  Path validationLog,
-                                  Long artifactId) throws Exception {
+    private void validateArtifact(
+            Log log,
+            DmsServiceUploadingClient dmsServiceClient,
+            ArtifactCoordinatesDTO coordinates,
+            ValidationPropertiesDTO validationConfiguration,
+            Path validationLog,
+            Long artifactId
+    ) throws Exception {
         Path artifactTempFile = Files.createTempFile(null, null);
         artifactTempFile.toFile().deleteOnExit();
         try (Response response = dmsServiceClient.downloadArtifact(artifactId)) {
@@ -140,7 +169,7 @@ public class DMSServiceImpl implements DMSService {
                 (artifactNameStartPosition == -1) ? artifactPath : artifactPath.substring(artifactPath.lastIndexOf('/') + 1),
                 artifactTempFile
         );
-        if (validationErrors.size() > 0) {
+        if (!validationErrors.isEmpty()) {
             StringBuilder message = new StringBuilder(String.format("Artifact '%s' validation errors:", coordinates.toPath()));
             for (String validationError : validationErrors) {
                 message.append('\n').append(validationError);

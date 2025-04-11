@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.client.common.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.util.Objects
 
 @Schema(
     description = "Full DEBIAN artifact info",
@@ -22,15 +23,15 @@ class DebianArtifactFullDTO(
 ) : ArtifactFullDTO(id, RepositoryType.DEBIAN, type, displayName, fileName) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is DebianArtifactFullDTO) return false
+        if (javaClass != other?.javaClass) return false
         if (!super.equals(other)) return false
-        if (deb != other.deb) return false
-        return true
+
+        other as DebianArtifactFullDTO
+
+        return deb == other.deb
     }
 
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + deb.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(id, type, displayName, fileName, deb)
+
+    override fun toString() = "DebianArtifactFullDTO(id=$id, type=$type, displayName='$displayName', fileName='$fileName', deb='$deb')"
 }

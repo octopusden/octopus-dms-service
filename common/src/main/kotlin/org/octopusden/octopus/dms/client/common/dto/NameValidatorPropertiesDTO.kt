@@ -1,21 +1,23 @@
 package org.octopusden.octopus.dms.client.common.dto
 
+import java.util.Objects
+
 class NameValidatorPropertiesDTO(
     val enabled: Boolean,
     val allowedPattern: Regex
 ) { //NOTE: cannot use data class, Regex equals method is invalid
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is NameValidatorPropertiesDTO) return false
+        if (javaClass != other?.javaClass) return false
+
+        other as NameValidatorPropertiesDTO
+
         if (enabled != other.enabled) return false
         if (allowedPattern.pattern != other.allowedPattern.pattern) return false
         if (allowedPattern.options != other.allowedPattern.options) return false
+
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = enabled.hashCode()
-        result = 31 * result + allowedPattern.hashCode()
-        return result
-    }
+    override fun hashCode() = Objects.hash(enabled, allowedPattern)
 }

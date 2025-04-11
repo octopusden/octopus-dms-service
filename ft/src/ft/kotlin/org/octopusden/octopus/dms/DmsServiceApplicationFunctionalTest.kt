@@ -148,7 +148,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates=${DEV_ARTIFACTS_COORDINATES},${RELEASE_ARTIFACTS_COORDINATES}",
             "-Dartifacts.coordinates.version=1.0",
             "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
-            "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES"
+            "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+            "-Dtype=distribution"
         ))) {
             assertEquals(1, this.first)
             assertContains(this.second, "[ERROR] Artifact '${devMavenDistributionCoordinates.toPath()}' validation errors:")
@@ -167,7 +168,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("invalid-distribution.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution"
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution",
+            "-Dtype=distribution"
         ))) {
             assertEquals(1, this.first)
             assertContains(this.second, "[ERROR] Artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}.zip' validation errors:")
@@ -182,7 +184,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
             "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
-            "-DexcludeFiles=forbidden.xml"
+            "-DexcludeFiles=forbidden.xml",
+            "-Dtype=distribution"
         ))) {
             assertEquals(0, this.first)
             assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
@@ -195,7 +198,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
             "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
-            "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json"
+            "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
+            "-Dtype=distribution"
         ))) {
             assertEquals(0, this.first)
             assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
@@ -213,7 +217,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.version=1.0",
                     "-Dartifacts.coordinates.deb=$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$RELEASE_RPM_ARTIFACTS_COORDINATES",
-                    "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES"
+                    "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES",
+                    "-Dtype=distribution"
                 )
             )
         ) {
@@ -260,7 +265,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         with(runMavenDmsPlugin("files.log", "upload-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=${distribution1.toPath().toUri()}?artifactId=distribution1,${distribution2.toPath().toUri()}?artifactId=distribution2"
+            "-Dartifacts.coordinates=${distribution1.toPath().toUri()}?artifactId=distribution1,${distribution2.toPath().toUri()}?artifactId=distribution2",
+            "-Dtype=distribution"
         ))) {
             assertEquals(0, this.first)
             assertContains(this.second, "[INFO] Uploaded distribution artifact '${distribution1Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
@@ -299,7 +305,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
             "-Dname=test",
-            "-Dfile=${file.absolutePath}"
+            "-Dfile=${file.absolutePath}",
+            "-Dtype=distribution"
         ))) {
             assertEquals(0, this.first)
             assertContains(this.second, "[INFO] Uploaded distribution artifact '${coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
@@ -312,6 +319,23 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             file.inputStream().use {
                 assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
             }
+        }
+    }
+
+    @Test
+    fun testMavenDmsPluginPublish() {
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0353.buildVersion,
+            client.addArtifact(releaseMavenDistributionCoordinates).id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+        )
+        with(runMavenDmsPlugin("file.log", "publish", listOf(
+            "-Dcomponent=$eeComponent",
+            "-Dversion=${eeComponentReleaseVersion0353.buildVersion}"
+        ))) {
+            assertEquals(0, this.first)
+            assertContains(this.second, "[INFO] Published component '$eeComponent' version '${eeComponentReleaseVersion0353.buildVersion}'")
         }
     }
 
@@ -328,8 +352,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-e",
             "-Ddms.url=$dmsServiceUrl",
             "-Ddms.username=${System.getProperty("dms-service.user")}",
-            "-Ddms.password=${System.getProperty("dms-service.password")}",
-            "-Dtype=distribution"
+            "-Ddms.password=${System.getProperty("dms-service.password")}"
         ) + parameters)
             .redirectErrorStream(true)
             .redirectOutput(outputFile)

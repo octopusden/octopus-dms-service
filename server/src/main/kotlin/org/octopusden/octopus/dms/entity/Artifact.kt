@@ -53,6 +53,8 @@ class DockerArtifact(
     override val repositoryType get() = RepositoryType.DOCKER
 
     override fun toDTO() = DockerArtifactDTO(id, uploaded, image, tag)
+
+    fun imageIdentifier(dockerRegistry: String) = "$dockerRegistry/${this.image}:${this.tag}"
 }
 
 @Entity

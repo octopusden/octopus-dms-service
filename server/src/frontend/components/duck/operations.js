@@ -175,7 +175,7 @@ const getDependencies = (componentId, minorVersion, version, onSuccess) => (disp
         response.json().then((data) => {
             if (response.ok) {
                 const dependencies = data.reduce((map, d) => {
-                    map[`${d.component.id}:${d.version}`] = d
+                    map[`${d.component}:${d.version}`] = d
                     return map
                 }, {})
                 dispatch(actions.receiveDependencies(componentId, minorVersion, version, dependencies))
