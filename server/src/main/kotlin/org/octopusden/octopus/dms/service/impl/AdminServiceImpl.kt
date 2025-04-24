@@ -58,7 +58,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
             it.component.name
         }.flatMap { (componentName, versions) ->
             val validComponentVersions = releaseManagementService.findReleases(
-                componentName, versions.map { it.version }, true
+                componentName, versions.map { it.version }, includeRc = true
             ).map { it.version }.toSet()
             componentVersionRepository.findByComponentName(componentName).filter {
                 !validComponentVersions.contains(it.version)
