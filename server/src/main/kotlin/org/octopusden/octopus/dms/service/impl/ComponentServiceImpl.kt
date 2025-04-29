@@ -100,7 +100,9 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             componentVersionRepository.findByComponentNameAndVersion(
                 dependency.component, dependency.version
             )?.let {
-                releaseManagementService.findRelease(it.component.name, it.version, true)?.let { dependencyRelease ->
+                releaseManagementService.findReleases(
+                    it.component.name, listOf(it.version), includeRc = true
+                ).firstOrNull()?.let { dependencyRelease ->
                     ComponentVersionWithInfoDTO(it.toDTO(dependencyRelease), numericVersionFactory.create(it.version))
                 }
             }

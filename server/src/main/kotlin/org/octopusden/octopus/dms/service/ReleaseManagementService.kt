@@ -5,7 +5,7 @@ import org.octopusden.octopus.dms.dto.ReleaseFullDTO
 
 interface ReleaseManagementService {
     fun isComponentExists(component: String): Boolean
-    fun findReleases(component: String, versions: List<String>, includeRc: Boolean): List<ReleaseDTO>
+    fun findReleases(component: String, buildVersions: List<String>, includeRc: Boolean): List<ReleaseDTO>
     fun getRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO
     fun findRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO?
 }

@@ -33,9 +33,9 @@ class ReleaseManagementServiceImpl(
         false
     }
 
-    override fun findReleases(component: String, versions: List<String>, includeRc: Boolean): List<ReleaseDTO> {
+    override fun findReleases(component: String, buildVersions: List<String>, includeRc: Boolean): List<ReleaseDTO> {
         val allowedStatuses = getAllowedStatuses(includeRc)
-        return versions.chunked(20).flatMap {
+        return buildVersions.chunked(20).flatMap {
             client.getBuilds(component, BuildFilterDTO(statuses = allowedStatuses, versions = it.toSet()))
                 .map { build ->
                     ReleaseDTO(

@@ -1,5 +1,15 @@
 [
   {
+    "component": "ee-client-specific-component",
+    "status": "RELEASE",
+    "version": "03.53.30.31-1",
+    "release_version": "03.53.30.31",
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
     "component": "ee-component",
     "status": "RELEASE",
     "version": "03.53.30.31-1",
