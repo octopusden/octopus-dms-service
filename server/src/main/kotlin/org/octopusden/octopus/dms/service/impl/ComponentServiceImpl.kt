@@ -139,7 +139,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             }
             applicationEventPublisher.publishEvent(
                 if (patchComponentVersionDTO.published) {
-                    PublishComponentVersionEvent(component.id, release.version, artifacts)
+                    PublishComponentVersionEvent(component.id, release.version, artifacts, component.clientCode ?: "None")
                 } else {
                     RevokeComponentVersionEvent(component.id, release.version, artifacts)
                 }
