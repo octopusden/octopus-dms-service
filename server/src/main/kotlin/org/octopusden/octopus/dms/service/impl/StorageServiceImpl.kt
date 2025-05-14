@@ -1,16 +1,15 @@
 package org.octopusden.octopus.dms.service.impl
 
-import org.octopusden.octopus.dms.client.common.dto.RepositoryType
-import org.octopusden.octopus.dms.configuration.StorageProperties
-import org.octopusden.octopus.dms.entity.Artifact
-import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
-import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
-import org.octopusden.octopus.dms.service.StorageService
 import java.io.InputStream
 import org.apache.http.client.HttpResponseException
 import org.jfrog.artifactory.client.Artifactory
 import org.jfrog.artifactory.client.ArtifactoryClientBuilder
 import org.jfrog.artifactory.client.model.File
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
+import org.octopusden.octopus.dms.configuration.StorageProperties
+import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
+import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
+import org.octopusden.octopus.dms.service.StorageService
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.stereotype.Service
@@ -37,37 +36,35 @@ class StorageServiceImpl(
             "${storageProperties.artifactory.externalRequestHost ?: storageProperties.artifactory.host}/artifactory/$it"
         }
 
-    override fun upload(artifact: Artifact, inputStream: InputStream) {
+    override fun upload(repositoryType: RepositoryType, path: String, inputStream: InputStream): File =
         client.repository(
-            storageProperties.artifactory.uploadRepositories[artifact.repositoryType]
-                ?: throw GeneralArtifactStoreException("Upload repository for ${artifact.repositoryType} artifacts is not set")
-        ).upload(artifact.path, inputStream).doUpload()
-    }
+            storageProperties.artifactory.uploadRepositories[repositoryType]
+                ?: throw GeneralArtifactStoreException("Upload repository for $repositoryType artifacts is not set")
+        ).upload(path, inputStream).doUpload()
 
-    override fun find(artifact: Artifact, includeStaging: Boolean): String {
-        val repositories = getRepositories(artifact.repositoryType, includeStaging)
+    override fun find(repositoryType: RepositoryType, includeStaging: Boolean, path: String): File {
+        val repositories = getRepositories(repositoryType, includeStaging)
         repositories.forEach {
             try {
-                client.repository(it)
-                    .file(artifact.path)
-                    .info<File>()
-                return it
+                return client.repository(it).file(
+                    if (repositoryType == RepositoryType.DOCKER) {
+                        "$path/manifest.json"
+                    } else {
+                        path
+                    }
+                ).info()
             } catch (e: HttpResponseException) {
-                if (e.statusCode == 404) {
-                    //do nothing
-                } else {
-                    throw e
-                }
+                if (e.statusCode != 404) throw e
             }
         }
-        throw UnableToFindArtifactException("Artifact ${artifact.path} not found in repositories $repositories")
+        throw UnableToFindArtifactException("Artifact $path not found in repositories $repositories")
     }
 
-    override fun download(artifact: Artifact, includeStaging: Boolean): InputStream {
-        if (artifact.repositoryType == RepositoryType.DOCKER) {
-            throw UnsupportedOperationException("Downloading of Docker artifacts is not supported.")
+    override fun download(repositoryType: RepositoryType, includeStaging: Boolean, path: String): InputStream {
+        if (repositoryType == RepositoryType.DOCKER) {
+            throw UnsupportedOperationException("Downloading of $repositoryType artifacts is not supported.")
         }
-        return client.repository(find(artifact, includeStaging)).download(artifact.path).doDownload()
+        return client.repository(find(repositoryType, includeStaging, path).repo).download(path).doDownload()
     }
 
     override fun health(): Health {

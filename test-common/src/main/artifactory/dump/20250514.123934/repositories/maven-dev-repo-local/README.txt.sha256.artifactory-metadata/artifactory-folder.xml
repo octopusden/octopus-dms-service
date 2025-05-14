@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<artifactory-folder>
+  <repoPath>
+    <repoKey>maven-dev-repo-local</repoKey>
+    <path>README.txt.sha256</path>
+    <folder>true</folder>
+  </repoPath>
+  <name>README.txt.sha256</name>
+  <created>1747225740123</created>
+  <lastModified>1747225740123</lastModified>
+  <additionalInfo>
+    <lastUpdated>1747225740123</lastUpdated>
+  </additionalInfo>
+</artifactory-folder>

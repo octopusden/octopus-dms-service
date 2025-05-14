@@ -22,6 +22,7 @@ import org.octopusden.octopus.dms.event.PublishComponentVersionEvent
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.event.RevokeComponentVersionEvent
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
 import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.VersionPublishedException
@@ -194,8 +195,8 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentName: String, version: String, artifactId: Long
     ): DownloadArtifactDTO {
         log.info("Download artifact with ID '$artifactId' for version '$version' of component '$componentName'")
-        return getComponentVersionArtifactEntity(componentName, version, artifactId).let {
-            DownloadArtifactDTO(it.artifact.fileName, storageService.download(it.artifact, false))
+        return getComponentVersionArtifactEntity(componentName, version, artifactId).artifact.let {
+            DownloadArtifactDTO(it.fileName, storageService.download(it.repositoryType, false, it.path))
         }
     }
 
@@ -208,11 +209,13 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         registerArtifactDTO: RegisterArtifactDTO
     ): ArtifactFullDTO {
         log.info("Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'")
+        getExternalExplicitComponent(componentName)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
-        storageService.find(artifact, false)
-        getExternalExplicitComponent(componentName)
+        storageService.find(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
+            if (artifact.sha256 != it) throw ArtifactChecksumChangedException("SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'")
+        }
         val release = releaseManagementService.getRelease(
             componentName,
             version,
@@ -236,9 +239,10 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             componentVersion, artifact
         )
         return if (componentVersionArtifact != null) {
-            val message = "Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'"
-            if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(message)
-            else log.info(message)
+            with("Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
+                log.info(this)
+            }
             componentVersionArtifact.toFullDTO(dockerRegistry)
         } else {
             if (componentVersion.published) {

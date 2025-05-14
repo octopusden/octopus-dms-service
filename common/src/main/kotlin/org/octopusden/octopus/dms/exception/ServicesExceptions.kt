@@ -7,6 +7,7 @@ abstract class DMSException(message: String, val code: String) : RuntimeExceptio
             "DMS-40001" to { message: String -> IllegalComponentTypeException(message) },
             "DMS-40002" to { message: String -> UnknownArtifactTypeException(message) },
             "DMS-40003" to { message: String -> ArtifactAlreadyExistsException(message) },
+            "DMS-40004" to { message: String -> ArtifactChecksumChangedException(message) },
             "DMS-40006" to { message: String -> UnableToFindArtifactException(message) },
             "DMS-40007" to { message: String -> PackagingIsNotSpecifiedException(message) },
             "DMS-40008" to { message: String -> DownloadResultFailureException(message) },
@@ -22,6 +23,7 @@ class GeneralArtifactStoreException(message: String) : DMSException(message, "DM
 class IllegalComponentTypeException(message: String) : DMSException(message, "DMS-40001")
 class UnknownArtifactTypeException(message: String) : DMSException(message, "DMS-40002")
 class ArtifactAlreadyExistsException(message: String) : DMSException(message, "DMS-40003")
+class ArtifactChecksumChangedException(message: String) : DMSException(message, "DMS-40004")
 class UnableToFindArtifactException(message: String) : DMSException(message, "DMS-40006")
 class PackagingIsNotSpecifiedException(message: String) : DMSException(message, "DMS-40007")
 class DownloadResultFailureException(message: String) : DMSException(message, "DMS-40008")

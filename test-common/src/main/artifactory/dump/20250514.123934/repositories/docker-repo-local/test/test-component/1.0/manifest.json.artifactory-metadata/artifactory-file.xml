@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<artifactory-file>
+  <repoPath>
+    <repoKey>docker-repo-local</repoKey>
+    <path>test/test-component/1.0/manifest.json</path>
+    <folder>false</folder>
+  </repoPath>
+  <name>manifest.json</name>
+  <created>1747226018291</created>
+  <lastModified>1747226013546</lastModified>
+  <size>1401</size>
+  <additionalInfo>
+    <createdBy>admin</createdBy>
+    <modifiedBy>admin</modifiedBy>
+    <lastUpdated>1747226018292</lastUpdated>
+    <checksumsInfo>
+      <checksums>
+        <checksum>
+          <type>sha1</type>
+          <original>NO_ORIG</original>
+          <actual>54b3159910f3bdfa326133b3df39f3a1bd5b4f8e</actual>
+        </checksum>
+        <checksum>
+          <type>md5</type>
+          <original>NO_ORIG</original>
+          <actual>cdaeb58af9e0b531ece21b04f018dd3e</actual>
+        </checksum>
+        <checksum>
+          <type>sha256</type>
+          <original>NO_ORIG</original>
+          <actual>f0de2ea697553a2fb8b419eff472d330181187dfcbf9748e61cf39fb06ed2b74</actual>
+        </checksum>
+      </checksums>
+    </checksumsInfo>
+  </additionalInfo>
+</artifactory-file>

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertIterableEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertThrowsExactly
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -135,10 +136,13 @@ abstract class DmsServiceApplicationBaseTest {
             }
         }
         releaseNotesRELEASE.openStream().use {
-            assertEquals(
-                artifact,
-                client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)
-            )
+            with(client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)) {
+                assertEquals(artifact.id, id)
+                assertEquals(artifact.repositoryType, repositoryType)
+                assertEquals(artifact.uploaded, uploaded)
+                assertNotEquals(artifact.sha256, sha256)
+                assertEquals(artifact.gav, gav)
+            }
         }
         client.downloadArtifact(artifact.id).use { response ->
             releaseNotesRELEASE.openStream().use {
