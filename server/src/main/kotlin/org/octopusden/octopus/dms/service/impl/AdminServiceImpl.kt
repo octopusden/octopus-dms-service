@@ -82,7 +82,12 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param dryRun - if true, do not update/delete artifacts
      */
     override fun deleteInvalidArtifacts(updateSha256: Boolean, dryRun: Boolean) = artifactRepository.findAll().forEach {
-        val sha256 = storageService.find(it.repositoryType, true, it.path)?.checksums?.sha256
+        val sha256 = try {
+            storageService.find(it.repositoryType, true, it.path)?.checksums?.sha256
+        } catch (e: Exception) {
+            log.warn("Unable to check obtainability of artifact with ID '${it.id}'")
+            return@forEach
+        }
         if (sha256 != it.sha256) {
             if (updateSha256 && sha256 != null) {
                 log.info("Update SHA256 checksum from ${it.sha256} to $sha256 for artifact with ID '${it.id}'")
