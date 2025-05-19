@@ -11,6 +11,7 @@ import org.octopusden.octopus.dms.repository.ComponentVersionRepository
 import org.octopusden.octopus.dms.service.AdminService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.ReleaseManagementService
+import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 class AdminServiceImpl( //TODO: move functionality to ComponentService and ArtifactService?
     private val componentsRegistryService: ComponentsRegistryService,
     private val releaseManagementService: ReleaseManagementService,
+    private val storageService: StorageService,
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
@@ -68,6 +70,32 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
         if (!dryRun) {
             componentVersionRepository.deleteAll(invalidComponentsVersions)
             log.info("${invalidComponentsVersions.size} invalid component version(s) deleted")
+        }
+    }
+
+    /**
+     * Remove all artifacts unobtainable from Artifactory.
+     *
+     * If artifact is registered for some component versions no "delete" events should be generated (this requirement could be changed later).
+     *
+     * @param updateSha256 - if true, update sha256 for artifacts (in other case, consider all artifacts with irrelevant sha256 as unobtainable)
+     * @param dryRun - if true, do not update/delete artifacts
+     */
+    override fun deleteInvalidArtifacts(updateSha256: Boolean, dryRun: Boolean) = artifactRepository.findAll().forEach {
+        val sha256 = storageService.find(it.repositoryType, true, it.path)?.checksums?.sha256
+        if (sha256 != it.sha256) {
+            if (updateSha256 && sha256 != null) {
+                log.info("Update SHA256 checksum from ${it.sha256} to $sha256 for artifact with ID '${it.id}'")
+                if (!dryRun) {
+                    it.sha256 = sha256
+                    artifactRepository.save(it)
+                }
+            } else {
+                log.info("Delete unobtainable artifact with ID '${it.id}'")
+                if (!dryRun) {
+                    artifactRepository.delete(it)
+                }
+            }
         }
     }
 

@@ -213,7 +213,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
-        storageService.find(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
+        storageService.get(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
             if (artifact.sha256 != it) throw ArtifactChecksumChangedException("SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'")
         }
         val release = releaseManagementService.getRelease(

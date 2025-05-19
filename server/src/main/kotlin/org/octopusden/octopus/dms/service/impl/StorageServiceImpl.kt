@@ -42,29 +42,31 @@ class StorageServiceImpl(
                 ?: throw GeneralArtifactStoreException("Upload repository for $repositoryType artifacts is not set")
         ).upload(path, inputStream).doUpload()
 
-    override fun find(repositoryType: RepositoryType, includeStaging: Boolean, path: String): File {
-        val repositories = getRepositories(repositoryType, includeStaging)
-        repositories.forEach {
+    override fun find(repositoryType: RepositoryType, includeStaging: Boolean, path: String) =
+        getRepositories(repositoryType, includeStaging).firstNotNullOfOrNull {
             try {
-                return client.repository(it).file(
+                client.repository(it).file(
                     if (repositoryType == RepositoryType.DOCKER) {
                         "$path/manifest.json"
                     } else {
                         path
                     }
-                ).info()
+                ).info<File>()
             } catch (e: HttpResponseException) {
-                if (e.statusCode != 404) throw e
+                if (e.statusCode == 404) null else throw e
             }
         }
-        throw UnableToFindArtifactException("Artifact $path not found in repositories $repositories")
-    }
+
+    override fun get(repositoryType: RepositoryType, includeStaging: Boolean, path: String) =
+        find(repositoryType, includeStaging, path) ?: throw UnableToFindArtifactException(
+            "Artifact $path not found in repositories ${getRepositories(repositoryType, includeStaging)}"
+        )
 
     override fun download(repositoryType: RepositoryType, includeStaging: Boolean, path: String): InputStream {
         if (repositoryType == RepositoryType.DOCKER) {
             throw UnsupportedOperationException("Downloading of $repositoryType artifacts is not supported.")
         }
-        return client.repository(find(repositoryType, includeStaging, path).repo).download(path).doDownload()
+        return client.repository(get(repositoryType, includeStaging, path).repo).download(path).doDownload()
     }
 
     override fun health(): Health {

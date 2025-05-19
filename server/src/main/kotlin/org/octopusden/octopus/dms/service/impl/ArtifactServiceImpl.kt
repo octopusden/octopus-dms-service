@@ -67,7 +67,7 @@ class ArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO
     ): ArtifactDTO {
         log.info("Add artifact with coordinates '$artifactCoordinates'")
-        val sha256 = storageService.find(
+        val sha256 = storageService.get(
             artifactCoordinates.repositoryType, true, artifactCoordinates.toPath()
         ).checksums.sha256
         val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
