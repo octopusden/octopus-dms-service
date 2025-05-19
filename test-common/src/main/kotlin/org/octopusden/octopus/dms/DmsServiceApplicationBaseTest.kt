@@ -35,6 +35,7 @@ import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
@@ -42,6 +43,7 @@ import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
 import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
@@ -86,6 +88,10 @@ abstract class DmsServiceApplicationBaseTest {
                     " SELECT id, '${version.minorVersion}', '${version.buildVersion}', false" +
                     " FROM component WHERE name = '$component'"
         )
+    }
+
+    private fun updateSha256(artifactId: Long, sha256: String) = dmsDbConnection.createStatement().use {
+        it.executeUpdate("UPDATE artifact SET sha256 = '$sha256' WHERE id = $artifactId")
     }
 
     /**
@@ -179,6 +185,61 @@ abstract class DmsServiceApplicationBaseTest {
     fun testAddInvalidArtifacts(artifactCoordinates: ArtifactCoordinatesDTO) {
         assertThrowsExactly(UnableToFindArtifactException::class.java) {
             client.addArtifact(artifactCoordinates)
+        }
+    }
+
+    @Test
+    fun testRegisterUploadedArtifactWithChangedChecksum() {
+        val releaseNotesRC = getResource(devReleaseNotesFileName)
+        val artifact = releaseNotesRC.openStream().use {
+            client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, true)
+        }
+        updateSha256(artifact.id, "some-other-sha256")
+        assertThrowsExactly(ArtifactChecksumChangedException::class.java) {
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.NOTES)
+            )
+        }
+        releaseNotesRC.openStream().use {
+            client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, false)
+        }
+        with(client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )) {
+            this as MavenArtifactFullDTO
+            assertEquals(artifact.id, id)
+            assertEquals(artifact.sha256, sha256)
+            assertEquals(artifact.gav, gav)
+        }
+    }
+
+    @Test
+    fun testRegisterAddedArtifactWithChangedChecksum() {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        updateSha256(artifact.id, "some-other-sha256")
+        assertThrowsExactly(ArtifactChecksumChangedException::class.java) {
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
+        }
+        client.addArtifact(releaseMavenDistributionCoordinates)
+        with(client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES)
+        )) {
+            assertEquals(artifact.id, id)
+            assertEquals(artifact.sha256, sha256)
         }
     }
 

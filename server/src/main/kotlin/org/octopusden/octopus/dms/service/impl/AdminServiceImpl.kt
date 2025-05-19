@@ -78,10 +78,13 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      *
      * If artifact is registered for some component versions no "delete" events should be generated (this requirement could be changed later).
      *
+     * This is "dummy" clean up implementation, use with extreme caution!
+     *
      * @param updateSha256 - if true, update sha256 for artifacts (in other case, consider all artifacts with irrelevant sha256 as unobtainable)
      * @param dryRun - if true, do not update/delete artifacts
      */
     override fun deleteInvalidArtifacts(updateSha256: Boolean, dryRun: Boolean) = artifactRepository.findAll().forEach {
+        //TODO: implement batch processing with transaction propagation REQUIRES_NEW etc.
         val sha256 = try {
             storageService.find(it.repositoryType, true, it.path)?.checksums?.sha256
         } catch (e: Exception) {

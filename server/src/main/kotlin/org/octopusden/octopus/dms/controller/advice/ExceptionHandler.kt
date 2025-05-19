@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
+import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
 import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.DownloadResultFailureException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
@@ -37,6 +38,7 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         IllegalComponentTypeException::class,
         UnknownArtifactTypeException::class,
         ArtifactAlreadyExistsException::class,
+        ArtifactChecksumChangedException::class,
         UnableToFindArtifactException::class,
         PackagingIsNotSpecifiedException::class,
         DownloadResultFailureException::class,
