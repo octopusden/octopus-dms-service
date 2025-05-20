@@ -9,6 +9,7 @@ import java.util.Objects
             "  \"id\": 1,\n" +
             "  \"repositoryType\": \"MAVEN\",\n" +
             "  \"uploaded\": false,\n" +
+            "  \"sha256\": \"154cdd40a581ab4e904d74101c82de6292e78ab4b21597d245673bbc10a3732b\",\n"+
             "  \"gav\": {\n" +
             "    \"groupId\": \"domain.corp.distribution\",\n" +
             "    \"artifactId\": \"some-app\",\n" +
@@ -21,8 +22,9 @@ import java.util.Objects
 class MavenArtifactDTO(
     id: Long,
     uploaded: Boolean,
+    sha256: String,
     val gav: GavDTO
-): ArtifactDTO(id, RepositoryType.MAVEN, uploaded) {
+): ArtifactDTO(id, RepositoryType.MAVEN, uploaded, sha256) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -33,7 +35,7 @@ class MavenArtifactDTO(
         return gav == other.gav
     }
 
-    override fun hashCode() = Objects.hash(id, uploaded, gav)
+    override fun hashCode() = Objects.hash(id, uploaded, sha256, gav)
 
-    override fun toString() = "MavenArtifactDTO(id=$id, uploaded=$uploaded, gav=$gav)"
+    override fun toString() = "MavenArtifactDTO(id=$id, uploaded=$uploaded, sha256='$sha256', gav=$gav)"
 }

@@ -33,7 +33,8 @@ import java.util.Objects
 abstract class ArtifactDTO(
     val id: Long,
     val repositoryType: RepositoryType,
-    val uploaded: Boolean
+    val uploaded: Boolean,
+    val sha256: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -44,9 +45,10 @@ abstract class ArtifactDTO(
         if (id != other.id) return false
         if (repositoryType != other.repositoryType) return false
         if (uploaded != other.uploaded) return false
+        if (sha256 != other.sha256) return false
 
         return true
     }
 
-    override fun hashCode() = Objects.hash(id, repositoryType, uploaded)
+    override fun hashCode() = Objects.hash(id, repositoryType, uploaded, sha256)
 }

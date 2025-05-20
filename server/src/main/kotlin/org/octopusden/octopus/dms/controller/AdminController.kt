@@ -31,6 +31,13 @@ class AdminController(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
     ) = adminService.deleteInvalidComponentsVersions(dryRun)
 
+    @Operation(summary = "Delete Invalid Artifacts")
+    @DeleteMapping("invalid-artifacts")
+    fun deleteInvalidArtifacts(
+        @RequestParam("update-sha256", defaultValue = "true", required = false) updateSha256: Boolean,
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
+    ) = adminService.deleteInvalidArtifacts(updateSha256, dryRun)
+
     @Operation(summary = "Delete Orphaned Artifacts")
     @DeleteMapping("orphaned-artifacts")
     fun deleteOrphanedArtifacts(

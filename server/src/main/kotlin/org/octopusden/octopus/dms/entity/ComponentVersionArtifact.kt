@@ -61,7 +61,8 @@ class ComponentVersionArtifact (
                     this.artifact.repositoryType,
                     this.type,
                     this.displayName,
-                    this.artifact.imageIdentifier(dockerRegistry)
+                    this.artifact.imageIdentifier(dockerRegistry),
+                    this.artifact.sha256
                 )
             }
 
@@ -70,7 +71,8 @@ class ComponentVersionArtifact (
                 this.artifact.repositoryType,
                 this.type,
                 this.displayName,
-                this.artifact.fileName
+                this.artifact.fileName,
+                this.artifact.sha256
             )
         }
     }
@@ -84,6 +86,7 @@ class ComponentVersionArtifact (
                     this.type,
                     this.displayName,
                     this.artifact.fileName,
+                    this.artifact.sha256,
                     this.artifact.gav
                 )
             }
@@ -93,6 +96,7 @@ class ComponentVersionArtifact (
                 this.type,
                 this.displayName,
                 this.artifact.fileName,
+                this.artifact.sha256,
                 this.artifact.path
             )
 
@@ -101,6 +105,7 @@ class ComponentVersionArtifact (
                 this.type,
                 this.displayName,
                 this.artifact.fileName,
+                this.artifact.sha256,
                 this.artifact.path
             )
 
@@ -111,6 +116,7 @@ class ComponentVersionArtifact (
                     this.type,
                     this.displayName,
                     this.artifact.imageIdentifier(dockerRegistry),
+                    this.artifact.sha256,
                     this.artifact.image,
                     this.artifact.tag
                 )

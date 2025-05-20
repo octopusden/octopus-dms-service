@@ -26,7 +26,8 @@ abstract class Artifact(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     val uploaded: Boolean,
-    val path: String
+    val path: String,
+    var sha256: String
 ) {
     val fileName get() = path.substringAfterLast("/")
 
@@ -35,7 +36,7 @@ abstract class Artifact(
     abstract fun toDTO(): ArtifactDTO
 
     override fun toString(): String {
-        return "Artifact(id=$id, repositoryType=$repositoryType, uploaded=$uploaded, path=$path)"
+        return "Artifact(id=$id, repositoryType=$repositoryType, uploaded=$uploaded, path=$path, sha256=$sha256)"
     }
 }
 
@@ -44,15 +45,17 @@ abstract class Artifact(
 class DockerArtifact(
     uploaded: Boolean,
     path: String,
+    sha256: String,
     val image: String,
     val tag: String,
 ) : Artifact(
     uploaded = uploaded,
-    path = path
+    path = path,
+    sha256 = sha256
 ) {
     override val repositoryType get() = RepositoryType.DOCKER
 
-    override fun toDTO() = DockerArtifactDTO(id, uploaded, image, tag)
+    override fun toDTO() = DockerArtifactDTO(id, uploaded, sha256, image, tag)
 
     fun imageIdentifier(dockerRegistry: String) = "$dockerRegistry/${this.image}:${this.tag}"
 }
@@ -62,6 +65,7 @@ class DockerArtifact(
 class MavenArtifact(
     uploaded: Boolean,
     path: String,
+    sha256: String,
     val groupId: String,
     val artifactId: String,
     val version: String,
@@ -69,39 +73,44 @@ class MavenArtifact(
     val classifier: String?
 ) : Artifact(
     uploaded = uploaded,
-    path = path
+    path = path,
+    sha256 = sha256
 ) {
     override val repositoryType get() = RepositoryType.MAVEN
 
     val gav get() = GavDTO(groupId, artifactId, version, packaging, classifier)
 
-    override fun toDTO() = MavenArtifactDTO(id, uploaded, gav)
+    override fun toDTO() = MavenArtifactDTO(id, uploaded, sha256, gav)
 }
 
 @Entity
 @DiscriminatorValue("DEBIAN")
 class DebianArtifact(
     uploaded: Boolean,
-    path: String
+    path: String,
+    sha256: String
 ) : Artifact(
     path = path,
-    uploaded = uploaded
+    uploaded = uploaded,
+    sha256 = sha256
 ) {
     override val repositoryType get() = RepositoryType.DEBIAN
 
-    override fun toDTO() = DebianArtifactDTO(id, uploaded, path)
+    override fun toDTO() = DebianArtifactDTO(id, uploaded, sha256, path)
 }
 
 @Entity
 @DiscriminatorValue("RPM")
 class RpmArtifact(
     uploaded: Boolean,
-    path: String
+    path: String,
+    sha256: String
 ) : Artifact(
     path = path,
-    uploaded = uploaded
+    uploaded = uploaded,
+    sha256 = sha256
 ) {
     override val repositoryType get() = RepositoryType.RPM
 
-    override fun toDTO() = RpmArtifactDTO(id, uploaded, path)
+    override fun toDTO() = RpmArtifactDTO(id, uploaded, sha256, path)
 }

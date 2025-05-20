@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
+import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
@@ -56,7 +57,7 @@ class ArtifactServiceImpl(
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
         return DownloadArtifactDTO(
             artifact.fileName,
-            storageService.download(artifact, true)
+            storageService.download(artifact.repositoryType, true, artifact.path)
         )
     }
 
@@ -66,17 +67,17 @@ class ArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO
     ): ArtifactDTO {
         log.info("Add artifact with coordinates '$artifactCoordinates'")
-        val artifact = artifactCoordinates.createArtifact(false)
-        storageService.find(artifact, true)
-        return (artifactRepository.findByPath(artifact.path)?.let {
-            with("Artifact with coordinates '${artifactCoordinates.toPath()}' already added") {
-                if (failOnAlreadyExists) {
-                    throw ArtifactAlreadyExistsException(this)
-                }
+        val sha256 = storageService.get(
+            artifactCoordinates.repositoryType, true, artifactCoordinates.toPath()
+        ).checksums.sha256
+        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
+            with("Artifact with coordinates '${it.path}' already added") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
-            it
-        } ?: artifactRepository.save(artifact)).toDTO()
+            it.updateSha256(sha256)
+        } ?: artifactRepository.save(artifactCoordinates.createArtifact(false, sha256))
+        return artifact.toDTO()
     }
 
     @Transactional(readOnly = false)
@@ -86,30 +87,43 @@ class ArtifactServiceImpl(
         file: MultipartFile
     ): ArtifactDTO {
         log.info("Upload file ${file.originalFilename} as artifact with coordinates '$artifactCoordinates'")
-        val artifact = artifactCoordinates.createArtifact(true).run {
-            artifactRepository.findByPath(this.path)?.let {
-                with("Artifact '${this.path}' already uploaded") {
-                    if (failOnAlreadyExists) {
-                        throw ArtifactAlreadyExistsException(this)
-                    }
-                    log.info(this)
-                }
-                //NOTE:
-                // allowing of artifact re-uploading may be an issue if it is registered for published component version
-                // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
-                it
-            } ?: artifactRepository.save(this)
-        }
-        file.inputStream.use { storageService.upload(artifact, it) }
+        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
+            with("Artifact '${it.path}' already uploaded") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
+                log.info(this)
+            }
+            //NOTE:
+            // allowing of artifact re-uploading may be an issue if it is registered for published component version
+            // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
+            it.updateSha256(
+                file.inputStream.use { inputStream ->
+                    storageService.upload(it.repositoryType, it.path, inputStream)
+                }.checksums.sha256
+            )
+        } ?: artifactRepository.save(
+            artifactCoordinates.createArtifact(
+                true, file.inputStream.use { inputStream ->
+                    storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
+                }.checksums.sha256
+            )
+        )
         return artifact.toDTO()
     }
 
-    private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean) = when (repositoryType) {
+    private fun Artifact.updateSha256(sha256: String) = if (this.sha256 != sha256) {
+        log.info("SHA256 checksum has changed from ${this.sha256} to $sha256 for artifact with coordinates '${this.path}'")
+        this.sha256 = sha256
+        artifactRepository.save(this)
+    } else this
+
+
+    private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean, sha256: String) = when (repositoryType) {
         RepositoryType.MAVEN -> {
             this as MavenArtifactCoordinatesDTO
             MavenArtifact(
                 uploaded = uploaded,
                 path = toPath(),
+                sha256 = sha256,
                 groupId = gav.groupId,
                 artifactId = gav.artifactId,
                 version = gav.version,
@@ -121,14 +135,14 @@ class ArtifactServiceImpl(
         RepositoryType.DEBIAN -> {
             this as DebianArtifactCoordinatesDTO
             DebianArtifact(
-                uploaded = uploaded, path = toPath()
+                uploaded = uploaded, path = toPath(), sha256 = sha256
             )
         }
 
         RepositoryType.RPM -> {
             this as RpmArtifactCoordinatesDTO
             RpmArtifact(
-                uploaded = uploaded, path = toPath()
+                uploaded = uploaded, path = toPath(), sha256 = sha256
             )
         }
 
@@ -136,11 +150,12 @@ class ArtifactServiceImpl(
         RepositoryType.DOCKER -> {
             this as DockerArtifactCoordinatesDTO
             if (tag.equals("latest", true)) {
-                throw GeneralArtifactStoreException("Docker tag 'latest' is forbidden for registration")
+                throw GeneralArtifactStoreException("Docker tag '$tag' is forbidden for registration")
             }
             DockerArtifact(
                 uploaded = uploaded,
                 path = toPath(),
+                sha256 = sha256,
                 image = image,
                 tag = tag
             )
