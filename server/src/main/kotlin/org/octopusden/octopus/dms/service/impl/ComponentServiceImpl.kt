@@ -122,27 +122,45 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         return if (componentVersion.published == patchComponentVersionDTO.published) {
             componentVersion.toDTO(release)
         } else {
-            if (patchComponentVersionDTO.published && component.solution) {
-                release.dependencies.filter {
-                    componentsRegistryService.getExternalComponent(it.component).explicit && !it.isPublished()
-                }.takeIf { it.isNotEmpty() }?.let {
-                    throw VersionPublishedException("Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished explicit dependencies $it")
+            val artifacts = componentVersionArtifactRepository.findByComponentVersion(componentVersion).map {
+                it.toFullDTO(dockerRegistry)
+            }.toMutableSet()
+            if (component.solution) {
+                //TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
+                //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
+                val unpublishedDependencies = mutableListOf<BuildDTO>()
+                release.dependencies.forEach { dependencyBuild ->
+                    if (componentsRegistryService.getExternalComponent(dependencyBuild.component).explicit) {
+                        val dependencyComponentVersion = componentVersionRepository.findByComponentNameAndVersion(
+                            dependencyBuild.component, dependencyBuild.version
+                        )
+                        if (dependencyComponentVersion?.published != true) {
+                            unpublishedDependencies.add(dependencyBuild)
+                        } else {
+                            artifacts.addAll(
+                                componentVersionArtifactRepository.findByComponentVersion(
+                                    dependencyComponentVersion
+                                ).map { it.toFullDTO(dockerRegistry) }
+                            )
+                        }
+                    }
                 }
-            } else if (!patchComponentVersionDTO.published && !component.solution) {
+                if (patchComponentVersionDTO.published && unpublishedDependencies.isNotEmpty()) {
+                    throw VersionPublishedException("Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies")
+                }
+            } else if (!patchComponentVersionDTO.published) {
                 release.parents.filter {
-                    componentsRegistryService.getExternalComponent(it.component).solution && it.isPublished()
+                    componentsRegistryService.getExternalComponent(it.component).solution &&
+                            componentVersionRepository.findByComponentNameAndVersion(it.component, it.version)?.published == true
                 }.takeIf { it.isNotEmpty() }?.let {
                     throw VersionPublishedException("Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it")
                 }
             }
-            val artifacts = componentVersionArtifactRepository.findByComponentVersion(componentVersion).map {
-                it.toShortDTO(dockerRegistry)
-            }
             applicationEventPublisher.publishEvent(
                 if (patchComponentVersionDTO.published) {
-                    PublishComponentVersionEvent(component.id, release.version, artifacts)
+                    PublishComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
                 } else {
-                    RevokeComponentVersionEvent(component.id, release.version, artifacts)
+                    RevokeComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
                 }
             )
             componentVersionRepository.save(componentVersion.apply {
@@ -326,9 +344,6 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             componentName, buildVersion, artifactId
         )
     }
-
-    private fun BuildDTO.isPublished() =
-        componentVersionRepository.findByComponentNameAndVersion(component, version)?.published == true
 
     private fun ComponentVersion.toDTO(release: ReleaseDTO) = ComponentVersionDTO(
         component.name, version, published, release.status
