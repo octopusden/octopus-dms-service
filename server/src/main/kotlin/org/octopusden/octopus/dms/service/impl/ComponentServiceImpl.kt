@@ -156,6 +156,13 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                     throw VersionPublishedException("Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it")
                 }
             }
+
+            val publishEvent = PublishComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
+
+            println(publishEvent.type)
+            println(publishEvent.componentVersion)
+            println(publishEvent.artifacts)
+
             applicationEventPublisher.publishEvent(
                 if (patchComponentVersionDTO.published) {
                     PublishComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
