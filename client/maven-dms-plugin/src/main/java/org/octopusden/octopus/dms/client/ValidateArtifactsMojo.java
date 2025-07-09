@@ -2,7 +2,9 @@ package org.octopusden.octopus.dms.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.octopusden.octopus.dms.client.common.dto.LicenseValidatorPropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO;
+import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.service.ArtifactService;
 import org.octopusden.octopus.dms.client.service.DMSService;
 import java.io.File;
@@ -34,6 +36,9 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
 
     @Parameter(property = "wlIgnore")
     private File wlIgnore;
+
+    @Parameter(property = "skipLicenceValidation", defaultValue = "false")
+    private boolean skipLicenceValidation;
 
     @Inject
     public ValidateArtifactsMojo(ArtifactService artifactService, DMSService dmsService) {
@@ -91,6 +96,15 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 throw new RuntimeMojoExecutionException(e.getMessage(), e);
             }
         }
+        ValidationPropertiesDTO originalValidation = dmsConfiguration.getValidation();
+        ValidationPropertiesDTO validationToUse;
+        if (skipLicenceValidation) {
+            log.info("Skipping licence validation");
+            LicenseValidatorPropertiesDTO disabledLicense = new LicenseValidatorPropertiesDTO(false, originalValidation.getLicenseValidation().getPattern());
+            validationToUse = new ValidationPropertiesDTO(disabledLicense, originalValidation.getNameValidation(), originalValidation.getContentValidation());
+        } else {
+            validationToUse = originalValidation;
+        }
         artifactService.processArtifacts(log,
                 dmsConfiguration.getMavenGroupPrefix(),
                 component, version,
@@ -106,7 +120,7 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                                 targetArtifact.file,
                                 ComponentVersion.create(component, version),
                                 targetArtifact.coordinates,
-                                dmsConfiguration.getValidation(),
+                                validationToUse,
                                 !replace,
                                 validationLog == null ? null : validationLog.toPath(),
                                 dryRun
