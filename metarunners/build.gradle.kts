@@ -2,10 +2,31 @@ plugins {
     `maven-publish`
 }
 
+tasks.register<Zip>("zipMetarunners") {
+    archiveFileName.set("metarunners.zip")
+    from(layout.projectDirectory.dir("metarunners")) {
+        expand(properties)
+    }
+}
+
+configurations {
+    create("distributions")
+}
+
+val metarunners = artifacts.add(
+    "distributions",
+    layout.buildDirectory.file("distributions/metarunners.zip").get().asFile
+) {
+    classifier = "metarunners"
+    type = "zip"
+    builtBy("zipMetarunners")
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            artifact(metarunners)
             pom {
                 name.set(project.name)
                 description.set("Octopus module: ${project.name}")
