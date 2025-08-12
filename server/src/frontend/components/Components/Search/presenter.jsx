@@ -27,7 +27,6 @@ export default function search(props) {
             position={Position.BOTTOM_LEFT}>
 
             <InputGroup
-                disabled
                 large
                 fill
                 leftIcon="search"
