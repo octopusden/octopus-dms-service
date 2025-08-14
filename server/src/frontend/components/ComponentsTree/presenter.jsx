@@ -38,9 +38,9 @@ function componentsToNodes(props) {
         .filter(component => {
             return props.searching
                 ?
-                (component.id.inclides(props.searchQuery)
+                (component.id.includes(props.searchQuery)
                     ||
-                    component.name.inclides(props.searchQuery))
+                    component.name.includes(props.searchQuery))
                 : true
         })
         .map(component => {
