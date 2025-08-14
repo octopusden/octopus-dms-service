@@ -254,10 +254,8 @@ const componentsReducer = (state = INITIAL_STATE, action) => {
         }
 
         case types.RECEIVE_SEARCH: {
-            const {searchResult} = action
             return {
                 ...state,
-                searchResult: searchResult,
                 searching: false
             }
         }

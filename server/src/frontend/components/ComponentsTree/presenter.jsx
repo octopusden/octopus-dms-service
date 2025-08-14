@@ -34,24 +34,33 @@ function componentsTree(props) {
 
 function componentsToNodes(props) {
     const {components} = props
-    return Object.values(components).map(component => {
-        let childNodes = []
-        const componentId = component.id
-        if (component.minorVersions) {
-            childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
-        }
+    return Object.values(components)
+        .filter(component => {
+            state.searching
+                ?
+                (component.id.inclides(state.searchQuery)
+                    ||
+                    component.name.inclides(state.searchQuery))
+                : true
+        })
+        .map(component => {
+            let childNodes = []
+            const componentId = component.id
+            if (component.minorVersions) {
+                childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
+            }
 
-        return {
-            id: componentId,
-            level: treeLevel.ROOT,
-            componentId: componentId,
-            isExpanded: component.expand,
-            label: component.name,
-            icon: component.solution ? 'applications' : 'application',
-            childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(component)
-        }
-    })
+            return {
+                id: componentId,
+                level: treeLevel.ROOT,
+                componentId: componentId,
+                isExpanded: component.expand,
+                label: component.name,
+                icon: component.solution ? 'applications' : 'application',
+                childNodes: childNodes,
+                secondaryLabel: getSecondaryLabel(component)
+            }
+        })
 }
 
 function renderComponentMinorVersions(componentId, minorVersions, props) {
