@@ -9,9 +9,9 @@ import get from "lodash/get";
 
 const mapStateToProps = (state) => {
     const {
-        components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc, searching, serachQuery
+        components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc, searching, searchQuery
     } = state.components
-    return {components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc, searching, serachQuery}
+    return {components, loadingComponents, loadingArtifacts, currentArtifacts, errorMessage, confirmation, showRc, searching, searchQuery}
 }
 
 const mapDispatchToProps = (dispatch) => {
