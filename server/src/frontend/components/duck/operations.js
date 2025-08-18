@@ -362,10 +362,12 @@ var requestSearchTimer
 const requestSearch = (query) => (dispatch) => {
     clearTimeout(requestSearchTimer)
     requestSearchTimer = setTimeout(() => {
-        dispatch(actions.requestSearch(query))
-        setTimeout(() => {
+        if (query) {
+            dispatch(actions.requestSearch(query))
+        }
+        else {
             dispatch(actions.receiveSearch())
-        }, 500)
+        }
     }, 500)
 }
 
