@@ -13,7 +13,7 @@ export default function search(props) {
         handleInputBlur,
     } = props
     const content = searching ?
-        <></> : <SearchPatternNote/>;
+        <div></div> : <SearchPatternNote/>;
     return <div className="search-wrapper">
         <Popover
             popoverClassName="completion-list"
