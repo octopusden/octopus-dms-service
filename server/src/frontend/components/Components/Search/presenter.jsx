@@ -28,6 +28,7 @@ export default function search(props) {
                 fill
                 leftIcon="search"
                 type="search"
+                style={{paddingRight: "8px"}}
                 rightElement={searching && <Spinner size={16} intent="primary"/>}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
