@@ -36,11 +36,11 @@ function componentsToNodes(props) {
     const {components} = props
     return Object.values(components)
         .filter(component => {
-            return props.searching
+            return props.searchQuery
                 ?
-                (component.id.includes(props.searchQuery)
+                (component.id.toLowerCase().includes(props.searchQuery.toLowerCase())
                     ||
-                    component.name.includes(props.searchQuery))
+                    component.name.toLowerCase().includes(props.searchQuery.toLowerCase()))
                 : true
         })
         .map(component => {
