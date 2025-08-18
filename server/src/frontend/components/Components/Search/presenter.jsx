@@ -65,6 +65,6 @@ function buildCompletionMenu(searchResult, handleComponentSelect) {
 
 const SearchPatternNote = (props) => {
     return <div className="pattern-note">
-        Type query with pattern: "COMPONENT VERSION"
+        Specify COMPONENT to filter
     </div>
 }
