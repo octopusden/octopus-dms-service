@@ -37,7 +37,7 @@ export default function search(props) {
                 onChange={(e) => {
                     requestSearch(e.target.value)
                 }}
-                placeholder="Component version..."/>
+                placeholder="Component..."/>
 
         </Popover>
         <Switch
