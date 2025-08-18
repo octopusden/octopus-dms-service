@@ -7,16 +7,13 @@ export default function search(props) {
         showRc,
         toggleRc,
         requestSearch,
-        searchResult,
         searching,
-        searchQueryValid,
         showSearchPopover,
         handleInputFocus,
         handleInputBlur,
-        handleComponentSelect
     } = props
-    const content = searchQueryValid && searchResult.length > 0 ?
-        buildCompletionMenu(searchResult, handleComponentSelect) : <SearchPatternNote/>;
+    const content = searching ?
+        <></> : <SearchPatternNote/>;
     return <div className="search-wrapper">
         <Popover
             popoverClassName="completion-list"
