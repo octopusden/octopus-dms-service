@@ -1,5 +1,5 @@
 import React from 'react'
-import {InputGroup, Menu, MenuItem, Popover, Position, Spinner, Switch, Tooltip} from '@blueprintjs/core'
+import {InputGroup, Menu, MenuItem, Spinner, Switch, Tooltip} from '@blueprintjs/core'
 import './style.css'
 
 export default function search(props) {
