@@ -27,10 +27,10 @@ export default function search(props) {
                 leftIcon="search"
                 type="search"
                 rightElement={
-                    <span style={{ paddingRight: '8px', paddingTop: '16px' }}>
+                    <div style={{ padding: '12px 8px 0 4px' }}>
                         {searching &&
                             <Spinner size={16} intent="primary" />}
-                    </span>}
+                    </div>}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
                 onChange={(e) => {
