@@ -1,5 +1,5 @@
 import React from 'react'
-import {InputGroup, Menu, MenuItem, Popover, Position, Spinner, Switch} from '@blueprintjs/core'
+import {InputGroup, Menu, MenuItem, Popover, Position, Spinner, Switch, Tooltip} from '@blueprintjs/core'
 import './style.css'
 
 export default function search(props) {
@@ -8,19 +8,10 @@ export default function search(props) {
         toggleRc,
         requestSearch,
         searching,
-        showSearchPopover,
-        handleInputFocus,
-        handleInputBlur,
     } = props
     return <div className="search-wrapper">
-        <Popover
-            popoverClassName="completion-list"
-            autoFocus={false}
-            enforceFocus={false}
-            content={<SearchPatternNote/>}
-            isOpen={showSearchPopover}
-            position={Position.BOTTOM_LEFT}>
-
+        <Tooltip
+            content={<SearchPatternNote />}>
             <InputGroup
                 large
                 fill
@@ -31,14 +22,12 @@ export default function search(props) {
                         {searching &&
                             <Spinner size={16} intent="primary" />}
                     </div>}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
                 onChange={(e) => {
                     requestSearch(e.target.value)
                 }}
-                placeholder="Component..."/>
+                placeholder="Component..." />
 
-        </Popover>
+        </Tooltip>
         <Switch
             style={{paddingLeft: "8px"}}
             checked={showRc}
@@ -62,8 +51,8 @@ function buildCompletionMenu(searchResult, handleComponentSelect) {
     return <Menu>{menuItems}</Menu>
 }
 
-const SearchPatternNote = (props) => {
+const SearchPatternNote = () => {
     return <div className="pattern-note">
-        Specify COMPONENT to filter
+         Specify COMPONENT to filter
     </div>
 }
