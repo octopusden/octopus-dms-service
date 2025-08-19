@@ -37,10 +37,10 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
     }
     const handleInputFocus = () => {
-        // this.setState({showSearchPopover: true})
+         this.setState({showSearchPopover: true})
     }
     const handleInputBlur = () => {
-        // setTimeout(() => this.setState({showSearchPopover: false}), 600)
+        setTimeout(() => this.setState({showSearchPopover: false}), 600)
     }
     const handleComponentSelect = (component, version) => () => {
         console.log(component, version)

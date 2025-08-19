@@ -12,14 +12,12 @@ export default function search(props) {
         handleInputFocus,
         handleInputBlur,
     } = props
-    const content = searching ?
-        <div></div> : <SearchPatternNote/>;
     return <div className="search-wrapper">
         <Popover
             popoverClassName="completion-list"
             autoFocus={false}
             enforceFocus={false}
-            content={content}
+            content={<SearchPatternNote/>}
             isOpen={showSearchPopover}
             position={Position.BOTTOM_LEFT}>
 
@@ -28,8 +26,10 @@ export default function search(props) {
                 fill
                 leftIcon="search"
                 type="search"
-                style={{paddingRight: "8px"}}
-                rightElement={searching && <Spinner size={16} intent="primary"/>}
+                rightElement={
+                    <span style={{ paddingRight: '8px' }}>
+                        {searching && <Spinner size={16} intent="primary" />}
+                    </span>}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
                 onChange={(e) => {
