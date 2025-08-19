@@ -35,23 +35,32 @@ function groupedComponentsTree(props) {
 
 function groupsToNodes(props) {
     const {components, icon} = props
-    return Object.values(components).map(group => {
-        let childNodes = []
-        const groupId = group.id
-        const subComponents = group.subComponents
-        if (subComponents) {
-            childNodes = renderComponents(groupId, subComponents, props)
-        }
-        return {
-            id: groupId,
-            level: treeLevel.GROUP,
-            groupId: groupId,
-            isExpanded: group.expand,
-            label: group.name,
-            icon: icon,
-            childNodes: childNodes,
-        }
-    })
+    return Object.values(components)
+        .filter(component => {
+            return props.searchQuery
+                ?
+                (component.id.toLowerCase().includes(props.searchQuery.toLowerCase())
+                    ||
+                    component.name.toLowerCase().includes(props.searchQuery.toLowerCase()))
+                : true
+        })
+        .map(group => {
+            let childNodes = []
+            const groupId = group.id
+            const subComponents = group.subComponents
+            if (subComponents) {
+                childNodes = renderComponents(groupId, subComponents, props)
+            }
+            return {
+                id: groupId,
+                level: treeLevel.GROUP,
+                groupId: groupId,
+                isExpanded: group.expand,
+                label: group.name,
+                icon: icon,
+                childNodes: childNodes,
+            }
+        })
 }
 
 function renderComponents(groupId, subComponents, props) {
