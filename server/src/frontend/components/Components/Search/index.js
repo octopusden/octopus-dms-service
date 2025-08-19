@@ -31,18 +31,12 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.toggleRc())
     }
     const requestSearch = (query) => {
-        this.setState({showSearchPopover: false})
         dispatch(componentsOperations.requestSearch(query))
     }
     const getComponentVersions = (componentId, minorVersion) => {
         dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
     }
-    const handleInputFocus = () => {
-         this.setState({showSearchPopover: true})
-    }
-    const handleInputBlur = () => {
-        this.setState({showSearchPopover: false})
-    }
+
     const handleComponentSelect = (component, version) => () => {
         console.log(component, version)
         const {fetchArtifactsList} = this.props
