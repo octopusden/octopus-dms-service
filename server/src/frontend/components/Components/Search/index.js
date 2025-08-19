@@ -31,6 +31,7 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.toggleRc())
     }
     const requestSearch = (query) => {
+        this.setState({showSearchPopover: false})
         dispatch(componentsOperations.requestSearch(query))
     }
     const getComponentVersions = (componentId, minorVersion) => {
@@ -40,7 +41,7 @@ const mapDispatchToProps = (dispatch) => {
          this.setState({showSearchPopover: true})
     }
     const handleInputBlur = () => {
-        setTimeout(() => this.setState({showSearchPopover: false}), 600)
+        this.setState({showSearchPopover: false})
     }
     const handleComponentSelect = (component, version) => () => {
         console.log(component, version)

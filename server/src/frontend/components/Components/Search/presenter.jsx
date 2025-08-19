@@ -18,7 +18,7 @@ export default function search(props) {
             autoFocus={false}
             enforceFocus={false}
             content={<SearchPatternNote/>}
-            isOpen={showSearchPopover && !searching}
+            isOpen={showSearchPopover}
             position={Position.BOTTOM_LEFT}>
 
             <InputGroup
