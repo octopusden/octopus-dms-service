@@ -1,7 +1,6 @@
 import React from 'react'
 import {InputGroup, Menu, MenuItem, Popover, Position, Spinner, Switch} from '@blueprintjs/core'
 import './style.css'
-import { useState } from 'react/cjs/react.production.min'
 
 export default function search(props) {
     const {
@@ -9,15 +8,17 @@ export default function search(props) {
         toggleRc,
         requestSearch,
         searching,
+        showSearchPopover,
+        handleInputFocus,
+        handleInputBlur,
     } = props
-    const [showSearchPopover, setShowSearchPopover] = useState(false)
     return <div className="search-wrapper">
         <Popover
             popoverClassName="completion-list"
             autoFocus={false}
             enforceFocus={false}
-            content={<SearchPatternNote />}
-            isOpen={showSearchPopover && !searching}
+            content={<SearchPatternNote/>}
+            isOpen={showSearchPopover}
             position={Position.BOTTOM_LEFT}>
 
             <InputGroup
@@ -30,8 +31,8 @@ export default function search(props) {
                         {searching &&
                             <Spinner size={16} intent="primary" />}
                     </div>}
-                onFocus={() => { setShowSearchPopover(true) }}
-                onBlur={() => { setShowSearchPopover(false) }}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 onChange={(e) => {
                     requestSearch(e.target.value)
                 }}
