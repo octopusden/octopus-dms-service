@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch) => {
         fetchArtifactsList(component, version)
     }
 
-    return {selectVersion, toggleRc, requestSearch, getComponentVersions, handleInputFocus, handleInputBlur, handleComponentSelect}
+    return {selectVersion, toggleRc, requestSearch, getComponentVersions, handleComponentSelect}
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
