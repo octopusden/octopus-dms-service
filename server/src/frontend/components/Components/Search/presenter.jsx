@@ -18,7 +18,7 @@ export default function search(props) {
             autoFocus={false}
             enforceFocus={false}
             content={<SearchPatternNote/>}
-            isOpen={showSearchPopover}
+            isOpen={showSearchPopover && !searching}
             position={Position.BOTTOM_LEFT}>
 
             <InputGroup
@@ -27,8 +27,9 @@ export default function search(props) {
                 leftIcon="search"
                 type="search"
                 rightElement={
-                    <span style={{ paddingRight: '8px' }}>
-                        {searching && <Spinner size={16} intent="primary" />}
+                    <span style={{ paddingRight: '8px', paddingTop: '16px' }}>
+                        {searching &&
+                            <Spinner size={16} intent="primary" />}
                     </span>}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
