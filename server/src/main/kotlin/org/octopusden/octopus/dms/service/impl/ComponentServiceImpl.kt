@@ -7,13 +7,14 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.BuildDTO
+import org.octopusden.octopus.dms.dto.BuildFullDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionWithInfoDTO
+import org.octopusden.octopus.dms.dto.DependencyArtifactsDTO
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
-import org.octopusden.octopus.dms.dto.ReleaseDTO
-import org.octopusden.octopus.dms.dto.ReleaseFullDTO
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
@@ -97,15 +98,11 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         }
         val release = releaseManagementService.getRelease(componentName, version, true)
         val numericVersionFactory = NumericVersionFactory(componentsRegistryService.getVersionNames())
-        return release.dependencies.mapNotNull { dependency ->
+        return release.dependencies.filter { it.status != ComponentVersionStatus.BUILD }.mapNotNull { dependency ->
             componentVersionRepository.findByComponentNameAndVersion(
                 dependency.component, dependency.version
             )?.let {
-                releaseManagementService.findReleases(
-                    it.component.name, listOf(it.version), includeRc = true
-                ).firstOrNull()?.let { dependencyRelease ->
-                    ComponentVersionWithInfoDTO(it.toDTO(dependencyRelease), numericVersionFactory.create(it.version))
-                }
+                ComponentVersionWithInfoDTO(it.toDTO(dependency), numericVersionFactory.create(it.version))
             }
         }
     }
@@ -124,7 +121,8 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         } else {
             val artifacts = componentVersionArtifactRepository.findByComponentVersion(componentVersion).map {
                 it.toFullDTO(dockerRegistry)
-            }.toMutableSet()
+            }
+            val dependencies = mutableListOf<DependencyArtifactsDTO>()
             if (component.solution) {
                 //TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
                 //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
@@ -137,11 +135,12 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                         if (dependencyComponentVersion?.published != true) {
                             unpublishedDependencies.add(dependencyBuild)
                         } else {
-                            artifacts.addAll(
+                            dependencies.add(DependencyArtifactsDTO(
+                                dependencyComponentVersion.toDTO(dependencyBuild),
                                 componentVersionArtifactRepository.findByComponentVersion(
                                     dependencyComponentVersion
                                 ).map { it.toFullDTO(dockerRegistry) }
-                            )
+                            ))
                         }
                     }
                 }
@@ -151,17 +150,20 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             } else if (!patchComponentVersionDTO.published) {
                 release.parents.filter {
                     componentsRegistryService.getExternalComponent(it.component).solution &&
-                            componentVersionRepository.findByComponentNameAndVersion(it.component, it.version)?.published == true
+                            componentVersionRepository.findByComponentNameAndVersion(
+                                it.component,
+                                it.version
+                            )?.published == true
                 }.takeIf { it.isNotEmpty() }?.let {
                     throw VersionPublishedException("Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it")
                 }
             }
             applicationEventPublisher.publishEvent(
-                if (patchComponentVersionDTO.published) {
-                    PublishComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
-                } else {
-                    RevokeComponentVersionEvent(componentVersion.toFullDTO(component, release), artifacts)
-                }
+                if (patchComponentVersionDTO.published) PublishComponentVersionEvent(
+                    componentVersion.toFullDTO(component, release), artifacts, dependencies
+                ) else RevokeComponentVersionEvent(
+                    componentVersion.toFullDTO(component, release), artifacts, dependencies
+                )
             )
             componentVersionRepository.save(componentVersion.apply {
                 published = patchComponentVersionDTO.published
@@ -345,15 +347,15 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         )
     }
 
-    private fun ComponentVersion.toDTO(release: ReleaseDTO) = ComponentVersionDTO(
-        component.name, version, published, release.status
+    private fun ComponentVersion.toDTO(build: BuildDTO) = ComponentVersionDTO(
+        component.name, version, published, build.status
     )
 
-    private fun ComponentVersion.toFullDTO(component: ComponentDTO, release: ReleaseFullDTO) = ComponentVersionFullDTO(
-        component.id, version, published, release.status, release.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
+    private fun ComponentVersion.toFullDTO(component: ComponentDTO, build: BuildFullDTO) = ComponentVersionFullDTO(
+        component.id, version, published, build.status, build.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
     )
 
-    private fun ReleaseFullDTO.toComponentVersionFullDTO(component: ComponentDTO) = ComponentVersionFullDTO(
+    private fun BuildFullDTO.toComponentVersionFullDTO(component: ComponentDTO) = ComponentVersionFullDTO(
         component.id, version, false, status, promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
     )
 

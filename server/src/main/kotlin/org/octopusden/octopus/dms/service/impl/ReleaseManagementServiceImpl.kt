@@ -3,8 +3,7 @@ package org.octopusden.octopus.dms.service.impl
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 import org.octopusden.octopus.dms.configuration.ReleaseManagementServiceProperties
 import org.octopusden.octopus.dms.dto.BuildDTO
-import org.octopusden.octopus.dms.dto.ReleaseDTO
-import org.octopusden.octopus.dms.dto.ReleaseFullDTO
+import org.octopusden.octopus.dms.dto.BuildFullDTO
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.releasemanagementservice.client.common.dto.BuildFilterDTO
@@ -33,24 +32,18 @@ class ReleaseManagementServiceImpl(
         false
     }
 
-    override fun findReleases(component: String, buildVersions: List<String>, includeRc: Boolean): List<ReleaseDTO> {
+    override fun findReleases(component: String, buildVersions: List<String>, includeRc: Boolean): List<BuildDTO> {
         val allowedStatuses = getAllowedStatuses(includeRc)
         return buildVersions.chunked(20).flatMap {
             client.getBuilds(component, BuildFilterDTO(statuses = allowedStatuses, versions = it.toSet()))
-                .map { build ->
-                    ReleaseDTO(
-                        build.component,
-                        build.version,
-                        ComponentVersionStatus.valueOf(build.status.name)
-                    )
-                }
+                .map { build -> build.toBuildDTO() }
         }
     }
 
-    override fun getRelease(component: String, version: String, includeRc: Boolean): ReleaseFullDTO {
+    override fun getRelease(component: String, version: String, includeRc: Boolean): BuildFullDTO {
         val allowedStatuses = getAllowedStatuses(includeRc)
         val build = client.getBuild(component, version)
-        return if (allowedStatuses.contains(build.status)) ReleaseFullDTO(
+        return if (allowedStatuses.contains(build.status)) BuildFullDTO(
             build.component,
             build.version,
             ComponentVersionStatus.valueOf(build.status.name),
@@ -74,6 +67,6 @@ class ReleaseManagementServiceImpl(
 
         private fun getAllowedStatuses(includeRc: Boolean) = if (includeRc) NO_LESS_THAN_RC else NO_LESS_THAN_RELEASE
 
-        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version)
+        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version, ComponentVersionStatus.valueOf(status.name))
     }
 }
