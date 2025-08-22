@@ -36,12 +36,7 @@ const mapDispatchToProps = (dispatch) => {
     const getComponentVersions = (componentId, minorVersion) => {
         dispatch(componentsOperations.getComponentVersions(componentId, minorVersion))
     }
-    const handleInputFocus = () => {
-        // this.setState({showSearchPopover: true})
-    }
-    const handleInputBlur = () => {
-        // setTimeout(() => this.setState({showSearchPopover: false}), 600)
-    }
+
     const handleComponentSelect = (component, version) => () => {
         console.log(component, version)
         const {fetchArtifactsList} = this.props
@@ -50,7 +45,7 @@ const mapDispatchToProps = (dispatch) => {
         fetchArtifactsList(component, version)
     }
 
-    return {selectVersion, toggleRc, requestSearch, getComponentVersions, handleInputFocus, handleInputBlur, handleComponentSelect}
+    return {selectVersion, toggleRc, requestSearch, getComponentVersions, handleComponentSelect}
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

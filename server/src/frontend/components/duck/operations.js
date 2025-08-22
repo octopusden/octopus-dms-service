@@ -361,28 +361,12 @@ const hideConfirmation = () => (dispatch) => {
 var requestSearchTimer
 const requestSearch = (query) => (dispatch) => {
     clearTimeout(requestSearchTimer)
-    const isQueryValid = checkQuery(query)
-    dispatch(actions.changeSearchQueryValid(isQueryValid))
-
-    if (isQueryValid) {
-        requestSearchTimer = setTimeout(() => {
-            dispatch(actions.requestSearch(query))
-
-            var url = new URL(`${window.location.protocol}//${window.location.host}/ui/search`)
-            var params = {query: query}
-            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
-            fetch(url)
-                .then(handleErrors('Search by query'))
-                .then((response) => {
-                    response.json().then((data) => {
-                        dispatch(actions.receiveSearch(data))
-                    })
-                })
-                .catch((err) => dispatch(actions.showError(err.message)))
-
-            console.log(query)
+    requestSearchTimer = setTimeout(() => {
+        dispatch(actions.requestSearch(query))
+        setTimeout(() => {
+            dispatch(actions.receiveSearch())
         }, 500)
-    }
+    }, 500)
 }
 
 export default {

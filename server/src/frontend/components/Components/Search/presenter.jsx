@@ -1,5 +1,5 @@
 import React from 'react'
-import {InputGroup, Menu, MenuItem, Popover, Position, Spinner, Switch} from '@blueprintjs/core'
+import {InputGroup, Menu, MenuItem, Spinner, Switch, Tooltip} from '@blueprintjs/core'
 import './style.css'
 
 export default function search(props) {
@@ -7,40 +7,27 @@ export default function search(props) {
         showRc,
         toggleRc,
         requestSearch,
-        searchResult,
         searching,
-        searchQueryValid,
-        showSearchPopover,
-        handleInputFocus,
-        handleInputBlur,
-        handleComponentSelect
     } = props
-    const content = searchQueryValid && searchResult.length > 0 ?
-        buildCompletionMenu(searchResult, handleComponentSelect) : <SearchPatternNote/>;
     return <div className="search-wrapper">
-        <Popover
-            popoverClassName="completion-list"
-            autoFocus={false}
-            enforceFocus={false}
-            content={content}
-            isOpen={showSearchPopover}
-            position={Position.BOTTOM_LEFT}>
-
+        <Tooltip
+            content={<SearchPatternNote />}>
             <InputGroup
-                disabled
                 large
                 fill
                 leftIcon="search"
                 type="search"
-                rightElement={searching && <Spinner size={16} intent="primary"/>}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
+                rightElement={
+                    <div style={{ padding: '12px 8px 0 4px' }}>
+                        {searching &&
+                            <Spinner size={16} intent="primary" />}
+                    </div>}
                 onChange={(e) => {
                     requestSearch(e.target.value)
                 }}
-                placeholder="Component version..."/>
+                placeholder="Component..." />
 
-        </Popover>
+        </Tooltip>
         <Switch
             style={{paddingLeft: "8px"}}
             checked={showRc}
@@ -64,8 +51,8 @@ function buildCompletionMenu(searchResult, handleComponentSelect) {
     return <Menu>{menuItems}</Menu>
 }
 
-const SearchPatternNote = (props) => {
+const SearchPatternNote = () => {
     return <div className="pattern-note">
-        Type query with pattern: "COMPONENT VERSION"
+         Specify COMPONENT to filter
     </div>
 }

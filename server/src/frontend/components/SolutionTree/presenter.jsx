@@ -35,24 +35,33 @@ function solutionTree(props) {
 function solutionsToNodes(props) {
     const {components} = props
 
-    return Object.values(components).map(solution => {
-        let childNodes = []
-        const componentId = solution.id
-        const minorVersions = solution.minorVersions
-        if (minorVersions) {
-            childNodes = renderMinors(componentId, minorVersions, props)
-        }
-        return {
-            id: componentId,
-            level: treeLevel.ROOT,
-            componentId: componentId,
-            isExpanded: solution.expand,
-            label: solution.name,
-            icon: 'applications',
-            childNodes: childNodes,
-            secondaryLabel: getSecondaryLabel(solution)
-        }
-    })
+    return Object.values(components)
+        .filter(component => {
+            return props.searchQuery
+                ?
+                (component.id.toLowerCase().includes(props.searchQuery.toLowerCase())
+                    ||
+                    component.name.toLowerCase().includes(props.searchQuery.toLowerCase()))
+                : true
+        })
+        .map(solution => {
+            let childNodes = []
+            const componentId = solution.id
+            const minorVersions = solution.minorVersions
+            if (minorVersions) {
+                childNodes = renderMinors(componentId, minorVersions, props)
+            }
+            return {
+                id: componentId,
+                level: treeLevel.ROOT,
+                componentId: componentId,
+                isExpanded: solution.expand,
+                label: solution.name,
+                icon: 'applications',
+                childNodes: childNodes,
+                secondaryLabel: getSecondaryLabel(solution)
+            }
+        })
 }
 
 function renderMinors(solutionId, minorVersions, props) {
