@@ -17,10 +17,6 @@ public class PublishMojo extends AbstractDmsMojo {
 
     @Override
     public void execute() throws MojoFailureException {
-        if (skip) {
-            getLog().info("Execution skipped");
-            return;
-        }
         validateCredentials();
         dmsService.publish(getLog(), getDmsServiceClient(), ComponentVersion.create(component, version), dryRun);
     }

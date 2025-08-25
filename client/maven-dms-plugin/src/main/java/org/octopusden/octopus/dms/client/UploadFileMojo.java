@@ -26,10 +26,6 @@ public class UploadFileMojo extends AbstractArtifactMojo {
 
     @Override
     public void execute() throws MojoFailureException {
-        if (skip) {
-            getLog().info("Execution skipped");
-            return;
-        }
         validateCredentials();
         final ArtifactType artifactType = ArtifactType.findByType(type);
         if (artifactType == null) {

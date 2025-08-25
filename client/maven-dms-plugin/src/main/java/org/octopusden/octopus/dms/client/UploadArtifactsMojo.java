@@ -25,10 +25,6 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         final Log log = getLog();
-        if (skip) {
-            log.info("Skipping plugin execution");
-            return;
-        }
         if (StringUtils.isBlank(artifactsCoordinates) &&
                 StringUtils.isBlank(artifactsCoordinatesDeb) &&
                 StringUtils.isBlank(artifactsCoordinatesRpm) &&
