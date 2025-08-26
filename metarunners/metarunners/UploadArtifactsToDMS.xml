@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <meta-runner name="Upload artifacts to DMS">
-    <description>Upload artifacts to DMS</description>
+    <description>
+        Depends on following TeamCity parameters:
+        * DMS_STANDARD_PARAMETERS
+        * DMS_EXTRA_PARAMETERS
+        * DMS_JVM_OPTS
+        * DMS_JDK_VERSION
+        * DMS_MAVEN_VERSION
+        * env.BUILD_ENV
+    </description>
     <settings>
         <parameters>
-            <param name="ARTIFACT_TYPE" value="distribution" />
-            <param name="BUILD_VERSION" value="%BUILD_VERSION%" />
-            <param name="COMPONENT_NAME" value="%COMPONENT_NAME%" />
-            <param name="ARTIFACTS_COORDINATES" value="%DISTRIBUTION_ARTIFACTS_COORDINATES%" />
-            <param name="ARTIFACTS_COORDINATES_VERSION" value="" />
-            <param name="ARTIFACTS_COORDINATES_DEB" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DEB%" />
-            <param name="ARTIFACTS_COORDINATES_RPM" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_RPM%" />
-            <param name="ARTIFACTS_COORDINATES_DOCKER" value="%DISTRIBUTION_ARTIFACTS_COORDINATES_DOCKER%" />
-            <param name="EXTRA_PARAMETERS" value="" />
-            <param name="SKIP_UPLOAD_TO_DMS" value="%SKIP_UPLOAD_DISTRIBUTION_TO_DMS%" />
-            <param name="DMS_SERVICE_URL" value="%DMS_SERVICE_URL%" />
-            <param name="DMS_PUBLISHER_TOKEN" value="%DMS_PUBLISHER_TOKEN%"/>
-            <param name="DMS_PUBLISHER_USERNAME" value="%DMS_PUBLISHER_USERNAME%"/>
-            <param name="DMS_PUBLISHER_PASSWORD" value="%DMS_PUBLISHER_PASSWORD%"/>
-            <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="%DMS_PUBLISH_VALIDATION_LOG_FILE%"/>
+            <param name="COMPONENT_NAME" value="" spec="text description='Name of Component registered in Component Registry' validationMode='not_empty' display='normal'"/>
+            <param name="BUILD_VERSION" value="" spec="text description='Component version registered in JIRA' validationMode='not_empty' display='normal'"/>
+            <param name="ARTIFACT_TYPE" value="distribution" spec="select description='Artifact type' data_1='distribution' data_2='notes' data_3='report' data_4='static' data_5='documentation' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES" value="" spec="text description='Maven artifacts coordinates (without version)' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES_VERSION" value="" spec="text description='Maven artifacts coordinates version (if it differs from BUILD_VERSION)' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>
+            <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="" spec="text description='Path to dms log file' validationMode='not_empty' display='normal'"/>
         </parameters>
         <build-runners>
             <runner name="UploadArtifactsToDMS" type="Maven2">
                 <parameters>
                     <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:upload-artifacts" />
-                    <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %RELENG_JVM_OPTS%" />
-                    <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/3.6.0" />
-                    <param name="runnerArgs"
-                           value="-e -Pstaging -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dtype=%ARTIFACT_TYPE% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -Dskip=%SKIP_UPLOAD_TO_DMS% %EXTRA_PARAMETERS%"/>
-                    <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/1.8" />
+                    <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %DMS_JVM_OPTS%" />
+                    <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/%DMS_MAVEN_VERSION%" />
+                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Dtype=%ARTIFACT_TYPE% -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% %DMS_EXTRA_PARAMETERS%"/>
+                    <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/%DMS_JDK_VERSION%" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />
                 </parameters>

@@ -29,9 +29,6 @@ abstract public class AbstractDmsMojo extends AbstractMojo {
     @Parameter(property = "version", required = true)
     protected String version;
 
-    @Parameter(property = "skip", defaultValue = "false")
-    protected boolean skip;
-
     @Parameter(property = "dryRun", defaultValue = "false")
     protected boolean dryRun;
 

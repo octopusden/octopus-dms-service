@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <meta-runner name="Publish in DMS">
-    <description>Set published status in DMS for version of component</description>
+    <description>
+        Depends on following TeamCity parameters:
+        * DMS_STANDARD_PARAMETERS
+        * DMS_EXTRA_PARAMETERS
+        * DMS_JVM_OPTS
+        * DMS_JDK_VERSION
+        * DMS_MAVEN_VERSION
+        * env.BUILD_ENV
+    </description>
     <settings>
         <parameters>
-            <param name="COMPONENT_NAME" value="%COMPONENT_NAME%" />
-            <param name="BUILD_VERSION" value="%BUILD_VERSION%" />
-            <param name="DMS_SERVICE_URL" value="%DMS_SERVICE_URL%" />
-            <param name="DMS_PUBLISHER_TOKEN" value="%DMS_PUBLISHER_TOKEN%"/>
-            <param name="DMS_PUBLISHER_USERNAME" value="%DMS_PUBLISHER_USERNAME%"/>
-            <param name="DMS_PUBLISHER_PASSWORD" value="%DMS_PUBLISHER_PASSWORD%"/>
-            <param name="SKIP_PUBLISH_IN_DMS" value="%SKIP_PUBLISH_IN_DMS%" />
-            <param name="EXTRA_PARAMETERS" value="" />
+            <param name="COMPONENT_NAME" value="" spec="text description='Name of Component registered in Component Registry' validationMode='not_empty' display='normal'"/>
+            <param name="BUILD_VERSION" value="" spec="text description='Component version registered in JIRA' validationMode='not_empty' display='normal'"/>
         </parameters>
         <build-runners>
             <runner name="PublishInDMS" type="Maven2">
                 <parameters>
                     <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:publish" />
-                    <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %RELENG_JVM_OPTS%" />
-                    <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/3.6.0" />
-                    <param name="runnerArgs"
-                           value="-e -Pstaging -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Ddms.url=%DMS_SERVICE_URL% -Ddms.token=%DMS_PUBLISHER_TOKEN% -Ddms.username=%DMS_PUBLISHER_USERNAME% -Ddms.password=%DMS_PUBLISHER_PASSWORD% -Dskip=%SKIP_PUBLISH_IN_DMS% %EXTRA_PARAMETERS%"/>
-                    <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/1.8" />
+                    <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %DMS_JVM_OPTS%" />
+                    <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/%DMS_MAVEN_VERSION%" />
+                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% %DMS_EXTRA_PARAMETERS%"/>
+                    <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/%DMS_JDK_VERSION%" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />
                 </parameters>
