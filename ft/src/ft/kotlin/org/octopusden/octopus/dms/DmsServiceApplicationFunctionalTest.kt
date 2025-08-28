@@ -21,7 +21,10 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
-        "${this?.let { "$it/bin/" } ?: ""}mvn"
+        val mavenCommand =
+            if (System.getProperty("os.name").toLowerCase().contains("win")) "mvn.cmd"
+            else "mvn"
+        "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }
     private val cregServiceUrl = "http://localhost:4567"
     private val dmsServiceUrl = "http://localhost:8765/dms-service"
@@ -180,10 +183,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
+        val path = File("").absolutePath.replace('\\', '/')
         with(runMavenDmsPlugin("exclude-file.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
+            """-Dartifacts.coordinates="file:///$path/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"""",
             "-DexcludeFiles=forbidden.xml",
             "-Dtype=distribution"
         ))) {
@@ -194,10 +198,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
+        val path = File("").absolutePath.replace('\\', '/')
         with(runMavenDmsPlugin("wl-ignore.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
+            """-Dartifacts.coordinates="file:///$path/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"""",
             "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
             "-Dtype=distribution"
         ))) {
