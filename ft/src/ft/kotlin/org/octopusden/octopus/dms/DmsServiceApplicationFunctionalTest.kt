@@ -22,7 +22,7 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
         val mavenCommand =
-            if (System.getProperty("os.name").toLowerCase().contains("win")) "mvn.cmd"
+            if (System.getProperty("os.name").lowercase().contains("win")) "mvn.cmd"
             else "mvn"
         "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }

@@ -1,4 +1,4 @@
- import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets
 
 plugins {
     `maven-publish`
@@ -59,13 +59,14 @@ signing {
     sign(publishing.publications["maven"])
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 tasks.register<Exec>("generatePluginDescriptor") {
     dependsOn("generatePomFileForMavenPublication", "compileJava", ":client:publishToMavenLocal")
     doFirst {
         assert(pomFile.exists()) { "${pomFile.canonicalPath}: was not generated" }
     }
     val mvnHome = System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]
-    val mavenCommand = if (System.getProperty("os.name").toLowerCase().contains("win")) "mvn.cmd" else "mvn"
+    val mavenCommand = if (System.getProperty("os.name").lowercase().contains("win")) "mvn.cmd" else "mvn"
     val cmd = "${mvnHome?.let { "$it/bin/" } ?: ""}$mavenCommand"
     this.setCommandLine(cmd, "-f", pomFile.canonicalPath, "-e", "-B", "org.apache.maven.plugins:maven-plugin-plugin:3.5:descriptor")
 }
