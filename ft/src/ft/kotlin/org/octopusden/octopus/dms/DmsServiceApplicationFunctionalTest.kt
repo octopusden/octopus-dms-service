@@ -183,11 +183,12 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
-        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
+//        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
         with(runMavenDmsPlugin("exclude-file.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
+//            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
             "-DexcludeFiles=forbidden.xml",
             "-Dtype=distribution"
         ))) {
@@ -198,11 +199,12 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
-        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
+//        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
         with(runMavenDmsPlugin("wl-ignore.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
+            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
+//            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
             "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
             "-Dtype=distribution"
         ))) {
