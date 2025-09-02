@@ -20,10 +20,12 @@ import org.junit.jupiter.api.Test
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
+    private val isWindowsSystem by lazy {
+        System.getProperty("os.name").lowercase().contains("win")
+    }
+
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
-        val mavenCommand =
-            if (System.getProperty("os.name").lowercase().contains("win")) "mvn.cmd"
-            else "mvn"
+        val mavenCommand = if (isWindowsSystem) mvnWinCommand else mvnCommonCommand
         "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }
     private val cregServiceUrl = "http://localhost:4567"
@@ -183,13 +185,12 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
-//        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(runMavenDmsPlugin("exclude-file.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-//            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
-            "-Dartifacts.coordinates=\"file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test\"",
-//            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
+            "-Dartifacts.coordinates=$coordArgs",
             "-DexcludeFiles=forbidden.xml",
             "-Dtype=distribution"
         ))) {
@@ -200,13 +201,12 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
-//        val filePath = File("src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip").absoluteFile.toURI()
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(runMavenDmsPlugin("wl-ignore.log", "validate-artifacts", listOf(
             "-Dcomponent=$eeComponent",
             "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-//            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test",
-            "-Dartifacts.coordinates=\"file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test\"",
-//            "-Dartifacts.coordinates=\"$filePath?artifactId=distribution&classifier=test\"",
+            "-Dartifacts.coordinates=$coordArgs",
             "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
             "-Dtype=distribution"
         ))) {
@@ -372,5 +372,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     private fun assertContains(source: List<String>, actual: String) {
         assertTrue(source.contains(actual), "Expected the source $source to contain $actual")
+    }
+
+    companion object {
+        private const val mvnWinCommand = "mvn.cmd"
+        private const val mvnCommonCommand = "mvn"
     }
 }
