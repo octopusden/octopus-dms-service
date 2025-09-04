@@ -114,6 +114,7 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                         dmsService.validateArtifact(log,
                                 dmsServiceClient,
                                 targetArtifact.file,
+                                uploadAttempts,
                                 ComponentVersion.create(component, version),
                                 targetArtifact.coordinates,
                                 validationToUse,

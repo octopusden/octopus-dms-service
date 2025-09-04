@@ -36,6 +36,7 @@ public class UploadFileMojo extends AbstractArtifactMojo {
         dmsService.uploadArtifact(getLog(),
                 dmsServiceClient,
                 file,
+                uploadAttempts,
                 ComponentVersion.create(component, version),
                 artifactType,
                 new MavenArtifactCoordinatesDTO(new GavDTO(

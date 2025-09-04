@@ -2,6 +2,7 @@ package org.octopusden.octopus.dms.client.service;
 
 import feign.Response;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +37,7 @@ public class DMSServiceImpl implements DMSService {
             Log log,
             DmsServiceUploadingClient dmsServiceClient,
             File file,
+            int uploadAttempts,
             ComponentVersion componentVersion,
             ArtifactCoordinatesDTO coordinates,
             ValidationPropertiesDTO validationConfiguration,
@@ -48,10 +50,7 @@ public class DMSServiceImpl implements DMSService {
             try {
                 ArtifactDTO artifact;
                 if (file != null) {
-                    Validate.isTrue(file.exists(), "File should exist at " + file.getAbsolutePath());
-                    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                        artifact = dmsServiceClient.uploadArtifact((MavenArtifactCoordinatesDTO) coordinates, inputStream, file.getName(), failOnAlreadyExists);
-                    }
+                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
                 } else {
                     artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
                 }
@@ -74,6 +73,7 @@ public class DMSServiceImpl implements DMSService {
             Log log,
             DmsServiceUploadingClient dmsServiceClient,
             File file,
+            int uploadAttempts,
             ComponentVersion componentVersion,
             ArtifactType type,
             ArtifactCoordinatesDTO coordinates,
@@ -86,10 +86,7 @@ public class DMSServiceImpl implements DMSService {
             try {
                 ArtifactDTO artifact;
                 if (file != null) {
-                    Validate.isTrue(file.exists(), "File should exist at " + file.getAbsolutePath());
-                    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                        artifact = dmsServiceClient.uploadArtifact((MavenArtifactCoordinatesDTO) coordinates, inputStream, file.getName(), failOnAlreadyExists);
-                    }
+                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
                 } else {
                     artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
                 }
@@ -130,6 +127,32 @@ public class DMSServiceImpl implements DMSService {
             }
             log.info(String.format("Published component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()));
         }
+    }
+
+    private ArtifactDTO uploadFile(
+            Log log,
+            DmsServiceUploadingClient dmsServiceClient,
+            File file,
+            int uploadAttempts,
+            MavenArtifactCoordinatesDTO coordinates,
+            boolean failOnAlreadyExists
+    ) throws Exception {
+        Validate.isTrue(file.exists(), "File should exist at " + file.getAbsolutePath());
+        ArtifactDTO artifact = null;
+        for(int i = 1; i <= uploadAttempts; i++) {
+            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                artifact = dmsServiceClient.uploadArtifact(coordinates, inputStream, file.getName(), failOnAlreadyExists);
+                break;
+            } catch (IOException e) {
+                log.warn(String.format("File uploading failed (attempt %d of %d)", i, uploadAttempts), e);
+                if (i < uploadAttempts) {
+                    Thread.sleep(5000);
+                } else {
+                    throw e;
+                }
+            }
+        }
+        return artifact;
     }
 
     /**

@@ -5,8 +5,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 
 abstract public class AbstractArtifactMojo extends AbstractDmsMojo {
-
-
     @Parameter(property = "type", required = true)
     protected String type;
 
@@ -18,6 +16,9 @@ abstract public class AbstractArtifactMojo extends AbstractDmsMojo {
 
     @Parameter(property = "replace", defaultValue = "true")
     protected boolean replace;
+
+    @Parameter(property = "uploadAttempts", defaultValue = "3")
+    protected int uploadAttempts;
 
     @Parameter(property = "validationLog")
     protected File validationLog;
