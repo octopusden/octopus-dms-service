@@ -10,10 +10,19 @@ plugins {
     id("org.jetbrains.kotlin.plugin.jpa")
     id("org.jetbrains.kotlin.plugin.allopen")
     id("org.jetbrains.kotlin.plugin.noarg")
-    id("com.bmuschko.docker-spring-boot-application") version "6.4.0"
-    id("com.avast.gradle.docker-compose") version "0.14.3"
+    id("com.bmuschko.docker-spring-boot-application") version "9.4.0"
+    id("com.avast.gradle.docker-compose") version "0.16.9"
     id("com.github.node-gradle.node") version "7.0.2"
     `maven-publish`
+}
+
+configurations.all {
+    resolutionStrategy {
+        force(
+            "org.slf4j:slf4j-api:2.0.12",
+            "com.zaxxer:HikariCP:5.1.0"
+        )
+    }
 }
 
 tasks.getByName<Jar>("jar") {
@@ -69,7 +78,7 @@ fun String.getExt() = project.ext[this] as? String
 docker {
     springBootApplication {
         baseImage.set("${"dockerRegistry".getExt()}/eclipse-temurin:21-jdk")
-        ports.set(listOf(8080, 8080))
+        ports.set(listOf(8080))
         images.set(setOf("${"octopusGithubDockerRegistry".getExt()}/octopusden/${project.name}:${project.version}"))
     }
 }
@@ -81,7 +90,7 @@ tasks.getByName("dockerBuildImage").doFirst {
 dockerCompose {
     useComposeFiles.add("$projectDir/src/test/docker/docker-compose.yaml")
     waitForTcpPorts = true
-    captureContainersOutputToFiles = File("$buildDir/docker-logs")
+    captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
     environment.putAll(mapOf(
         "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
         "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
@@ -140,12 +149,17 @@ tasks.getByName<Delete>("clean") {
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    args("--spring.cloud.config.enabled=false", "--spring.profiles.active=dev", "--spring.config.additional-location=dev/")
+    args(
+        "--spring.cloud.config.enabled=false",
+        "--spring.profiles.active=dev",
+        "--spring.config.additional-location=dev/"
+    )
     sourceResources(sourceSets.main.get())
 }
 
 dependencies {
     implementation(project(":common"))
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -153,27 +167,37 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-security")
+
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
+
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
     implementation("org.springframework.retry:spring-retry")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.5")
-    implementation("org.springdoc:springdoc-openapi-ui:1.7.0")
-    implementation("org.postgresql:postgresql:${project.properties["postgresql.version"]}")
-    implementation("org.flywaydb:flyway-core:8.5.13")
-    implementation("org.jfrog.artifactory.client:artifactory-java-client-services:2.13.1")
-    implementation("org.danilopianini:khttp:1.2.2")
+
     implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:${project.properties["octopus-cloud-commons.version"]}")
     implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
     implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
+    implementation("org.springdoc:springdoc-openapi-ui:1.7.0")
+    implementation("org.postgresql:postgresql:${project.properties["postgresql.version"]}")
+    implementation("org.flywaydb:flyway-core:9.22.3")
+    implementation("org.jfrog.artifactory.client:artifactory-java-client-services:2.13.1")
+    implementation("org.danilopianini:khttp:1.2.2")
+
     testImplementation(project(":test-common"))
     testImplementation(project(":client"))
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude("com.vaadin.external.google", "android-json")
     }
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.apache.httpcomponents:httpmime:4.5.14")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 }

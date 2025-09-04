@@ -2,10 +2,8 @@ package org.octopusden.octopus.dms.configuration
 
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConfigurationProperties(prefix = "storage")
-@ConstructorBinding
 data class StorageProperties(
     val mavenGroupPrefix: String,
     val artifactory: ArtifactoryProperties

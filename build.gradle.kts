@@ -49,7 +49,7 @@ subprojects {
         withJavadocJar()
         withSourcesJar()
         toolchain {
-            languageVersion.set(JavaLanguageVersion.of(8))
+            languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
@@ -65,20 +65,27 @@ subprojects {
         }
     }
 
+    val legacyProjects = setOf(
+        ":client",
+        ":common",
+        ":gradle-dms-client",
+        ":gradle-dms-plugin",
+        ":maven-dms-plugin",
+    )
+
     dependencies {
-        implementation("org.slf4j:slf4j-api") {
-            version {
-                strictly("1.7.36")
-            }
+        if (project.path in legacyProjects) {
+            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+            implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
+            implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud-legacy.version"]}"))
+            implementation("org.slf4j:slf4j-api:1.7.36")
+            implementation("ch.qos.logback:logback-classic:1.2.11")
+        } else {
+            implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot.version"]}"))
+            implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
+            implementation("org.slf4j:slf4j-api:2.0.12")
+            implementation("xerces:xercesImpl:2.12.2")
         }
-        implementation("ch.qos.logback:logback-classic") {
-            version {
-                strictly("1.2.11")
-            }
-        }
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-        implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot.version"]}"))
-        implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
         implementation(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
         implementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
         testImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
@@ -87,7 +94,7 @@ subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             suppressWarnings = true
-            jvmTarget = "1.8"
+            jvmTarget = "21"
         }
     }
 

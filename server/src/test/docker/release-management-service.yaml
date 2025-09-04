@@ -4,3 +4,11 @@ server:
 
 releng:
   url: http://mockserver:1080
+
+jira1:
+  host: http://localhost:1080
+  username: admin
+  password: admin
+
+components-registry-service:
+  url: http://components-registry-service:4567
