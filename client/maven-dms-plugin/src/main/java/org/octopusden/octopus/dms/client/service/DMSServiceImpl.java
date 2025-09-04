@@ -137,7 +137,8 @@ public class DMSServiceImpl implements DMSService {
             MavenArtifactCoordinatesDTO coordinates,
             boolean failOnAlreadyExists
     ) throws Exception {
-        Validate.isTrue(file.exists(), "File should exist at " + file.getAbsolutePath());
+        Validate.isTrue(file.isFile(), "File should exist at " + file.getAbsolutePath());
+        Validate.isTrue(uploadAttempts > 0, "uploadAttempts must be greater than zero");
         ArtifactDTO artifact = null;
         for(int i = 1; i <= uploadAttempts; i++) {
             try (InputStream inputStream = Files.newInputStream(file.toPath())) {
