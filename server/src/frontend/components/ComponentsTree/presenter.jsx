@@ -47,7 +47,7 @@ function componentsToNodes(props) {
             let childNodes = []
             const componentId = component.id
             if (component.minorVersions) {
-                childNodes = renderComponentMinorVersions(componentId, component.minorVersions, props)
+                childNodes = renderComponentMinorVersions(componentId, component.minorVersions, component.solution, props)
             }
 
             return {
@@ -63,13 +63,13 @@ function componentsToNodes(props) {
         })
 }
 
-function renderComponentMinorVersions(componentId, minorVersions, props) {
+function renderComponentMinorVersions(componentId, minorVersions, solution, props) {
     return Object.values(minorVersions).map(minorVersion => {
         let childNodes = []
         const minorVersionId = minorVersion.id
         const versions = minorVersion.versions
         if (versions) {
-            childNodes = renderComponentVersions(componentId, minorVersionId, versions, props)
+            childNodes = renderComponentVersions(componentId, minorVersionId, versions, solution, props)
         }
         return {
             level: treeLevel.MINOR,
@@ -85,24 +85,16 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
     })
 }
 
-function renderComponentVersions(componentId, minorVersionId, versions, props) {
+function renderComponentVersions(componentId, minorVersionId, versions, solution, props) {
     const {showRc, currentArtifacts} = props
-    const {selectedComponent, selectedVersion, solution} = currentArtifacts
+    const {selectedComponent, selectedVersion} = currentArtifacts
     return Object.values(versions).filter(version => {
         return showRc || version.status !== 'RC'
     }).map(version => {
         const versionId = version.version
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
-        let childNodes = []
 
-        if (solution) {
-            const dependencies = version.dependencies
-            if (dependencies) {
-                childNodes = renderDependencies(selectedComponent, selectedVersion, versionId, dependencies, props)
-            }
-        }
-
-        return {
+        componentVersionNode = {
             id: versionId,
             label: displayName,
             version: versionId,
@@ -110,8 +102,16 @@ function renderComponentVersions(componentId, minorVersionId, versions, props) {
             componentId: componentId,
             icon: 'build',
             isSelected: selectedComponent === componentId && selectedVersion === versionId,
-            childNodes: childNodes,
         }
+        
+        if (solution) {
+            const dependencies = version.dependencies
+            if (dependencies) {
+                componentVersionNode.childNodes = renderDependencies(selectedComponent, selectedVersion, versionId, dependencies, props)
+            }
+        }
+
+        return componentVersionNode
     })
 }
 

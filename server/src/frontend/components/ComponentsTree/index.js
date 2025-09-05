@@ -99,11 +99,11 @@ class ComponentsTree extends Component {
                     if (minor) {
                         getComponentVersions(component, minor, () => {
                             if (version) {
-                                if (solution) {
+                                if (component.solution) {
                                     getDependencies(component, minor, version, () => {
-                                        if (dependencyId && dependencyVersion) {
-                                            selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
-                                        }
+                                        // if (dependencyId && dependencyVersion) {
+                                        //     selectDependency(component, minor, version, dependencyId, dependencyVersion)
+                                        // }
                                     })
                                 }
                                 else {
