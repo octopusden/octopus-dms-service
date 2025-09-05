@@ -184,7 +184,7 @@ dependencies {
     implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}")
     implementation("io.micrometer:micrometer-registry-prometheus")
 
-    implementation("org.springdoc:springdoc-openapi-ui:1.7.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
     implementation("org.postgresql:postgresql:${project.properties["postgresql.version"]}")
     implementation("org.flywaydb:flyway-core:9.22.3")
     implementation("org.jfrog.artifactory.client:artifactory-java-client-services:2.13.1")
