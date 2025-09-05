@@ -93,6 +93,7 @@ function renderComponentVersions(componentId, minorVersionId, versions, props) {
     }).map(version => {
         const versionId = version.version
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
+        let childNodes = []
 
         if (solution) {
             const dependencies = version.dependencies
