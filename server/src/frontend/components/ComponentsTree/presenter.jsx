@@ -87,12 +87,20 @@ function renderComponentMinorVersions(componentId, minorVersions, props) {
 
 function renderComponentVersions(componentId, minorVersionId, versions, props) {
     const {showRc, currentArtifacts} = props
-    const {selectedComponent, selectedVersion} = currentArtifacts
+    const {selectedComponent, selectedVersion, solution} = currentArtifacts
     return Object.values(versions).filter(version => {
         return showRc || version.status !== 'RC'
     }).map(version => {
         const versionId = version.version
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
+
+        if (solution) {
+            const dependencies = version.dependencies
+            if (dependencies) {
+                childNodes = renderDependencies(selectedComponent, selectedVersion, versionId, dependencies, props)
+            }
+        }
+
         return {
             id: versionId,
             label: displayName,
@@ -100,10 +108,36 @@ function renderComponentVersions(componentId, minorVersionId, versions, props) {
             minorVersion: minorVersionId,
             componentId: componentId,
             icon: 'build',
-            isSelected: selectedComponent === componentId && selectedVersion === versionId
+            isSelected: selectedComponent === componentId && selectedVersion === versionId,
+            childNodes: childNodes,
         }
     })
 }
+
+function renderDependencies(solutionId, solutionMinor, solutionVersion, dependencies, props) {
+    const {currentArtifacts} = props
+    const {selectedSolutionId, selectedSolutionVersion, selectedComponent, selectedVersion} = currentArtifacts
+    return Object.values(dependencies).map(dependency => {
+        const componentId = dependency.component
+        const version = dependency.version
+        const displayName = `${componentId}:${version}`
+        return {
+            id: displayName,
+            label: displayName,
+            solutionId: solutionId,
+            solutionVersion: solutionVersion,
+            solutionMinor: solutionMinor,
+            componentId: componentId,
+            version: version,
+            icon: 'inheritance',
+            isSelected: selectedComponent === componentId
+                && selectedVersion === version
+                && selectedSolutionId === solutionId
+                && selectedSolutionVersion === solutionVersion
+        }
+    })
+}
+
 
 export {
     componentsTree,

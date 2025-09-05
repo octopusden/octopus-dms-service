@@ -40,6 +40,14 @@ const mapDispatchToProps = (dispatch) => {
         dispatch(componentsOperations.selectVersion(componentId, minorVersion, version))
     }
 
+    const getDependencies = (componentId, minorVersion, version, onSuccess) => {
+        dispatch(componentsOperations.getDependencies(componentId, minorVersion, version, onSuccess))
+    }
+
+    const selectDependency = (solutionId, solutionMinor, solutionVersion, componentId, version) => {
+        dispatch(componentsOperations.selectDependency(solutionId, solutionMinor, solutionVersion, componentId, version))
+    }
+
     return {
         getComponents,
         expandComponent,
@@ -48,7 +56,9 @@ const mapDispatchToProps = (dispatch) => {
         expandMinorVersion,
         closeMinorVersion,
         getComponentVersions,
-        selectVersion
+        selectVersion,
+        getDependencies,
+        selectDependency
     }
 }
 
@@ -62,12 +72,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
-    const {selectedComponent, selectedMinor, selectedVersion} = props.currentArtifacts
+    const {selectedComponent, selectedMinor, selectedVersion, solution} = props.currentArtifacts
     return {
         ...currentUrlProps,
         component: selectedComponent == null ? undefined : selectedComponent,
         minor: selectedMinor == null ? undefined : selectedMinor,
         version: selectedVersion == null ? undefined : selectedVersion,
+        solution: solution == null ? false : solution
     }
 }
 
@@ -79,8 +90,8 @@ class ComponentsTree extends Component {
 
     componentDidMount() {
         const urlProps = queryString.parse(history.location.search)
-        const {component, minor, version} = urlProps
-        const {getComponents, getComponentMinorVersions, getComponentVersions, selectVersion} = this.props
+        const {component, minor, version, solution} = urlProps
+        const {getComponents, getComponentMinorVersions, getComponentVersions, selectVersion, getDependencies, selectDependency} = this.props
 
         getComponents(() => {
             if (component) {
@@ -88,7 +99,16 @@ class ComponentsTree extends Component {
                     if (minor) {
                         getComponentVersions(component, minor, () => {
                             if (version) {
-                                selectVersion(component, minor, version)
+                                if (solution) {
+                                    getDependencies(component, minor, version, () => {
+                                        if (dependencyId && dependencyVersion) {
+                                            selectDependency(solutionId, solutionMinor, solutionVersion, dependencyId, dependencyVersion)
+                                        }
+                                    })
+                                }
+                                else {
+                                    selectVersion(component, minor, version)
+                                }
                             }
                         })
                     }
