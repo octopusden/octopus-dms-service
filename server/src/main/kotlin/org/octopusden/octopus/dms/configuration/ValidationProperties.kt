@@ -1,10 +1,8 @@
 package org.octopusden.octopus.dms.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConfigurationProperties(prefix = "validation")
-@ConstructorBinding
 data class ValidationProperties(
     val licenseValidator: LicenseValidatorProperties,
     val nameValidator: NameValidatorProperties,

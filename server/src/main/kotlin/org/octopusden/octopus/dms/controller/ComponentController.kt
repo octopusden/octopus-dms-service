@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
@@ -95,7 +95,7 @@ class ComponentController(
     ) = componentService.getComponentVersionDependencies(componentName, version)
         .sortedWith(compareBy({ it.version.component }, { it.versionInfo })).map { it.version }
 
-    @PatchMapping("{component-name}/versions/{version}")
+    @PatchMapping("{component-name}/versions/{version:.+}")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun patchComponentVersion(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,

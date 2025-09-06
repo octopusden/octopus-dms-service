@@ -11,7 +11,6 @@ import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 
-
 abstract class ConfigureMockServer : DefaultTask() {
     private val mockServerClient = MockServerClient("localhost", 1080)
 

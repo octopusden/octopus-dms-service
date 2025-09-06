@@ -1,5 +1,11 @@
+import org.gradle.kotlin.dsl.withType
+
 plugins {
     `maven-publish`
+}
+
+tasks.withType<JavaCompile> {
+    options.release.set(8)
 }
 
 publishing {

@@ -1,6 +1,6 @@
 package org.octopusden.octopus.dms.entity
 
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "component")

@@ -1,8 +1,8 @@
 package org.octopusden.octopus.dms.controller.advice
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
