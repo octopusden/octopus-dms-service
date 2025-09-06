@@ -94,7 +94,7 @@ function renderComponentVersions(componentId, minorVersionId, versions, solution
         const versionId = version.version
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
 
-        componentVersionNode = {
+        const componentVersionNode = {
             id: versionId,
             label: displayName,
             version: versionId,
