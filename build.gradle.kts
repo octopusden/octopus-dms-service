@@ -17,6 +17,14 @@ allprojects {
     group = "org.octopusden.octopus.dms"
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && (requested.name == "kotlin-stdlib-jdk7" || requested.name == "kotlin-stdlib-jdk8")) {
+            useTarget("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+        }
+    }
+}
+
 nexusPublishing {
     repositories {
         sonatype {
@@ -75,7 +83,6 @@ subprojects {
 
     dependencies {
         if (project.path in legacyProjects) {
-            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
             implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
             implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud-legacy.version"]}"))
             implementation("org.slf4j:slf4j-api:1.7.36")
@@ -86,6 +93,7 @@ subprojects {
             implementation("org.slf4j:slf4j-api:2.0.12")
             implementation("xerces:xercesImpl:2.12.2")
         }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:${project.properties["kotlin.version"]}")
         implementation(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
         implementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
         testImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))

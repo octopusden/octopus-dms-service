@@ -95,7 +95,7 @@ class ComponentController(
     ) = componentService.getComponentVersionDependencies(componentName, version)
         .sortedWith(compareBy({ it.version.component }, { it.versionInfo })).map { it.version }
 
-    @PatchMapping("{component-name}/versions/{version}")
+    @PatchMapping("{component-name}/versions/{version:.+}")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun patchComponentVersion(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,

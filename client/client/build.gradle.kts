@@ -66,7 +66,7 @@ dependencies {
     api("io.github.openfeign.form:feign-form:3.8.0")
 
     implementation("commons-logging:commons-logging:1.2")
-    implementation("org.apache.httpcomponents:httpmime")
+    implementation("org.apache.httpcomponents:httpmime:4.5.14")
 }
 
 project.tasks.publishToMavenLocal {
