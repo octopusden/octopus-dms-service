@@ -30,6 +30,7 @@
     parentComponent = "ee-component"
     groupId = "corp.domain"
     vcsUrl = "ssh://git@git.domain.corp/ee/ee-client-specific-component.git"
+    solution = false
     jira {
         projectKey = 'EEC'
         lineVersionFormat = '$major02.$minor02'
@@ -96,6 +97,7 @@ dependency1 {
     releaseManager = "Dependency Manager"
     groupId = "corp.domain"
     vcsUrl = "ssh://git@git.domain.corp/ee/dependency-1.git"
+    solution = false
     jira {
         projectKey = 'DEPS'
     }
@@ -112,6 +114,7 @@ dependency2 {
     releaseManager = "Dependency Manager"
     groupId = "corp.domain"
     vcsUrl = "ssh://git@git.domain.corp/ee/dependency-2.git"
+    solution = false
     jira {
         projectKey = 'DEPS'
     }
@@ -128,6 +131,7 @@ dependency3 {
     releaseManager = "Dependency Manager"
     groupId = "corp.domain"
     vcsUrl = "ssh://git@git.domain.corp/ee/dependency-3.git"
+    solution = false
     jira {
         projectKey = 'DEPS'
     }
