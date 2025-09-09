@@ -51,6 +51,7 @@ signing {
 }
 
 dependencies {
+    api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
     implementation("com.fasterxml.jackson.core:jackson-annotations")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.9")
 }

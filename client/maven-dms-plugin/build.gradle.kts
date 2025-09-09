@@ -88,6 +88,7 @@ tasks["publishToMavenLocal"].dependsOn("test")
 
 dependencies {
     implementation(project(":client"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
     implementation("org.springframework:spring-core")
 
     implementation("org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}")

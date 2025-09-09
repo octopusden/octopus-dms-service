@@ -16,15 +16,6 @@ plugins {
     `maven-publish`
 }
 
-configurations.all {
-    resolutionStrategy {
-        force(
-            "org.slf4j:slf4j-api:2.0.12",
-            "com.zaxxer:HikariCP:5.1.0"
-        )
-    }
-}
-
 tasks.getByName<Jar>("jar") {
     enabled = false
 }
@@ -158,8 +149,14 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 }
 
 dependencies {
+    constraints {
+        add("implementation", "org.slf4j:slf4j-api:2.0.12")
+        add("implementation", "com.zaxxer:HikariCP:5.1.0")
+    }
+
     implementation(project(":common"))
 
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot.version"]}"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -171,6 +168,7 @@ dependencies {
     implementation("org.springframework.security:spring-security-oauth2-resource-server")
     implementation("org.springframework.security:spring-security-oauth2-jose")
 
+    implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
@@ -197,7 +195,7 @@ dependencies {
         exclude("com.vaadin.external.google", "android-json")
     }
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.apache.httpcomponents:httpmime:4.5.14")
+    testImplementation("org.apache.httpcomponents:httpmime:4.5.13")
     testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 }

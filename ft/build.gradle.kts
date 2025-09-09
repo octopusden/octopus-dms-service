@@ -10,7 +10,7 @@ fun String.getExt() = project.ext[this] as? String
 dockerCompose {
     useComposeFiles.add("${projectDir}/src/ft/docker/docker-compose.yaml")
     waitForTcpPorts = true
-    captureContainersOutputToFiles = layout.buildDirectory.dir("/docker-logs").get().asFile
+    captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
     environment.putAll(
         mapOf(
             "DMS_SERVICE_VERSION" to project.version,
@@ -93,6 +93,8 @@ dependencies {
     ftImplementation(project(":test-common"))
     ftImplementation(project(":client"))
     ftImplementation(gradleTestKit())
+
+    ftImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
     ftImplementation("org.junit.jupiter:junit-jupiter-engine")
     ftImplementation("org.junit.jupiter:junit-jupiter-params")
 }
