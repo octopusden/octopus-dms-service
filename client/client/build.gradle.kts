@@ -60,6 +60,7 @@ dependencies {
     api("io.github.openfeign:feign-slf4j")
     api("io.github.openfeign.form:feign-form:3.8.0")
 
+    api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
     api("com.fasterxml.jackson.core:jackson-annotations")
     api("com.fasterxml.jackson.core:jackson-core")
     api("com.fasterxml.jackson.module:jackson-module-kotlin")

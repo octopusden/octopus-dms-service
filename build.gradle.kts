@@ -17,6 +17,14 @@ allprojects {
     group = "org.octopusden.octopus.dms"
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && (requested.name == "kotlin-stdlib-jdk7" || requested.name == "kotlin-stdlib-jdk8")) {
+            useTarget("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+        }
+    }
+}
+
 nexusPublishing {
     repositories {
         sonatype {
