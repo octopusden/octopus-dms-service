@@ -17,6 +17,11 @@ spring:
     username: dms
     password: dms
 
+springdoc:
+  swagger-ui:
+    config-url: /dms-service/v3/api-docs/swagger-config
+    url: /dms-service/v3/api-docs
+
 auth-server:
   url: # set via env
   realm: # set via env
