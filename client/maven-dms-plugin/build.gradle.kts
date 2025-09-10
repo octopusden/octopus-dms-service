@@ -11,9 +11,8 @@ tasks.withType<KotlinCompile> {
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 val pomFile = layout.buildDirectory.file("pom.xml").get().asFile
