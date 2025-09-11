@@ -13,11 +13,6 @@ spring:
     username: dms
     password: dms
 
-springdoc:
-  swagger-ui:
-    config-url: /dms-service/v3/api-docs/swagger-config
-    url: /dms-service/v3/api-docs
-
 auth-server:
   url: # set via env
   logout-url: ${auth-server.url}/realms/${auth-server.realm}/protocol/openid-connect/logout?redirect_uri=http://localhost:8765/dms-service/swagger-ui/index.html
