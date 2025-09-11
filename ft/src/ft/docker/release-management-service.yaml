@@ -5,6 +5,7 @@ server:
 releng:
   url: http://mockserver:1080
 
+# These values are not used in tests. They are only needed because they are required in the application configuration
 jira1:
   host: http://localhost:1080
   username: admin
