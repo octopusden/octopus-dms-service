@@ -1,13 +1,13 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.ConfigureMockServer
 import java.time.Duration
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     java
     idea
-    id("org.jetbrains.kotlin.jvm") apply (false)
+    id("org.jetbrains.kotlin.jvm")
     signing
     id("io.github.gradle-nexus.publish-plugin")
 }
@@ -52,17 +52,17 @@ subprojects {
         }
     }
 
-    val javaVersion = JavaVersion.VERSION_21
-
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions.jvmTarget = javaVersion.toString()
-    }
-
     java {
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
         withJavadocJar()
         withSourcesJar()
+        JavaVersion.VERSION_21.let {
+            sourceCompatibility = it
+            targetCompatibility = it
+        }
+    }
+
+    kotlin {
+        compilerOptions.jvmTarget = JvmTarget.JVM_21
     }
 
     idea.module {

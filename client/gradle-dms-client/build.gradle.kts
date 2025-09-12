@@ -2,7 +2,7 @@ plugins {
     `maven-publish`
 }
 
-tasks.withType<JavaCompile> {
+tasks.withType<JavaCompile>().configureEach {
     options.release.set(8)
 }
 
