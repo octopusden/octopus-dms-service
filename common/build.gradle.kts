@@ -5,13 +5,15 @@ plugins {
     `maven-publish`
 }
 
+val javaVersion = JavaVersion.VERSION_1_8
+
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = javaVersion.toString()
 }
 
-tasks.withType<JavaCompile> {
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 publishing {

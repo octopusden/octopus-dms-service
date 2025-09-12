@@ -4,6 +4,13 @@ plugins {
     `maven-publish`
 }
 
+val javaVersion = JavaVersion.VERSION_1_8
+
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
 val pluginId = "org.octopusden.octopus-dms"
 
 publishing {

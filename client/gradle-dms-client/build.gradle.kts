@@ -1,11 +1,12 @@
-import org.gradle.kotlin.dsl.withType
-
 plugins {
     `maven-publish`
 }
 
-tasks.withType<JavaCompile> {
-    options.release.set(8)
+val javaVersion = JavaVersion.VERSION_1_8
+
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 publishing {

@@ -1,4 +1,3 @@
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
@@ -53,12 +52,17 @@ subprojects {
         }
     }
 
+    val javaVersion = JavaVersion.VERSION_21
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions.jvmTarget = javaVersion.toString()
+    }
+
     java {
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
         withJavadocJar()
         withSourcesJar()
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
     }
 
     idea.module {
@@ -73,14 +77,6 @@ subprojects {
         }
     }
 
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            suppressWarnings = true
-            jvmTarget = "21"
-        }
-    }
-
-    @Suppress("UNUSED_VARIABLE")
     tasks {
         val importArtifactoryDump by registering(ImportArtifactoryDump::class) {
             this.retryLimit = 3

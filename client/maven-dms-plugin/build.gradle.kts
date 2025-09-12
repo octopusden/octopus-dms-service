@@ -6,13 +6,15 @@ plugins {
     `maven-publish`
 }
 
+val javaVersion = JavaVersion.VERSION_1_8
+
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = javaVersion.toString()
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 val pomFile = layout.buildDirectory.file("pom.xml").get().asFile
