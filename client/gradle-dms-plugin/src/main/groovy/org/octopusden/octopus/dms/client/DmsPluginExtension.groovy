@@ -1,7 +1,5 @@
 package org.octopusden.octopus.dms.client
 
-
-import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO

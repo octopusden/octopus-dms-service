@@ -1,5 +1,17 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `maven-publish`
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
 }
 
 publishing {
@@ -41,18 +53,21 @@ signing {
 
 dependencies {
     api(project(":common"))
-    api("com.fasterxml.jackson.core:jackson-annotations")
-    api("com.fasterxml.jackson.core:jackson-core")
-    api("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    api(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud-legacy.version"]}"))
     api("io.github.openfeign:feign-core")
     api("io.github.openfeign:feign-httpclient")
     api("io.github.openfeign:feign-jackson")
     api("io.github.openfeign:feign-slf4j")
     api("io.github.openfeign.form:feign-form:3.8.0")
-    api(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
+
     api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
+    api("com.fasterxml.jackson.core:jackson-annotations")
+    api("com.fasterxml.jackson.core:jackson-core")
+    api("com.fasterxml.jackson.module:jackson-module-kotlin")
+
     implementation("commons-logging:commons-logging:1.2")
-    implementation("org.apache.httpcomponents:httpmime")
+    implementation("org.apache.httpcomponents:httpmime:4.5.13")
 }
 
 project.tasks.publishToMavenLocal {

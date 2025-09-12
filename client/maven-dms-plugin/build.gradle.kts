@@ -1,10 +1,21 @@
 import java.nio.charset.StandardCharsets
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `maven-publish`
 }
 
-val pomFile = buildDir.resolve("pom.xml")
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+val pomFile = layout.buildDirectory.file("pom.xml").get().asFile
 
 publishing {
     publications {
@@ -35,8 +46,8 @@ publishing {
             pom.withXml {
                 asNode().also {
                     it.appendNode("build").also { build ->
-                        build.appendNode("directory", buildDir.canonicalPath)
-                        build.appendNode("outputDirectory", buildDir.resolve("classes").resolve("java").resolve("main").canonicalPath)
+                        build.appendNode("directory", layout.buildDirectory.get().asFile.canonicalPath)
+                        build.appendNode("outputDirectory", layout.buildDirectory.file("classes/java/main").get().asFile.canonicalPath)
                     }
                     it.appendNode("repositories").appendNode("repository").also {repository ->
                         repository.appendNode("id", "gradle-libs")
@@ -76,14 +87,19 @@ tasks["jar"].dependsOn("generatePluginDescriptor")
 tasks["publishToMavenLocal"].dependsOn("test")
 
 dependencies {
-    compileOnly("org.apache.maven:maven-plugin-api:3.3.9")
-    compileOnly("org.apache.maven.plugin-tools:maven-plugin-annotations:3.4")
     implementation(project(":client"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
     implementation("org.springframework:spring-core")
+
     implementation("org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}")
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
     implementation("org.octopusden.octopus.tools.wl:validation:2.0.7")
+
     implementation("org.redline-rpm:redline:1.2.10")
+
+    compileOnly("org.apache.maven:maven-plugin-api:3.3.9")
+    compileOnly("org.apache.maven.plugin-tools:maven-plugin-annotations:3.4")
+
     testImplementation("org.apache.maven:maven-core:3.3.9")
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

@@ -8,6 +8,7 @@ Defaults {
     repositoryType = GIT
     tag = '$module-$version'
     artifactId = ANY_ARTIFACT
+    solution = false
     jira {
         majorVersionFormat = '$major.$minor'
         releaseVersionFormat = '$major.$minor.$service'

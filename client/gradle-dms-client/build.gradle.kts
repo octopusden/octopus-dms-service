@@ -1,5 +1,11 @@
+import org.gradle.kotlin.dsl.withType
+
 plugins {
     `maven-publish`
+}
+
+tasks.withType<JavaCompile> {
+    options.release.set(8)
 }
 
 publishing {
@@ -41,11 +47,13 @@ signing {
 
 dependencies {
     implementation(project(":client"))
+    implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
+    implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
+
     implementation("org.gradle:gradle-core:1.6")
     implementation("org.gradle:gradle-tooling-api:2.6")
+
     implementation("org.codehaus.groovy:groovy-all:2.4.15")
     implementation("org.slf4j:slf4j-api")
     implementation("commons-io:commons-io:2.2")
-    implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
-    implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
 }
