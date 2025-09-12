@@ -17,6 +17,10 @@ java {
     targetCompatibility = javaVersion
 }
 
+tasks.withType<JavaCompile> {
+    options.release.set(8)
+}
+
 val pomFile = layout.buildDirectory.file("pom.xml").get().asFile
 
 publishing {

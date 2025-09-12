@@ -16,6 +16,10 @@ java {
     targetCompatibility = javaVersion
 }
 
+tasks.withType<JavaCompile> {
+    options.release.set(8)
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {

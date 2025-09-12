@@ -11,6 +11,10 @@ java {
     targetCompatibility = javaVersion
 }
 
+tasks.withType<JavaCompile> {
+    options.release.set(8)
+}
+
 val pluginId = "org.octopusden.octopus-dms"
 
 publishing {
