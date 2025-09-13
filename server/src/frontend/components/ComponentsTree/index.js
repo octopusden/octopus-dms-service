@@ -72,13 +72,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const propsToUrl = (props) => {
     const currentUrlProps = queryString.parse(history.location.search)
-    const {selectedComponent, selectedMinor, selectedVersion, solution} = props.currentArtifacts
+    const {selectedComponent, selectedMinor, selectedVersion, } = props.currentArtifacts
     return {
         ...currentUrlProps,
         component: selectedComponent == null ? undefined : selectedComponent,
         minor: selectedMinor == null ? undefined : selectedMinor,
         version: selectedVersion == null ? undefined : selectedVersion,
-        solution: solution == null ? false : solution
     }
 }
 
@@ -90,7 +89,7 @@ class ComponentsTree extends Component {
 
     componentDidMount() {
         const urlProps = queryString.parse(history.location.search)
-        const {component, minor, version, solution} = urlProps
+        const {component, minor, version} = urlProps
         const {getComponents, getComponentMinorVersions, getComponentVersions, selectVersion, getDependencies, selectDependency} = this.props
 
         getComponents(() => {
@@ -131,8 +130,11 @@ class ComponentsTree extends Component {
             case treeLevel.MINOR:
                 this.handleMinorVersionSelect(nodeData)
                 break
-            default:
+            case treeLevel.VERSION:
                 this.handleVersionSelect(nodeData)
+                break
+            default:
+                this.handleDependencySelect(nodeData)
         }
     }
 
@@ -178,6 +180,16 @@ class ComponentsTree extends Component {
         const {componentId, minorVersion, version, isSelected} = nodeData
         if (!isSelected) {
             selectVersion(componentId, minorVersion, version)
+        }
+    }
+
+    handleDependencySelect = (nodeData) => {
+        const {
+            selectDependency
+        } = this.props
+        const {solutionId, solutionMinor, solutionVersion, componentId, version, isSelected} = nodeData
+        if (!isSelected) {
+            selectDependency(solutionId, solutionMinor, solutionVersion, componentId, version)
         }
     }
 }

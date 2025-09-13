@@ -4,7 +4,8 @@ import {getSecondaryLabel} from "../common";
 
 const treeLevel = {
     ROOT: 'ROOT',
-    MINOR: 'MINOR'
+    MINOR: 'MINOR',
+    VERSION: 'VERSION'
 }
 
 function componentsTree(props) {
@@ -95,6 +96,7 @@ function renderComponentVersions(componentId, minorVersionId, versions, solution
         const displayName = versionId + (version.status === 'RELEASE' ? '' : `-${version.status}`)
 
         const componentVersionNode = {
+            level: treeLevel.VERSION,
             id: versionId,
             label: displayName,
             version: versionId,
