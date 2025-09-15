@@ -1,20 +1,27 @@
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.ConfigureMockServer
 import java.time.Duration
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     java
     idea
-    id("org.jetbrains.kotlin.jvm") apply (false)
+    id("org.jetbrains.kotlin.jvm")
     signing
     id("io.github.gradle-nexus.publish-plugin")
 }
 
 allprojects {
     group = "org.octopusden.octopus.dms"
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin" && (requested.name == "kotlin-stdlib-jdk7" || requested.name == "kotlin-stdlib-jdk8")) {
+            useTarget("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+        }
+    }
 }
 
 nexusPublishing {
@@ -48,9 +55,14 @@ subprojects {
     java {
         withJavadocJar()
         withSourcesJar()
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(8))
+        JavaVersion.VERSION_21.let {
+            sourceCompatibility = it
+            targetCompatibility = it
         }
+    }
+
+    kotlin {
+        compilerOptions.jvmTarget = JvmTarget.JVM_21
     }
 
     idea.module {
@@ -65,33 +77,6 @@ subprojects {
         }
     }
 
-    dependencies {
-        implementation("org.slf4j:slf4j-api") {
-            version {
-                strictly("1.7.36")
-            }
-        }
-        implementation("ch.qos.logback:logback-classic") {
-            version {
-                strictly("1.2.11")
-            }
-        }
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-        implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot.version"]}"))
-        implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${project.properties["spring-cloud.version"]}"))
-        implementation(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
-        implementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
-        testImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
-    }
-
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            suppressWarnings = true
-            jvmTarget = "1.8"
-        }
-    }
-
-    @Suppress("UNUSED_VARIABLE")
     tasks {
         val importArtifactoryDump by registering(ImportArtifactoryDump::class) {
             this.retryLimit = 3

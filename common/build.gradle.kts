@@ -1,5 +1,19 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `maven-publish`
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(8)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    "1.8".let {
+        kotlinOptions.jvmTarget = it
+        compilerOptions.freeCompilerArgs.add("-Xjdk-release=$it")
+    }
 }
 
 publishing {
@@ -40,6 +54,7 @@ signing {
 }
 
 dependencies {
+    api(platform("com.fasterxml.jackson:jackson-bom:${project.properties["jackson.version"]}"))
     implementation("com.fasterxml.jackson.core:jackson-annotations")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.9")
+    implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.19")
 }

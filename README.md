@@ -2,7 +2,7 @@
 
 ## JDK version
 
-8
+21
 
 ## Maven version
 
