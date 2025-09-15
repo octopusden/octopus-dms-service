@@ -4,6 +4,10 @@ plugins {
     `maven-publish`
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(8)
+}
+
 val pluginId = "org.octopusden.octopus-dms"
 
 publishing {

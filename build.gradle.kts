@@ -1,14 +1,13 @@
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.ConfigureMockServer
 import java.time.Duration
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     java
     idea
-    id("org.jetbrains.kotlin.jvm") apply (false)
+    id("org.jetbrains.kotlin.jvm")
     signing
     id("io.github.gradle-nexus.publish-plugin")
 }
@@ -56,9 +55,14 @@ subprojects {
     java {
         withJavadocJar()
         withSourcesJar()
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+        JavaVersion.VERSION_21.let {
+            sourceCompatibility = it
+            targetCompatibility = it
         }
+    }
+
+    kotlin {
+        compilerOptions.jvmTarget = JvmTarget.JVM_21
     }
 
     idea.module {
@@ -73,14 +77,6 @@ subprojects {
         }
     }
 
-    tasks.withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            suppressWarnings = true
-            jvmTarget = "21"
-        }
-    }
-
-    @Suppress("UNUSED_VARIABLE")
     tasks {
         val importArtifactoryDump by registering(ImportArtifactoryDump::class) {
             this.retryLimit = 3
