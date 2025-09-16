@@ -54,6 +54,6 @@ dependencies {
     implementation("org.gradle:gradle-tooling-api:2.6")
 
     implementation("org.codehaus.groovy:groovy-all:2.4.15")
-    implementation("org.slf4j:slf4j-api")
+    implementation("org.slf4j:slf4j-api:1.7.32")
     implementation("commons-io:commons-io:2.2")
 }
