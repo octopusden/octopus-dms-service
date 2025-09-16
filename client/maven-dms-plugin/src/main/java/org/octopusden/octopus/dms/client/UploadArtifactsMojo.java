@@ -49,6 +49,7 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                         dmsService.uploadArtifact(log,
                                 dmsServiceClient,
                                 targetArtifact.file,
+                                uploadAttempts,
                                 ComponentVersion.create(component, version),
                                 targetArtifact.type,
                                 targetArtifact.coordinates,
