@@ -19,7 +19,7 @@ allprojects {
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin" && (requested.name == "kotlin-stdlib-jdk7" || requested.name == "kotlin-stdlib-jdk8")) {
-            useTarget("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+            useTarget("org.jetbrains.kotlin:kotlin-stdlib:${project.properties["kotlin.version"]}")
         }
     }
 }
