@@ -74,6 +74,13 @@ docker {
     }
 }
 
+tasks.named("dockerPushImage") {
+    doFirst {
+        println("Waiting for 60 seconds before pushing the image...")
+        Thread.sleep(60_000) // 60 секунд
+    }
+}
+
 tasks.getByName("dockerBuildImage").doFirst {
     extValidateFun.invoke(listOf("dockerRegistry", "octopusGithubDockerRegistry"))
 }
