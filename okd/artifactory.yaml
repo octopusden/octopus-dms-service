@@ -1,0 +1,96 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: artifactory-template
+objects:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-dump
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory
+      labels:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
+      volumes:
+        - name: artifactory-data
+          persistentVolumeClaim:
+            claimName: ${DEPLOYMENT_PREFIX}-artifactory-data
+        - name: artifactory-dump
+          persistentVolumeClaim:
+            claimName: ${DEPLOYMENT_PREFIX}-artifactory-dump
+      containers:
+        - name: artifactory
+          image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+            - containerPort: 8082
+              protocol: TCP
+
+          volumeMounts:
+            - name: artifactory-data
+              mountPath: /opt/jfrog/artifactory/var
+            - name: artifactory-dump
+              mountPath: /dump
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-service
+    spec:
+      ports:
+        - name: port-8081
+          port: 8081
+          protocol: TCP
+          targetPort: 8081
+        - name: port-8082
+          port: 8082
+          protocol: TCP
+          targetPort: 8082
+      selector:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-route
+    spec:
+      port:
+        targetPort: 8081
+      to:
+        kind: Service
+        name: ${DEPLOYMENT_PREFIX}-artifactory-service
+parameters:
+  - description: Unique deployment prefix
+    name: DEPLOYMENT_PREFIX
+    required: true
+  - description: Active deadline seconds
+    name: ACTIVE_DEADLINE_SECONDS
+    required: true
+  - description: Docker registry
+    name: DOCKER_REGISTRY
+    required: true
+  - description: Tag of Artifactory image
+    name: ARTIFACTORY_IMAGE_TAG
+    required: true

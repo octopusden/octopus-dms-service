@@ -4,6 +4,8 @@ import com.google.common.net.HttpHeaders
 import java.nio.charset.StandardCharsets
 import org.apache.http.entity.ContentType
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.json.JSONArray
 import org.json.JSONObject
@@ -11,8 +13,14 @@ import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
 
+
 abstract class ConfigureMockServer : DefaultTask() {
-    private val mockServerClient = MockServerClient("localhost", 1080)
+    @get:Input
+    abstract val host: Property<String>
+    @get:Input
+    abstract val port: Property<Int>
+
+    private val mockServerClient get() = MockServerClient(host.get(), port.get())
 
     @TaskAction
     fun configureMockServer() {

@@ -28,8 +28,13 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val mavenCommand = if (isWindowsSystem) mvnWinCommand else mvnCommonCommand
         "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }
-    private val cregServiceUrl = "http://localhost:4567"
-    private val dmsServiceUrl = "http://localhost:8765/dms-service"
+
+    private val cregHost = System.getProperty("test.components-registry-host")
+        ?: throw Exception("System property 'test.components-registry-host' must be defined")
+    private val apiGatewayHost = System.getProperty("test.api-gateway-host")
+        ?: throw Exception("System property 'test.api-gateway-host' must be defined")
+    private val cregServiceUrl = "http://$cregHost"
+    private val dmsServiceUrl = "http://$apiGatewayHost/dms-service"
 
     override val client = ClassicDmsServiceClient(
         object : DmsServiceClientParametersProvider {

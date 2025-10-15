@@ -9,7 +9,7 @@ spring:
         jwt:
           issuer-uri: ${auth-server.url}/realms/${auth-server.realm}
   datasource:
-    url: jdbc:postgresql://localhost:5432/dms
+    url: jdbc:postgresql://${test.postgres-host}/dms
     username: dms
     password: dms
 
@@ -25,7 +25,7 @@ dms-service:
 storage:
   maven-group-prefix: corp.domain.dms
   artifactory:
-    host: http://localhost:8081
+    host: http://${test.artifactory-host}
     user: admin
     password: password
     upload-repositories:
@@ -50,13 +50,13 @@ storage:
         - rpm-release-repo-local
 
 components-registry-service:
-  url: http://localhost:4567
+  url: http://${test.components-registry-host}
 
 releng:
-  host: http://localhost:1080
+  host: http://${test.mock-server-host}
 
 release-management-service:
-  url: http://localhost:8083
+  url: http://${test.release-management-host}
 
 validation:
   license-validator:
