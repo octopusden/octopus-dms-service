@@ -221,7 +221,8 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
 tasks.register("waitPostgresExternalIP") {
     doLast{
         val ns = "okdProject".getExt()
-        val svc = "${ocTemplate.prefix.get()}-${project.version.toString().lowercase()}-postgres-service"
+        val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
+        val svc = "$deploymentPrefix-postgres-service"
         val timeoutMs = 5 * 60 * 1000
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
