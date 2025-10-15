@@ -258,24 +258,24 @@ tasks.named("dockerBuildImage") {
     dependsOn("test")
 }
 
-//val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
-//    dependsOn("npmInstall")
-//    npmCommand.set(listOf("run", "build"))
-//}
-//
-//tasks.withType<ProcessResources> {
-//    dependsOn(npmBuild)
-//}
-//
-//node {
-//    version.set("16.20.2")
-//    download.set(true)
-//    npmVersion.set("8.19.4")
-//}
-//
-//tasks.getByName<Delete>("clean") {
-//    this.delete.add("$projectDir/node_modules")
-//}
+val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
+    dependsOn("npmInstall")
+    npmCommand.set(listOf("run", "build"))
+}
+
+tasks.withType<ProcessResources> {
+    dependsOn(npmBuild)
+}
+
+node {
+    version.set("16.20.2")
+    download.set(true)
+    npmVersion.set("8.19.4")
+}
+
+tasks.getByName<Delete>("clean") {
+    this.delete.add("$projectDir/node_modules")
+}
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     args(
