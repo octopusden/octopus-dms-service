@@ -206,13 +206,13 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
-            retryLimit.set(3)
+            retryLimit.set(100)
             dependsOn("ocCreate")
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
             host.set("localhost:8081")
-            retryLimit.set(3)
+            retryLimit.set(100)
             dependsOn("composeUp")
         }
     }
