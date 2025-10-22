@@ -1,0 +1,97 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: release-management-template
+objects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-release-management-config-data
+    data:
+      application-dev.yaml: |-
+        ${APPLICATION_DEV_CONTENT}
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-rm
+      labels:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-rm
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
+      containers:
+        - name: rm
+          image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/release-management-service:${RELEASE_MANAGEMENT_SERVICE_VERSION}
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8083
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: "/"
+            - name: SPRING_CLOUD_CONFIG_ENABLED
+              value: "false"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: TEST_MOCK_SERVER_HOST
+              value: ${TEST_MOCK_SERVER_HOST}
+          volumeMounts:
+            - name: application-dev
+              mountPath: /application-dev.yaml
+              subPath: application-dev.yaml
+              readOnly: true
+      volumes:
+        - name: application-dev
+          configMap:
+            name: ${DEPLOYMENT_PREFIX}-release-management-config-data
+            items:
+              - key: application-dev.yaml
+                path: application-dev.yaml
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-rm-service
+    spec:
+      ports:
+        - port: 8083
+          protocol: TCP
+          targetPort: 8083
+      selector:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-rm
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-rm-route
+    spec:
+      port:
+        targetPort: 8083
+      to:
+        kind: Service
+        name: ${DEPLOYMENT_PREFIX}-rm-service
+parameters:
+  - description: Unique deployment prefix
+    name: DEPLOYMENT_PREFIX
+    required: true
+  - description: Active deadline seconds
+    name: ACTIVE_DEADLINE_SECONDS
+    required: true
+  - description: Docker registry
+    name: DOCKER_REGISTRY
+    required: true
+  - description: Release management service version
+    name: RELEASE_MANAGEMENT_SERVICE_VERSION
+    required: true
+  - description: Octopus github docker registry
+    name: OCTOPUS_GITHUB_DOCKER_REGISTRY
+    required: true
+  - description: Test mockserver host
+    name: TEST_MOCK_SERVER_HOST
+    required: true
+  - description: application-dev.yaml content
+    name: APPLICATION_DEV_CONTENT
+    required: true

@@ -142,20 +142,14 @@ class ClassicDmsServiceClient(
         val response = httpClient.execute(httpPost)
         if (response.statusLine.statusCode / 100 != 2) {
             response.entity.content.use {
-                val responseBody = String(it.readBytes())
-                if (response.allHeaders.any { header ->
-                        header.name == HttpHeaders.CONTENT_TYPE && header.elements.any { headerElement ->
-                            headerElement.name.contains(ContentType.APPLICATION_JSON.mimeType)
-                        }
-                    }) {
-                    try {
-                        objectMapper.readValue(responseBody, ApplicationErrorResponse::class.java)
-                    } catch (_: Exception) {
-                        null
-                    }?.let { error ->
-                        throw DMSException.CODE_EXCEPTION_MAP[error.code]?.invoke(error.message)
-                            ?: RuntimeException(error.message)
-                    }
+                val responseBody = it.readBytes().toString(Charsets.UTF_8)
+                try {
+                    objectMapper.readValue(responseBody, ApplicationErrorResponse::class.java)
+                } catch (_: Exception) {
+                    null
+                }?.let { error ->
+                    throw DMSException.CODE_EXCEPTION_MAP[error.code]?.invoke(error.message)
+                        ?: RuntimeException(error.message)
                 }
                 throw RuntimeException(responseBody)
             }

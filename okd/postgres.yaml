@@ -1,0 +1,77 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: postgres-template
+objects:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres
+      labels:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
+      containers:
+        - name: postgres
+          image: ${DOCKER_REGISTRY}/postgres:${POSTGRES_IMAGE_TAG}
+          env:
+            - name: POSTGRES_DB
+              value: dms
+            - name: POSTGRES_PASSWORD
+              value: dms
+            - name: POSTGRES_USER
+              value: dms
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U dms
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: ${DEPLOYMENT_PREFIX}-postgres-data
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres-service
+    spec:
+      ports:
+        - port: 5432
+          targetPort: 5432
+      selector:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+      type: LoadBalancer
+parameters:
+  - description: Unique deployment prefix
+    name: DEPLOYMENT_PREFIX
+    required: true
+  - description: Active deadline seconds
+    name: ACTIVE_DEADLINE_SECONDS
+    required: true
+  - description: Docker registry
+    name: DOCKER_REGISTRY
+    required: true
+  - description: Postgres image tag
+    name: POSTGRES_IMAGE_TAG
+    required: true

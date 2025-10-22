@@ -3,7 +3,7 @@ version: '3'
 services:
     dms-db:
         container_name: dms-ft-dms-db
-        image: ${DOCKER_REGISTRY}/postgres:11-alpine
+        image: ${DOCKER_REGISTRY}/postgres:${POSTGRES_IMAGE_TAG}
         ports:
             - "5432:5432"
         environment:
@@ -13,7 +13,7 @@ services:
 
     artifactory:
         container_name: dms-ft-artifactory
-        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.16.3
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
         ports:
             - "8081:8081"
             - "8082:8082"
@@ -52,12 +52,13 @@ services:
             - SPRING_CONFIG_ADDITIONAL_LOCATION=/
             - SPRING_PROFILES_ACTIVE=ft
             - SPRING_CLOUD_CONFIG_ENABLED=false
+            - TEST_MOCK_SERVER_HOST=${TEST_MOCK_SERVER_HOST}
         volumes:
           - ./release-management-service.yaml:/application-ft.yaml
 
     mockserver:
         container_name: dms-ft-mockserver
-        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-5.11.1
+        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-${MOCK_SERVER_VERSION}
         ports:
             - "1080:1080"
 
@@ -79,10 +80,17 @@ services:
             - SPRING_CLOUD_CONFIG_ENABLED=false
             - AUTH_SERVER_URL=${AUTH_SERVER_URL}
             - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
+            - TEST_API_GATEWAY_HOST_EXTERNAL=${TEST_API_GATEWAY_HOST_EXTERNAL}
+            - TEST_POSTGRES_HOST=${TEST_POSTGRES_HOST}
+            - TEST_MOCK_SERVER_HOST=${TEST_MOCK_SERVER_HOST}
+            - TEST_ARTIFACTORY_HOST=${TEST_ARTIFACTORY_HOST}
+            - TEST_ARTIFACTORY_HOST_EXTERNAL=${TEST_ARTIFACTORY_HOST_EXTERNAL}
+            - TEST_COMPONENTS_REGISTRY_HOST=${TEST_COMPONENTS_REGISTRY_HOST}
+            - TEST_RELEASE_MANAGEMENT_HOST=${TEST_RELEASE_MANAGEMENT_HOST}
 
     api-gateway:
         container_name: dms-ft-api-gateway
-        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:2.0.14
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:${API_GATEWAY_VERSION}
         ports:
             - "8765:8765"
         volumes:
@@ -95,6 +103,8 @@ services:
             - AUTH_SERVER_REALM=${AUTH_SERVER_REALM}
             - AUTH_SERVER_CLIENT_ID=${AUTH_SERVER_CLIENT_ID}
             - AUTH_SERVER_CLIENT_SECRET=${AUTH_SERVER_CLIENT_SECRET}
+            - TEST_DMS_SERVICE_HOST=${TEST_DMS_SERVICE_HOST}
+            - TEST_API_GATEWAY_HOST_EXTERNAL=${TEST_API_GATEWAY_HOST_EXTERNAL}
         depends_on:
             - dms-service
         healthcheck:

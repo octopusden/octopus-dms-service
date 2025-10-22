@@ -62,10 +62,13 @@ abstract class DmsServiceApplicationBaseTest {
         this.registerModule(KotlinModule.Builder().build())
     }
 
-    private val artifactoryHost = "http://localhost:8081"
+    private val artifactoryHost = System.getProperty("test.artifactory-host")
+        ?: throw Exception("System property 'test.artifactory-host' must be defined")
+    private val postgresHost = System.getProperty("test.postgres-host")
+        ?: throw Exception("System property 'test.postgres-host' must be defined")
 
     private val dmsDbConnection: Connection = DriverManager.getConnection(
-        "jdbc:postgresql://localhost:5432/dms",
+        "jdbc:postgresql://${postgresHost}/dms",
         Properties().apply {
             this["user"] = "dms"
             this["password"] = "dms"
@@ -109,7 +112,7 @@ abstract class DmsServiceApplicationBaseTest {
     @MethodSource("repositories")
     fun testGetRepositories(repositoryType: RepositoryType, expectedRepositories: List<String>) {
         val repositories = client.getRepositories(repositoryType)
-            .map { it.removePrefix("$artifactoryHost/artifactory/") }
+            .map { it.removePrefix("http://$artifactoryHost/artifactory/") }
         assertIterableEquals(
             expectedRepositories.sortedDescending(),
             repositories.sortedDescending()

@@ -9,13 +9,13 @@ spring:
         jwt:
           issuer-uri: ${auth-server.url}/realms/${auth-server.realm}
   datasource:
-    url: jdbc:postgresql://dms-db:5432/dms
+    url: jdbc:postgresql://${TEST_POSTGRES_HOST}/dms
     username: dms
     password: dms
 
 auth-server:
   url: # set via env
-  logout-url: ${auth-server.url}/realms/${auth-server.realm}/protocol/openid-connect/logout?redirect_uri=http://localhost:8765/dms-service/swagger-ui/index.html
+  logout-url: ${auth-server.url}/realms/${auth-server.realm}/protocol/openid-connect/logout?redirect_uri=http://${TEST_API_GATEWAY_HOST_EXTERNAL}/dms-service/swagger-ui/index.html
   realm: # set via env
 
 server:
@@ -23,7 +23,7 @@ server:
 
 dms-service:
   webhook:
-    url: http://mockserver:1080/webhook
+    url: http://${TEST_MOCK_SERVER_HOST}/webhook
     user: webhook-user
     password: webhook-password
   docker-registry: docker.io
@@ -31,8 +31,8 @@ dms-service:
 storage:
   maven-group-prefix: corp.domain.dms
   artifactory:
-    host: http://artifactory:8081
-    external-request-host: http://localhost:8081
+    host: http://${TEST_ARTIFACTORY_HOST}
+    external-request-host: http://${TEST_ARTIFACTORY_HOST_EXTERNAL}
     user: admin
     password: password
     upload-repositories:
@@ -57,13 +57,13 @@ storage:
         - rpm-release-repo-local
 
 components-registry-service:
-  url: http://components-registry-service:4567
+  url: http://${TEST_COMPONENTS_REGISTRY_HOST}
 
 releng:
-  host: http://mockserver:1080
+  host: http://${TEST_MOCK_SERVER_HOST}
 
 release-management-service:
-  url: http://release-management-service:8083
+  url: http://${TEST_RELEASE_MANAGEMENT_HOST}
 
 validation:
   license-validator:

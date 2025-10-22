@@ -3,7 +3,7 @@ version: '3'
 services:
     dms-db:
         container_name: dms-ut-dms-db
-        image: ${DOCKER_REGISTRY}/postgres:11-alpine
+        image: ${DOCKER_REGISTRY}/postgres:${POSTGRES_IMAGE_TAG}
         ports:
             - "5432:5432"
         environment:
@@ -13,7 +13,7 @@ services:
 
     artifactory:
         container_name: dms-ut-artifactory
-        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.16.3
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
         ports:
             - "8081:8081"
             - "8082:8082"
@@ -52,11 +52,12 @@ services:
             - SPRING_CONFIG_ADDITIONAL_LOCATION=/
             - SPRING_PROFILES_ACTIVE=ut
             - SPRING_CLOUD_CONFIG_ENABLED=false
+            - TEST_MOCK_SERVER_HOST=${TEST_MOCK_SERVER_HOST}
         volumes:
             - ./release-management-service.yaml:/application-ut.yaml
 
     mockserver:
         container_name: dms-ut-mockserver
-        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-5.11.1
+        image: ${DOCKER_REGISTRY}/mockserver/mockserver:mockserver-${MOCK_SERVER_VERSION}
         ports:
             - "1080:1080"

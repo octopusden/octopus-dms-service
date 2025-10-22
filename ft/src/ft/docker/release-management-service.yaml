@@ -3,7 +3,7 @@ server:
   forward-headers-strategy: framework
 
 releng:
-  url: http://mockserver:1080
+  url: http://${TEST_MOCK_SERVER_HOST}
 
 # These values are not used in tests. They are only needed because they are required in the application configuration
 jira1:
