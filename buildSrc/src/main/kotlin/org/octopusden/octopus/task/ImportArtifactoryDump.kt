@@ -5,6 +5,7 @@ import khttp.get
 import khttp.post
 import khttp.structures.authorization.BasicAuthorization
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -24,27 +25,35 @@ abstract class ImportArtifactoryDump : DefaultTask() {
             project.logger.info("No dump found. Skipping import")
         } else {
             project.logger.info("Importing dump $latest")
-            var retryCounter = 0
-            while (retryCounter < retryLimit.get()) {
-                retryCounter++
-                Thread.sleep(5000)
-                if (get(url = "http://${host.get()}/artifactory/api/system/ping").statusCode == 200) {
-                    break
+            var available = false
+            repeat(retryLimit.get()) {
+                try {
+                    if (get(url = "http://${host.get()}/artifactory/api/system/ping").statusCode == 200) {
+                        available = true
+                        return@repeat
+                    }
+                } catch (_: Exception) {
                 }
+                Thread.sleep(5000)
             }
-            project.logger.info(
-                post(
-                    url = "http://${host.get()}/artifactory/api/import/system",
-                    auth = BasicAuthorization("admin", "password"),
-                    json = mapOf(
-                        "importPath" to "/dump/$latest",
-                        "includeMetadata" to true,
-                        "verbose" to true,
-                        "failOnError" to true,
-                        "failIfEmpty" to true
-                    )
-                ).text
+            if (!available) {
+                throw GradleException("Artifactory not available after ${retryLimit.get()} attempts")
+            }
+            val response = post(
+                url = "http://${host.get()}/artifactory/api/import/system",
+                auth = BasicAuthorization("admin", "password"),
+                json = mapOf(
+                    "importPath" to "/dump/$latest",
+                    "includeMetadata" to true,
+                    "verbose" to true,
+                    "failOnError" to true,
+                    "failIfEmpty" to true
+                )
             )
+            if (response.statusCode != 200) {
+                throw GradleException("Import failed with status ${response.statusCode}: ${response.text}")
+            }
+            project.logger.info("Import successful: ${response.text}")
         }
     }
 }
