@@ -205,6 +205,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
 }
 
 tasks.register("waitPostgresExternalIP") {
+    dependsOn("ocCreate")
     doLast{
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
