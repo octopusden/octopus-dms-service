@@ -53,8 +53,7 @@ tasks {
 }
 val commonOkdParameters = mapOf(
     "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
-    "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
-    "SERVICE_ACCOUNT_ANYUID" to project.properties["okd.service-account-anyuid"] as String
+    "DOCKER_REGISTRY" to "dockerRegistry".getExt()
 )
 fun String.getPort() = when (this) {
     "artifactory" -> 8081
@@ -132,7 +131,8 @@ ocTemplate{
     service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
         parameters.set(commonOkdParameters + mapOf(
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String
+            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
+            "SERVICE_ACCOUNT_ANYUID" to project.properties["okd.service-account-anyuid"] as String
         ))
     }
 
