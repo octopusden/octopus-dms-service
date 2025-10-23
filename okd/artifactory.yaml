@@ -33,6 +33,9 @@ objects:
         app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
     spec:
       restartPolicy: Never
+      serviceAccountName: ${SERVICE_ACCOUNT_ANYUID}
+      securityContext:
+        runAsUser: 0
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
       volumes:
         - name: artifactory-data
@@ -44,6 +47,9 @@ objects:
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+          env:
+            - name: EXTRA_JAVA_OPTIONS
+              value: -Xms2g -Xmx2g
           ports:
             - containerPort: 8081
               protocol: TCP
@@ -98,4 +104,7 @@ parameters:
     required: true
   - description: Tag of Artifactory image
     name: ARTIFACTORY_IMAGE_TAG
+    required: true
+  - description: Service account name with SCC - anyuid
+    name: SERVICE_ACCOUNT_ANYUID
     required: true
