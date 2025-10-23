@@ -170,6 +170,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
     val localFile = layout.projectDirectory.dir("../test-common/src/main/artifactory/dump").asFile.absolutePath
     commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/")
+    dependsOn("ocCreate")
 }
 
 tasks.named<ConfigureMockServer>("configureMockServer") {
@@ -192,7 +193,6 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
             retryLimit.set(3)
-            dependsOn("ocCreate")
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
