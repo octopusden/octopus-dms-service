@@ -153,8 +153,7 @@ ocTemplate{
     service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
         parameters.set(commonOkdParameters + mapOf(
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
-            "SERVICE_ACCOUNT_ANYUID" to project.properties["okd.service-account-anyuid"] as String
+            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String
         ))
     }
 
