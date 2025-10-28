@@ -44,9 +44,6 @@ objects:
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
-          env:
-            - name: EXTRA_JAVA_OPTIONS
-              value: -Xms2g -Xmx2g
           ports:
             - containerPort: 8081
               protocol: TCP
