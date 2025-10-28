@@ -169,6 +169,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
     val localFile = layout.projectDirectory.dir("../test-common/src/main/artifactory/dump").asFile.absolutePath
     commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/")
+    dependsOn("ocCreate")
 }
 
 tasks.named<ConfigureMockServer>("configureMockServer") {
@@ -190,13 +191,12 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
-            retryLimit.set(30)
-            dependsOn("ocCreate")
+            retryLimit.set(3)
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
             host.set("localhost:8081")
-            retryLimit.set(30)
+            retryLimit.set(3)
             dependsOn("composeUp")
         }
     }
@@ -204,6 +204,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
 }
 
 tasks.register("waitPostgresExternalIP") {
+    dependsOn("ocCreate")
     doLast{
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
