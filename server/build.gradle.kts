@@ -15,7 +15,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.noarg")
     id("com.bmuschko.docker-spring-boot-application") version "9.4.0"
     id("com.avast.gradle.docker-compose") version "0.16.9"
-    id("com.github.node-gradle.node") version "7.0.2"
     id("org.octopusden.octopus.oc-template")
     `maven-publish`
 }
@@ -258,25 +257,6 @@ tasks.withType<Test> {
 
 tasks.named("dockerBuildImage") {
     dependsOn("test")
-}
-
-val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run", "build"))
-}
-
-tasks.withType<ProcessResources> {
-    dependsOn(npmBuild)
-}
-
-node {
-    version.set("16.20.2")
-    download.set(true)
-    npmVersion.set("8.19.4")
-}
-
-tasks.getByName<Delete>("clean") {
-    this.delete.add("$projectDir/node_modules")
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {

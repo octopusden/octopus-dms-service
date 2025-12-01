@@ -36,13 +36,13 @@ dms-service:
   docker-registry: docker.io
 
 components-registry-service:
-  url: # set via env
+  url: http://localhost:4567
 
 releng:
-  host: # set via env
+  host: http://localhost:1080
 
 release-management-service:
-  url: # set via env
+  url: http://localhost:8083
 
 validation:
   license-validator:

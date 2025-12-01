@@ -49,3 +49,28 @@ services:
             - AUTH_SERVER_CLIENT_SECRET=${AUTH_SERVER_CLIENT_SECRET}
         extra_hosts:
             - "host.docker.internal:host-gateway"
+
+    components-registry-service:
+        container_name: dms-dev-components-registry-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/components-registry-service:${OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION}
+        ports:
+            - "4567:4567"
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+        volumes:
+            - ./components-registry-service.yaml:/application-dev.yaml
+            - C:\Gitea-projects\components-registry:/components-registry
+
+    release-management-service:
+        container_name: dms-dev-release-management-service
+        image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/release-management-service:${OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION}
+        ports:
+            - "8083:8083"
+        environment:
+            - SPRING_CONFIG_ADDITIONAL_LOCATION=/
+            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_CLOUD_CONFIG_ENABLED=false
+        volumes:
+            - ./release-management-service.yaml:/application-dev.yaml
