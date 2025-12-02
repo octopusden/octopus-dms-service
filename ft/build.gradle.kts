@@ -62,7 +62,7 @@ fun String.getPort() = when (this) {
     "rm" -> 8083
     "postgres" -> 5432
     "gateway" -> 8765
-    "dms" -> 8080
+    "dms-service" -> 8080
     else -> throw Exception("Unknown service '$this'")
 }
 fun getOkdInternalHost(serviceName: String) = "${ocTemplate.getPod(serviceName)}-service:${serviceName.getPort()}"
@@ -92,7 +92,7 @@ ocTemplate{
     workDir.set(layout.buildDirectory.dir("okd"))
     clusterDomain.set("okdClusterDomain".getExt())
     namespace.set("okdProject".getExt())
-    prefix.set("dms-ft")
+    prefix.set("dms-service-ft")
 
     "okdWebConsoleUrl".getExt().takeIf { it.isNotBlank() }?.let{
         webConsoleUrl.set(it)
@@ -153,14 +153,14 @@ ocTemplate{
             "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
             "AUTH_SERVER_CLIENT_ID" to "authServerClientId".getExt(),
             "AUTH_SERVER_CLIENT_SECRET" to "authServerClientSecret".getExt(),
-            "TEST_DMS_SERVICE_HOST" to getOkdInternalHost("dms"),
+            "TEST_DMS_SERVICE_HOST" to getOkdInternalHost("dms-service"),
             "TEST_API_GATEWAY_HOST_EXTERNAL" to ocTemplate.getOkdHost("gateway")
         ))
-        dependsOn.set(listOf("dms"))
+        dependsOn.set(listOf("dms-service"))
     }
 
-    service("dms") {
-        templateFile.set(rootProject.layout.projectDirectory.file("okd/dms.yaml"))
+    service("dms-service") {
+        templateFile.set(rootProject.layout.projectDirectory.file("okd/dms-service.yaml"))
         parameters.set(mapOf(
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
             "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),

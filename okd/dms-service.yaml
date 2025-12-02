@@ -1,21 +1,21 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: dms-template
+  name: dms-service-template
 objects:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-dms-config-data
+      name: ${DEPLOYMENT_PREFIX}-dms-service-config-data
     data:
       application-dev.yaml: |-
         ${APPLICATION_DEV_CONTENT}
   - apiVersion: v1
     kind: Pod
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-dms
+      name: ${DEPLOYMENT_PREFIX}-dms-service
       labels:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-dms
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-dms-service
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
@@ -64,31 +64,31 @@ objects:
       volumes:
         - name: application-dev
           configMap:
-            name: ${DEPLOYMENT_PREFIX}-dms-config-data
+            name: ${DEPLOYMENT_PREFIX}-dms-service-config-data
             items:
               - key: application-dev.yaml
                 path: application-dev.yaml
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-dms-service
+      name: ${DEPLOYMENT_PREFIX}-dms-service-service
     spec:
       ports:
         - port: 8080
           protocol: TCP
           targetPort: 8080
       selector:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-dms
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-dms-service
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-dms-route
+      name: ${DEPLOYMENT_PREFIX}-dms-service-route
     spec:
       port:
         targetPort: 8080
       to:
         kind: Service
-        name: ${DEPLOYMENT_PREFIX}-dms-service
+        name: ${DEPLOYMENT_PREFIX}-dms-service-service
 parameters:
   - description: Unique deployment prefix
     name: DEPLOYMENT_PREFIX
