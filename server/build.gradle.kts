@@ -169,6 +169,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         .dir("../test-common/src/main/artifactory/dump")
         .asFile
         .absolutePath
+        // Strip Windows drive letter (C:) for oc cp compatibility. Unix paths unchanged
         .substringAfter(":")
     commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/")
