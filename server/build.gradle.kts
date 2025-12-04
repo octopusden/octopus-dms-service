@@ -114,7 +114,7 @@ ocTemplate{
     workDir.set(layout.buildDirectory.dir("okd"))
     clusterDomain.set("okdClusterDomain".getExt())
     namespace.set("okdProject".getExt())
-    prefix.set("dms-service-ut")
+    prefix.set("dms-serv-ut")
 
     "okdWebConsoleUrl".getExt().takeIf { it.isNotBlank() }?.let{
         webConsoleUrl.set(it)
@@ -165,7 +165,11 @@ ocTemplate{
 }
 
 val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
-    val localFile = layout.projectDirectory.dir("../test-common/src/main/artifactory/dump").asFile.absolutePath
+    val localFile = layout.projectDirectory
+        .dir("../test-common/src/main/artifactory/dump")
+        .asFile
+        .absolutePath
+        .substringAfter(":")
     commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/")
     dependsOn("ocCreate")
