@@ -26,6 +26,91 @@ objects:
           storage: 1Gi
       volumeMode: Filesystem
   - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-system-config
+    data:
+      system.yaml: |
+        shared:
+          database:
+            type: postgresql
+            driver: org.postgresql.Driver
+            url: jdbc:postgresql://${DEPLOYMENT_PREFIX}-postgres-service:5432/artifactory
+            username: artifactory
+            password: artifactory
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres
+      labels:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+    spec:
+      restartPolicy: Never
+      activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
+      containers:
+        - name: postgres
+          image: ${DOCKER_REGISTRY}/postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: artifactory
+            - name: POSTGRES_USER
+              value: artifactory
+            - name: POSTGRES_PASSWORD
+              value: artifactory
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U artifactory
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U artifactory
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: ${DEPLOYMENT_PREFIX}-postgres-data
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-postgres-service
+    spec:
+      ports:
+        - name: postgres
+          port: 5432
+          protocol: TCP
+          targetPort: 5432
+      selector:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+  - apiVersion: v1
     kind: Pod
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory
@@ -34,6 +119,18 @@ objects:
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
+      initContainers:
+        - name: wait-for-postgres
+          image: ${DOCKER_REGISTRY}/postgres:15-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h ${DEPLOYMENT_PREFIX}-postgres-service -U artifactory; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
       volumes:
         - name: artifactory-data
           persistentVolumeClaim:
@@ -41,9 +138,23 @@ objects:
         - name: artifactory-dump
           persistentVolumeClaim:
             claimName: ${DEPLOYMENT_PREFIX}-artifactory-dump
+        - name: artifactory-system-config
+          configMap:
+            name: ${DEPLOYMENT_PREFIX}-artifactory-system-config
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+          env:
+            - name: JF_SHARED_DATABASE_TYPE
+              value: postgresql
+            - name: JF_SHARED_DATABASE_DRIVER
+              value: org.postgresql.Driver
+            - name: JF_SHARED_DATABASE_URL
+              value: jdbc:postgresql://${DEPLOYMENT_PREFIX}-postgres-service:5432/artifactory
+            - name: JF_SHARED_DATABASE_USERNAME
+              value: artifactory
+            - name: JF_SHARED_DATABASE_PASSWORD
+              value: artifactory
           ports:
             - containerPort: 8081
               protocol: TCP
@@ -60,6 +171,8 @@ objects:
               mountPath: /opt/jfrog/artifactory/var
             - name: artifactory-dump
               mountPath: /dump
+            - name: artifactory-system-config
+              mountPath: /opt/jfrog/artifactory/etc
   - apiVersion: v1
     kind: Service
     metadata:
