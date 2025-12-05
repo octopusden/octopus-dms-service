@@ -6,7 +6,7 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-data
+      name: ${DEPLOYMENT_PREFIX}-artf-data
     spec:
       accessModes:
         - ReadWriteOnce
@@ -17,7 +17,7 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-dump
+      name: ${DEPLOYMENT_PREFIX}-artf-dump
     spec:
       accessModes:
         - ReadWriteOnce
@@ -28,19 +28,19 @@ objects:
   - apiVersion: v1
     kind: Pod
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory
+      name: ${DEPLOYMENT_PREFIX}-artf
       labels:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artf
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
       volumes:
         - name: artifactory-data
           persistentVolumeClaim:
-            claimName: ${DEPLOYMENT_PREFIX}-artifactory-data
+            claimName: ${DEPLOYMENT_PREFIX}-artf-data
         - name: artifactory-dump
           persistentVolumeClaim:
-            claimName: ${DEPLOYMENT_PREFIX}-artifactory-dump
+            claimName: ${DEPLOYMENT_PREFIX}-artf-dump
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
@@ -63,7 +63,7 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-service
+      name: ${DEPLOYMENT_PREFIX}-artf-service
     spec:
       ports:
         - name: port-8081
@@ -75,17 +75,17 @@ objects:
           protocol: TCP
           targetPort: 8082
       selector:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artf
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-route
+      name: ${DEPLOYMENT_PREFIX}-artf-route
     spec:
       port:
         targetPort: 8082
       to:
         kind: Service
-        name: ${DEPLOYMENT_PREFIX}-artifactory-service
+        name: ${DEPLOYMENT_PREFIX}-artf-service
 parameters:
   - description: Unique deployment prefix
     name: DEPLOYMENT_PREFIX
