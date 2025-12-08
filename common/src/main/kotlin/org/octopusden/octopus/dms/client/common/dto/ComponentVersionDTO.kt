@@ -9,7 +9,7 @@ import java.util.Objects
             "  \"component\": \"Some_Component\",\n" +
             "  \"version\": \"1.2.3\",\n" +
             "  \"published\": true,\n" +
-            "  \"status\": \"RELEASE\"\n" +
+            "  \"status\": \"RELEASE\",\n" +
             "  \"hotfix\": false\n" +
             "}"
 )
