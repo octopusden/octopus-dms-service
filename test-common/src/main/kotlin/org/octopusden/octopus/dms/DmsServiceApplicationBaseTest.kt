@@ -617,7 +617,8 @@ abstract class DmsServiceApplicationBaseTest {
             eeComponent,
             eeComponentReleaseVersion0354.buildVersion,
             true,
-            ComponentVersionStatus.RELEASE
+            ComponentVersionStatus.RELEASE,
+            false
         )
         assertEquals(
             versionDTO,
@@ -674,7 +675,8 @@ abstract class DmsServiceApplicationBaseTest {
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
                 false,
-                ComponentVersionStatus.RELEASE
+                ComponentVersionStatus.RELEASE,
+                false
             ),
             client.patchComponentVersion(
                 eeComponent,

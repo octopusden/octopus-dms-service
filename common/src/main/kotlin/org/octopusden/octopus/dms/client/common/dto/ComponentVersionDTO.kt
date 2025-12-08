@@ -10,13 +10,15 @@ import java.util.Objects
             "  \"version\": \"1.2.3\",\n" +
             "  \"published\": true,\n" +
             "  \"status\": \"RELEASE\"\n" +
+            "  \"hotfix\": false\n" +
             "}"
 )
 open class ComponentVersionDTO(
     val component: String,
     val version: String,
     val published: Boolean,
-    val status: ComponentVersionStatus
+    val status: ComponentVersionStatus,
+    val hotfix: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -28,11 +30,12 @@ open class ComponentVersionDTO(
         if (version != other.version) return false
         if (published != other.published) return false
         if (status != other.status) return false
+        if (hotfix != other.hotfix) return false
 
         return true
     }
 
-    override fun hashCode() = Objects.hash(component, version, published, status)
+    override fun hashCode() = Objects.hash(component, version, published, status, hotfix)
 
-    override fun toString() = "ComponentVersionDTO(component='$component', version='$version', published=$published, status=$status)"
+    override fun toString() = "ComponentVersionDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix)"
 }

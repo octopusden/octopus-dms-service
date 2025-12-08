@@ -47,6 +47,7 @@ class ReleaseManagementServiceImpl(
             build.component,
             build.version,
             ComponentVersionStatus.valueOf(build.status.name),
+            build.hotfix,
             build.statusHistory[build.status],
             build.parents.map { it.toBuildDTO() },
             build.dependencies.map { it.toBuildDTO() }
@@ -67,6 +68,6 @@ class ReleaseManagementServiceImpl(
 
         private fun getAllowedStatuses(includeRc: Boolean) = if (includeRc) NO_LESS_THAN_RC else NO_LESS_THAN_RELEASE
 
-        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version, ComponentVersionStatus.valueOf(status.name))
+        private fun ShortBuildDTO.toBuildDTO() = BuildDTO(component, version, ComponentVersionStatus.valueOf(status.name), hotfix)
     }
 }
