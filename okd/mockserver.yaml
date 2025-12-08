@@ -6,9 +6,9 @@ objects:
   - apiVersion: v1
     kind: Pod
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-mock
+      name: ${DEPLOYMENT_PREFIX}-mockserver
       labels:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-mock
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-mockserver
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
@@ -21,24 +21,24 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-mock-service
+      name: ${DEPLOYMENT_PREFIX}-mockserver-service
     spec:
       ports:
         - port: 1080
           protocol: TCP
           targetPort: 1080
       selector:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-mock
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-mockserver
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-mock-route
+      name: ${DEPLOYMENT_PREFIX}-mockserver-route
     spec:
       port:
         targetPort: 1080
       to:
         kind: Service
-        name: ${DEPLOYMENT_PREFIX}-mock-service
+        name: ${DEPLOYMENT_PREFIX}-mockserver-service
 parameters:
   - description: Unique deployment prefix
     name: DEPLOYMENT_PREFIX

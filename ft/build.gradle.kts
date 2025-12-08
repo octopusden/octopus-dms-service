@@ -56,9 +56,9 @@ val commonOkdParameters = mapOf(
     "DOCKER_REGISTRY" to "dockerRegistry".getExt()
 )
 fun String.getPort() = when (this) {
-    "artf" -> 8081
+    "artifactory" -> 8081
     "comp-reg" -> 4567
-    "mock" -> 1080
+    "mockserver" -> 1080
     "rm" -> 8083
     "postgres" -> 5432
     "gateway" -> 8765
@@ -92,13 +92,13 @@ ocTemplate{
     workDir.set(layout.buildDirectory.dir("okd"))
     clusterDomain.set("okdClusterDomain".getExt())
     namespace.set("okdProject".getExt())
-    prefix.set("dms-service-ft")
+    prefix.set("dms-ft")
 
     "okdWebConsoleUrl".getExt().takeIf { it.isNotBlank() }?.let{
         webConsoleUrl.set(it)
     }
 
-    service("mock") {
+    service("mockserver") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/mockserver.yaml"))
         parameters.set(commonOkdParameters + mapOf(
             "MOCK_SERVER_VERSION" to properties["mockserver.version"] as String
@@ -123,12 +123,12 @@ ocTemplate{
             "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
             "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("src/ft/docker/release-management-service.yaml").asFile.readText(),
-            "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mock")
+            "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver")
         ))
-        dependsOn.set(listOf("mock"))
+        dependsOn.set(listOf("mockserver"))
     }
 
-    service("artf") {
+    service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
         parameters.set(commonOkdParameters + mapOf(
             "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String
@@ -170,28 +170,28 @@ ocTemplate{
             "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
             "TEST_API_GATEWAY_HOST_EXTERNAL" to ocTemplate.getOkdHost("gateway"),
             "TEST_POSTGRES_HOST" to getOkdInternalHost("postgres"),
-            "TEST_ARTIFACTORY_HOST" to getOkdInternalHost("artf"),
-            "TEST_ARTIFACTORY_HOST_EXTERNAL" to ocTemplate.getOkdHost("artf"),
+            "TEST_ARTIFACTORY_HOST" to getOkdInternalHost("artifactory"),
+            "TEST_ARTIFACTORY_HOST_EXTERNAL" to ocTemplate.getOkdHost("artifactory"),
             "TEST_COMPONENTS_REGISTRY_HOST" to getOkdInternalHost("comp-reg"),
             "TEST_RELEASE_MANAGEMENT_HOST" to getOkdInternalHost("rm"),
-            "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mock")
+            "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver")
 
         ))
-        dependsOn.set(listOf("postgres", "artf", "comp-reg", "rm", "mock"))
+        dependsOn.set(listOf("postgres", "artifactory", "comp-reg", "rm", "mockserver"))
     }
 }
 
 val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
     val localFile = layout.projectDirectory.dir("../test-common/src/main/artifactory/dump").asFile.absolutePath
     commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
-        "${ocTemplate.getPod("artf")}:/")
+        "${ocTemplate.getPod("artifactory")}:/")
     dependsOn("ocCreate")
 }
 
 tasks.named<ConfigureMockServer>("configureMockServer") {
     when ("testPlatform".getExt()) {
         "okd" -> {
-            host.set(ocTemplate.getOkdHost("mock"))
+            host.set(ocTemplate.getOkdHost("mockserver"))
             port.set(80)
             dependsOn("ocCreate")
         }
@@ -206,7 +206,7 @@ tasks.named<ConfigureMockServer>("configureMockServer") {
 tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {
-            host.set(ocTemplate.getOkdHost("artf"))
+            host.set(ocTemplate.getOkdHost("artifactory"))
             retryLimit.set(3)
             dependsOn(copyArtifactoryDump)
         }
@@ -256,7 +256,7 @@ val ft by tasks.creating(Test::class) {
     when ("testPlatform".getExt()) {
         "okd" -> {
             ocTemplate.isRequiredBy(this)
-            systemProperties["test.artifactory-host"] = ocTemplate.getOkdHost("artf")
+            systemProperties["test.artifactory-host"] = ocTemplate.getOkdHost("artifactory")
             systemProperties["test.components-registry-host"] = ocTemplate.getOkdHost("comp-reg")
             systemProperties["test.api-gateway-host"] = ocTemplate.getOkdHost("gateway")
             dependsOn("waitPostgresExternalIP")
