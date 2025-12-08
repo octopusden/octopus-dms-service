@@ -21,8 +21,9 @@ class ReleaseManagementServiceImpl(
     private val client = ClassicReleaseManagementServiceClient(
         object : ReleaseManagementServiceClientParametersProvider {
             override fun getApiUrl() = releaseManagementServiceProperties.url
-
             override fun getTimeRetryInMillis() = releaseManagementServiceProperties.retry
+            override fun getConnectTimeoutInMillis() = releaseManagementServiceProperties.connectTimeout
+            override fun getReadTimeoutInMillis() = releaseManagementServiceProperties.readTimeout
         }
     )
 
