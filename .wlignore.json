@@ -1,7 +1,5 @@
 {
   "excludeFiles": [
-    "test-common/src/main/artifactory/dump/20230914.102654/etc/security/access/access.admin.token",
-    "server/yarn.lock",
-    "server/package-lock.json"
+    "test-common/src/main/artifactory/dump/20230914.102654/etc/security/access/access.admin.token"
    ]
 }
