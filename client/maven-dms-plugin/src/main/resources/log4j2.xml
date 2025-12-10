@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT"/>
+        <!-- Appender for INFO and ERROR messages -->
+        <File name="ValidateArtifactsFile" fileName="validate-artifacts.log"/>
+        <!-- Appender for only ERROR messages -->
+        <Console name="ValidateArtifactsConsole" target="SYSTEM_OUT">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+         <Logger name="org.octopusden.octopus.dms.client.ValidateArtifactsMojo" level="info"  additivity="false">
+             <AppenderRef ref="ValidateArtifactsConsole"/>
+             <AppenderRef ref="ValidateArtifactsFile"/>
+         </Logger>
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

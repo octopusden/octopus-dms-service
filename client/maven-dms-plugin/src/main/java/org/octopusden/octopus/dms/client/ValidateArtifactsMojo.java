@@ -21,6 +21,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.octopusden.octopus.dms.client.util.Log4j2MavenPluginLogger;
 import org.octopusden.octopus.releng.dto.ComponentVersion;
 import org.octopusden.octopus.util.FileFilter;
 import org.octopusden.octopus.util.FileFilterConfig;
@@ -124,4 +125,10 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                         )
         );
     }
+
+    @Override
+    public void setLog(Log log) {
+        super.setLog(Log4j2MavenPluginLogger.getLogger(ValidateArtifactsMojo.class));
+    }
+
 }

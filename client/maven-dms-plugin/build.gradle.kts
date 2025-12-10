@@ -102,6 +102,12 @@ dependencies {
     compileOnly("org.apache.maven:maven-plugin-api:3.3.9")
     compileOnly("org.apache.maven.plugin-tools:maven-plugin-annotations:3.4")
 
+    // slf4j2 - logging
+    implementation(platform("org.apache.logging.log4j:log4j-bom:2.25.2"))
+    implementation("org.apache.logging.log4j:log4j-api")
+    runtimeOnly("org.apache.logging.log4j:log4j-core")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl")
+
     testImplementation("org.apache.maven:maven-core:3.3.9")
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
