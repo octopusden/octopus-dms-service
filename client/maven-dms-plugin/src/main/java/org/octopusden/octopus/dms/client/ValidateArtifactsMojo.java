@@ -40,14 +40,10 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
     @Parameter(property = "skipLicenceValidation", defaultValue = "false")
     private boolean skipLicenceValidation;
 
-    public static final String WL_LOG = "org.slf4j.simpleLogger.log.org.octopusden.octopus.tools.wl";
     @Inject
     public ValidateArtifactsMojo(ArtifactService artifactService, DMSService dmsService) {
         this.artifactService = artifactService;
         this.dmsService = dmsService;
-        if (System.getProperty(WL_LOG) == null) {
-            System.setProperty(WL_LOG, "WARN");
-        }
     }
 
     @Override
@@ -127,5 +123,13 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                                 dryRun
                         )
         );
+    }
+
+    public static final String WL_LOG = "org.slf4j.simpleLogger.log.org.octopusden.octopus.tools.wl";
+
+    static {
+        if (System.getProperty(WL_LOG) == null) {
+            System.setProperty(WL_LOG, "WARN");
+        }
     }
 }
