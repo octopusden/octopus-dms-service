@@ -83,7 +83,7 @@ class ArtifactValidator private constructor(
         fun validate(path: String, file: InputStream, log: Log) =
             if (contentValidatorProperties.enabled) {
                 if (exclude.any { pathMatcher.match(it, path) }) {
-                    log.info("File $path is skipped by content validator")
+                    log.debug("File $path is skipped by content validator")
                     emptyList()
                 } else {
                     tempFile.outputStream().use { file.copyTo(it) }
@@ -108,7 +108,7 @@ class ArtifactValidator private constructor(
 
     private fun validateFile(path: String, file: BufferedInputStream): List<String> {
         val type = detectFileType(file)
-        log.info("Validate $type file $path")
+        log.debug("Validate $type file $path")
         try {
             return nameValidator.validate(path) +
                     when (type) {
@@ -120,7 +120,7 @@ class ArtifactValidator private constructor(
                             while (entry != null) {
                                 val entryPath = "$path/${entry.name}"
                                 if (entry.isDirectory || entry.isUnixSymlink) {
-                                    log.info("Validate $entryPath")
+                                    log.debug("Validate $entryPath")
                                     errors.addAll(nameValidator.validate(entryPath))
                                 } else {
                                     errors.addAll(validateFile(entryPath, BufferedInputStream(zipFile, BUFFER_SIZE)))
@@ -154,7 +154,7 @@ class ArtifactValidator private constructor(
                                 if (entry.isFile) {
                                     errors.addAll(validateFile(entryPath, BufferedInputStream(tarFile, BUFFER_SIZE)))
                                 } else {
-                                    log.info("Validate $entryPath")
+                                    log.debug("Validate $entryPath")
                                     errors.addAll(nameValidator.validate(entryPath))
                                 }
                                 entry = tarFile.nextTarEntry
@@ -172,7 +172,7 @@ class ArtifactValidator private constructor(
                                 if (entry.isRegularFile) {
                                     errors.addAll(validateFile(entryPath, BufferedInputStream(payload, BUFFER_SIZE)))
                                 } else {
-                                    log.info("Validate $entryPath")
+                                    log.debug("Validate $entryPath")
                                     errors.addAll(nameValidator.validate(entryPath))
                                 }
                                 entry = payload.nextCPIOEntry
