@@ -54,6 +54,7 @@
     "status": "RC",
     "version": "03.54.30.53-1",
     "release_version": "03.54.30.53",
+    "hotfix": true,
     "parents": [],
     "dependencies": [],
     "commits": [],
