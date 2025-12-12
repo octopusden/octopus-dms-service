@@ -195,6 +195,12 @@
         "component": "ee-component",
         "version": "03.54.30.64-1",
         "status": "RELEASE"
+      },
+      {
+        "component": "ee-component",
+        "version": "03.54.30.74-1",
+        "status": "RELEASE",
+        "hotfix": true
       }
     ],
     "dependencies": [],
@@ -211,6 +217,12 @@
         "component": "ee-component",
         "version": "03.54.30.64-1",
         "status": "RELEASE"
+      },
+      {
+        "component": "ee-component",
+        "version": "03.54.30.74-1",
+        "status": "RELEASE",
+        "hotfix": true
       }
     ],
     "dependencies": [],
@@ -227,6 +239,12 @@
         "component": "ee-component",
         "version": "03.54.30.64-1",
         "status": "RELEASE"
+      },
+      {
+        "component": "ee-component",
+        "version": "03.54.30.74-1",
+        "status": "RELEASE",
+        "hotfix": true
       }
     ],
     "dependencies": [],
@@ -243,6 +261,12 @@
         "component": "ee-component",
         "version": "03.54.30.64-1",
         "status": "RELEASE"
+      },
+      {
+        "component": "ee-component",
+        "version": "03.54.30.74-1",
+        "status": "RELEASE",
+        "hotfix": true
       }
     ],
     "dependencies": [],
