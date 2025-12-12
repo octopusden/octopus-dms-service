@@ -514,9 +514,9 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    // TODO!!
-    @Test
-    fun testRegisterUploadedArtifact() {
+    @ParameterizedTest
+    @MethodSource("releaseVersions")
+    fun testRegisterUploadedArtifact(version: Version) {
         val releaseNotesRELEASE = getResource(releaseReleaseNotesFileName)
         val artifact = releaseNotesRELEASE.openStream().use {
             client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)
@@ -525,41 +525,41 @@ abstract class DmsServiceApplicationBaseTest {
             0,
             client.getComponentVersionArtifacts(
                 eeComponent,
-                eeComponentReleaseVersion0354.releaseVersion,
+                version.releaseVersion,
                 ArtifactType.NOTES
             ).artifacts.size
         )
         assertThrowsExactly(NotFoundException::class.java) {
-            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            client.getComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
         }
         val componentVersionArtifact = client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
+            version.releaseVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         val componentVersionArtifacts = client.getComponentVersionArtifacts(
             eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
+            version.releaseVersion,
             ArtifactType.NOTES
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
         assertTrue(componentVersionArtifacts.artifacts.first() == componentVersionArtifact.toShortDTO())
         assertEquals(
             componentVersionArtifact,
-            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            client.getComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
         )
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        client.downloadComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
             .use { response ->
                 releaseNotesRELEASE.openStream().use {
                     assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
                 }
             }
-        client.deleteComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        client.deleteComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
         assertThrowsExactly(NotFoundException::class.java) {
-            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+            client.getComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
         }
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        client.downloadComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
             .use {
                 assertEquals(403, it.status()) //access is denied because there is no info about artifact type
             }
@@ -1080,6 +1080,12 @@ abstract class DmsServiceApplicationBaseTest {
         private fun patchVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentRCVersion0354, eeComponentReleaseVersion0354, false),
             Arguments.of(eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354, true)
+        )
+
+        @JvmStatic
+        private fun releaseVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentReleaseVersion0354),
+            Arguments.of(eeComponentHotfixReleaseVersion0354)
         )
     }
     //</editor-fold>
