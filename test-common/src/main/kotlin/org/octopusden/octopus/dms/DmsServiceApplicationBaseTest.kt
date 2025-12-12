@@ -842,13 +842,13 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("releaseArtifacts")
-    fun testRegisterDistributionArtifactForRCVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
+    @MethodSource("distributionArtifactRCVersions")
+    fun testRegisterDistributionArtifactForRCVersion(artifactCoordinates: ArtifactCoordinatesDTO, version: Version) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentRCVersion0355.buildVersion,
+                version.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -856,41 +856,13 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("releaseArtifacts")
-    fun testRegisterDistributionArtifactForHotfixRCVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
+    @MethodSource("reportArtifactBuildVersions")
+    fun testRegisterReportArtifactForBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO, version: Version) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentHotfixRCVersion0355.buildVersion,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
-            )
-        }
-    }
-
-    @ParameterizedTest
-    @MethodSource("releaseArtifacts")
-    fun testRegisterReportArtifactForBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
-        val artifact = client.addArtifact(artifactCoordinates)
-        assertThrowsExactly(IllegalVersionStatusException::class.java) {
-            client.registerComponentVersionArtifact(
-                eeComponent,
-                eeComponentBuildVersion0356.buildVersion,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.REPORT)
-            )
-        }
-    }
-
-    @ParameterizedTest
-    @MethodSource("releaseArtifacts")
-    fun testRegisterReportArtifactForHotfixBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
-        val artifact = client.addArtifact(artifactCoordinates)
-        assertThrowsExactly(IllegalVersionStatusException::class.java) {
-            client.registerComponentVersionArtifact(
-                eeComponent,
-                eeComponentHotfixBuildVersion0355.buildVersion,
+                version.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.REPORT)
             )
@@ -1057,6 +1029,24 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of(releaseDebianDistributionCoordinates),
             Arguments.of(releaseRpmDistributionCoordinates)
         )
+
+        @JvmStatic
+        private fun distributionArtifactRCVersions(): Stream<Arguments> =
+            releaseArtifacts().flatMap { artifact ->
+                Stream.of(
+                    Arguments.of(artifact.get()[0], eeComponentRCVersion0355),
+                    Arguments.of(artifact.get()[0], eeComponentHotfixRCVersion0355)
+                )
+            }
+
+        @JvmStatic
+        private fun reportArtifactBuildVersions(): Stream<Arguments> =
+            releaseArtifacts().flatMap { artifact ->
+                Stream.of(
+                    Arguments.of(artifact.get()[0], eeComponentBuildVersion0356),
+                    Arguments.of(artifact.get()[0], eeComponentHotfixBuildVersion0355)
+                )
+            }
     }
     //</editor-fold>
 }
