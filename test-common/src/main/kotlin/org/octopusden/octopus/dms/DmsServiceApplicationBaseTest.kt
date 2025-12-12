@@ -434,55 +434,63 @@ abstract class DmsServiceApplicationBaseTest {
             }
     }
 
-    // TODO!!
-    @Test
-    fun testGetPreviousLinesLatestVersions() {
+    @ParameterizedTest
+    @MethodSource("previousLinesLatestVersions")
+    fun testGetPreviousLinesLatestVersions(
+        buildVersion0353: Version, rcVersion0353: Version, releaseVersion0353: Version,
+        buildVersion0354: Version, rcVersion0354: Version, releaseVersion0354: Version,
+        rcVersion0355: Version, resultFileNamePrefix: String
+    ) {
         assertEquals(
             VersionsDTO(emptyList()),
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentRCVersion0355.buildVersion)
+            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.buildVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0353.buildVersion,
+            releaseVersion0353.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
-        insertVersion(eeComponent, eeComponentBuildVersion0353)
+        insertVersion(eeComponent, buildVersion0353)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0353.buildVersion,
+            rcVersion0353.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
-        insertVersion(eeComponent, eeComponentBuildVersion0354)
+
+        insertVersion(eeComponent, buildVersion0354)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0354.releaseVersion,
+            rcVersion0354.releaseVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
+            releaseVersion0354.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
+
         assertEquals(
             VersionsDTO(emptyList()),
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentReleaseVersion0353.buildVersion)
+            client.getPreviousLinesLatestVersions(eeComponent, releaseVersion0353.buildVersion)
         )
         assertEquals(
-            getResource("previous-lines-latest-versions.json").openStream().use {
+            getResource("$resultFileNamePrefix.json").openStream().use {
                 objectMapper.readValue(it, VersionsDTO::class.java)
             },
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentRCVersion0355.releaseVersion)
+            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.releaseVersion)
         )
+
         assertEquals(
-            getResource("previous-lines-latest-versions-include-rc.json").openStream().use {
+            getResource("$resultFileNamePrefix-include-rc.json").openStream().use {
                 objectMapper.readValue(it, VersionsDTO::class.java)
             },
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentRCVersion0355.buildVersion, true)
+            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.buildVersion, true)
         )
     }
 
@@ -494,7 +502,6 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    // TODO!!
     @Test
     fun testGetPreviousLinesLatestVersionsForInvalidVersion() {
         assertThrowsExactly(NotFoundException::class.java) {
@@ -929,10 +936,14 @@ abstract class DmsServiceApplicationBaseTest {
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
         val eeComponentRCVersion0353 = Version("03.53.31", "03.53.30.53-1", "03.53.30.53")
+        val eeComponentHotfixReleaseVersion0353 = Version("03.53.31", "03.53.30.61-1", "03.53.30.61")
+        val eeComponentHotfixBuildVersion0353 = Version("03.53.31", "03.53.30.72-1", "03.53.30.72")
+        val eeComponentHotfixRCVersion0353 = Version("03.53.31", "03.53.30.83-1", "03.53.30.83")
 
         val eeComponentBuildVersion0354 = Version("03.54.31", "03.54.30.42-1", "03.54.30.42")
         val eeComponentRCVersion0354 = Version("03.54.31", "03.54.30.53-1", "03.54.30.53")
         val eeComponentReleaseVersion0354 = Version("03.54.31", "03.54.30.64-1", "03.54.30.64")
+        val eeComponentHotfixBuildVersion0354 = Version("03.54.31", "03.54.30.65-1", "03.54.30.65")
         val eeComponentHotfixRCVersion0354 = Version("03.54.31", "03.54.30.70-1", "03.54.30.70")
         val eeComponentHotfixReleaseVersion0354 = Version("03.54.31", "03.54.30.74-1", "03.54.30.74")
 
@@ -1086,6 +1097,30 @@ abstract class DmsServiceApplicationBaseTest {
         private fun releaseVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354),
             Arguments.of(eeComponentHotfixReleaseVersion0354)
+        )
+
+        @JvmStatic
+        private fun previousLinesLatestVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(
+                eeComponentBuildVersion0353,
+                eeComponentRCVersion0353,
+                eeComponentReleaseVersion0353,
+                eeComponentBuildVersion0354,
+                eeComponentRCVersion0354,
+                eeComponentReleaseVersion0354,
+                eeComponentRCVersion0355,
+                "previous-lines-latest-versions"
+            ),
+            Arguments.of(
+                eeComponentHotfixBuildVersion0353,
+                eeComponentHotfixRCVersion0353,
+                eeComponentHotfixReleaseVersion0353,
+                eeComponentHotfixBuildVersion0354,
+                eeComponentHotfixRCVersion0354,
+                eeComponentHotfixReleaseVersion0354,
+                eeComponentHotfixRCVersion0355,
+                "previous-lines-latest-versions-hotfix"
+            )
         )
     }
     //</editor-fold>
