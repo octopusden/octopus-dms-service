@@ -560,33 +560,34 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(artifact, client.getArtifact(artifact.id))
     }
 
-    @Test
-    fun testPatchComponentVersion() {
+    @ParameterizedTest
+    @MethodSource("patchVersions")
+    fun testPatchComponentVersion(rcVersion: Version, releaseVersion: Version, hotfix: Boolean) {
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentRCVersion0355.buildVersion,
+                rcVersion.buildVersion,
                 PatchComponentVersionDTO(true)
             )
         }
         assertThrowsExactly(NotFoundException::class.java) {
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 PatchComponentVersionDTO(true)
             )
         }
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         val artifactDTO = client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
+            releaseVersion.releaseVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
         )
         assertThrowsExactly(VersionPublishedException::class.java) {
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 PatchComponentVersionDTO(true)
             )
         }
@@ -606,7 +607,7 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrowsExactly(VersionPublishedException::class.java) {
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.releaseVersion,
+                releaseVersion.releaseVersion,
                 PatchComponentVersionDTO(true)
             )
         }
@@ -615,16 +616,16 @@ abstract class DmsServiceApplicationBaseTest {
         }
         val versionDTO = ComponentVersionDTO(
             eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
+            releaseVersion.buildVersion,
             true,
             ComponentVersionStatus.RELEASE,
-            false
+            hotfix
         )
         assertEquals(
             versionDTO,
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.releaseVersion,
+                releaseVersion.releaseVersion,
                 PatchComponentVersionDTO(true)
             )
         )
@@ -632,14 +633,14 @@ abstract class DmsServiceApplicationBaseTest {
             versionDTO,
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.releaseVersion,
+                releaseVersion.releaseVersion,
                 PatchComponentVersionDTO(true)
             )
         )
         assertThrowsExactly(VersionPublishedException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 client.addArtifact(releaseDockerDistributionCoordinates).id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -647,7 +648,7 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
                 true
@@ -657,7 +658,7 @@ abstract class DmsServiceApplicationBaseTest {
             artifactDTO,
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -673,14 +674,14 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(
             ComponentVersionDTO(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                releaseVersion.buildVersion,
                 false,
                 ComponentVersionStatus.RELEASE,
                 false
             ),
             client.patchComponentVersion(
                 eeComponent,
-                eeComponentReleaseVersion0354.releaseVersion,
+                releaseVersion.releaseVersion,
                 PatchComponentVersionDTO(false)
             )
         )
@@ -925,6 +926,7 @@ abstract class DmsServiceApplicationBaseTest {
         val eeComponentBuildVersion0354 = Version("03.54.31", "03.54.30.42-1", "03.54.30.42")
         val eeComponentRCVersion0354 = Version("03.54.31", "03.54.30.53-1", "03.54.30.53")
         val eeComponentReleaseVersion0354 = Version("03.54.31", "03.54.30.64-1", "03.54.30.64")
+        val eeComponentHotfixRCVersion0354 = Version("03.54.31", "03.54.30.70-1", "03.54.30.70")
         val eeComponentHotfixReleaseVersion0354 = Version("03.54.31", "03.54.30.74-1", "03.54.30.74")
 
         val eeComponentBuildVersion0355 = Version("03.55.31", "03.55.30.42-1", "03.55.30.42")
@@ -1066,6 +1068,12 @@ abstract class DmsServiceApplicationBaseTest {
                     Arguments.of(artifact.get()[0], eeComponentHotfixBuildVersion0355)
                 )
             }
+
+        @JvmStatic
+        private fun patchVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentRCVersion0354, eeComponentReleaseVersion0354, false),
+            Arguments.of(eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354, true)
+        )
     }
     //</editor-fold>
 }
