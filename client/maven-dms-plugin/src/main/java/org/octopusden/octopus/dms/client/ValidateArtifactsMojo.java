@@ -27,6 +27,7 @@ import org.octopusden.octopus.util.FileFilterConfig;
 
 @Mojo(name = "validate-artifacts", requiresProject = false)
 public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
+    private static final String WL_LOG = "org.slf4j.simpleLogger.log.org.octopusden.octopus.tools.wl";
     private final ArtifactService artifactService;
     private final DMSService dmsService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -48,6 +49,9 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (System.getProperty(WL_LOG) == null) {
+            System.setProperty(WL_LOG, "WARN");
+        }
         final Log log = getLog();
         if (StringUtils.isBlank(artifactsCoordinates) &&
                 StringUtils.isBlank(artifactsCoordinatesDeb) &&
@@ -124,4 +128,5 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                         )
         );
     }
+
 }
