@@ -329,49 +329,53 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    // TODO!!
-    @Test
-    fun testGetComponentVersions() {
+    @ParameterizedTest
+    @MethodSource
+    fun testGetComponentVersions(
+        buildVersion0354: Version, rcVersion0354: Version, releaseVersion0354: Version,
+        buildVersion0355: Version, rcVersion0355: Version, buildVersion0356: Version,
+        resultFileNamePrefix: String
+    ) {
         assertEquals(
             ComponentVersionsDTO(emptyList()),
-            client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
+            releaseVersion0354.releaseVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0354.buildVersion,
+            rcVersion0354.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
-        insertVersion(eeComponent, eeComponentBuildVersion0354)
+        insertVersion(eeComponent, buildVersion0354)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0355.buildVersion,
+            rcVersion0355.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
-        insertVersion(eeComponent, eeComponentBuildVersion0355)
+        insertVersion(eeComponent, buildVersion0355)
         assertEquals(
             ComponentVersionsDTO(emptyList()),
-            client.getComponentVersions(eeComponent, eeComponentBuildVersion0356.minorVersion)
+            client.getComponentVersions(eeComponent, buildVersion0356.minorVersion)
         )
         assertEquals(
-            getResource("component-versions.json").openStream().use {
+            getResource("$resultFileNamePrefix.json").openStream().use {
                 objectMapper.readValue(it, ComponentVersionsDTO::class.java)
             },
-            client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion)
         )
         assertEquals(
-            getResource("component-versions-no-rc.json").openStream().use {
+            getResource("$resultFileNamePrefix-no-rc.json").openStream().use {
                 objectMapper.readValue(it, ComponentVersionsDTO::class.java)
             },
-            client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion, false)
+            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion, false)
         )
     }
 
@@ -1112,6 +1116,28 @@ abstract class DmsServiceApplicationBaseTest {
         private fun testGetComponentMinorVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354, eeComponentRCVersion0354, eeComponentRCVersion0355, eeComponentBuildVersion0356),
             Arguments.of(eeComponentHotfixReleaseVersion0354, eeComponentHotfixRCVersion0354, eeComponentHotfixRCVersion0355, eeComponentHotfixBuildVersion0356)
+        )
+
+        @JvmStatic
+        private fun testGetComponentVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(
+                eeComponentBuildVersion0354,
+                eeComponentRCVersion0354,
+                eeComponentReleaseVersion0354,
+                eeComponentBuildVersion0355,
+                eeComponentRCVersion0355,
+                eeComponentBuildVersion0356,
+                "component-versions"
+            ),
+            Arguments.of(
+                eeComponentHotfixBuildVersion0354,
+                eeComponentHotfixRCVersion0354,
+                eeComponentHotfixReleaseVersion0354,
+                eeComponentHotfixBuildVersion0355,
+                eeComponentHotfixRCVersion0355,
+                eeComponentHotfixBuildVersion0356,
+                "component-versions-hotfix"
+            )
         )
 
         @JvmStatic
