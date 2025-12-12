@@ -284,6 +284,7 @@ abstract class DmsServiceApplicationBaseTest {
         )
     }
 
+    // TODO!!
     @Test
     fun testGetComponentMinorVersions() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
@@ -325,6 +326,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    // TODO!!
     @Test
     fun testGetComponentVersions() {
         assertEquals(
@@ -378,6 +380,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    // TODO!!
     @ParameterizedTest
     @MethodSource("releaseArtifacts")
     fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
@@ -431,6 +434,7 @@ abstract class DmsServiceApplicationBaseTest {
             }
     }
 
+    // TODO!!
     @Test
     fun testGetPreviousLinesLatestVersions() {
         assertEquals(
@@ -490,6 +494,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    // TODO!!
     @Test
     fun testGetPreviousLinesLatestVersionsForInvalidVersion() {
         assertThrowsExactly(NotFoundException::class.java) {
@@ -509,6 +514,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    // TODO!!
     @Test
     fun testRegisterUploadedArtifact() {
         val releaseNotesRELEASE = getResource(releaseReleaseNotesFileName)
@@ -677,7 +683,7 @@ abstract class DmsServiceApplicationBaseTest {
                 releaseVersion.buildVersion,
                 false,
                 ComponentVersionStatus.RELEASE,
-                false
+                hotfix
             ),
             client.patchComponentVersion(
                 eeComponent,
@@ -702,6 +708,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    // TODO!!
     @Test
     fun testGetComponentVersionDependencies() {
         assertEquals(
