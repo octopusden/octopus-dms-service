@@ -857,12 +857,40 @@ abstract class DmsServiceApplicationBaseTest {
 
     @ParameterizedTest
     @MethodSource("releaseArtifacts")
+    fun testRegisterDistributionArtifactForHotfixRCVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = client.addArtifact(artifactCoordinates)
+        assertThrowsExactly(IllegalVersionStatusException::class.java) {
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentHotfixRCVersion0355.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("releaseArtifacts")
     fun testRegisterReportArtifactForBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
                 eeComponentBuildVersion0356.buildVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.REPORT)
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("releaseArtifacts")
+    fun testRegisterReportArtifactForHotfixBuildVersion(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = client.addArtifact(artifactCoordinates)
+        assertThrowsExactly(IllegalVersionStatusException::class.java) {
+            client.registerComponentVersionArtifact(
+                eeComponent,
+                eeComponentHotfixBuildVersion0355.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.REPORT)
             )
@@ -917,18 +945,26 @@ abstract class DmsServiceApplicationBaseTest {
         const val ANY_VERSION = "ANY_VERSION"
         const val eeComponent = "ee-component"
         const val eeClientSpecificComponent = "ee-client-specific-component"
+
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
         val eeComponentRCVersion0353 = Version("03.53.31", "03.53.30.53-1", "03.53.30.53")
+
         val eeComponentBuildVersion0354 = Version("03.54.31", "03.54.30.42-1", "03.54.30.42")
         val eeComponentRCVersion0354 = Version("03.54.31", "03.54.30.53-1", "03.54.30.53")
         val eeComponentReleaseVersion0354 = Version("03.54.31", "03.54.30.64-1", "03.54.30.64")
+
         val eeComponentBuildVersion0355 = Version("03.55.31", "03.55.30.42-1", "03.55.30.42")
         val eeComponentRCVersion0355 = Version("03.55.31", "03.55.30.53-1", "03.55.30.53")
+        val eeComponentHotfixBuildVersion0355 = Version("03.55.31", "03.55.30.63-1", "03.55.30.63")
+        val eeComponentHotfixRCVersion0355 = Version("03.55.31", "03.55.30.73-1", "03.55.30.73")
+
         val eeComponentBuildVersion0356 = Version("03.56.31", "03.56.30.42-1", "03.56.30.56")
         val eeComponentNonExistsVersion0357 = Version("03.57.31", "03.57.30.64-1", "03.57.30.64")
+
         const val devReleaseNotesFileName = "release-notes-RC.txt"
         const val releaseReleaseNotesFileName = "release-notes-RELEASE.txt"
+
         val releaseNotesCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.upload", "release-notes", "1.0", "txt", "en"))
         val devMavenDistributionCoordinates =

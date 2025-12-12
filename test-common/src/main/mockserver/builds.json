@@ -114,6 +114,28 @@
   {
     "component": "ee-component",
     "status": "BUILD",
+    "version": "03.55.30.63-1",
+    "release_version": "03.55.30.63",
+    "hotfix": true,
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ee-component",
+    "status": "RC",
+    "version": "03.55.30.73-1",
+    "release_version": "03.55.30.73",
+    "hotfix": true,
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ee-component",
+    "status": "BUILD",
     "version": "03.56.30.42-1",
     "release_version": "03.56.30.42",
     "parents": [],
