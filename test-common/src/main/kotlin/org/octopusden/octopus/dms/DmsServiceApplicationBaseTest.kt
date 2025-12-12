@@ -380,20 +380,19 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    // TODO!!
     @ParameterizedTest
-    @MethodSource("releaseArtifacts")
-    fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO) {
+    @MethodSource("artifactsReleaseVersions")
+    fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO, version: Version) {
         val artifact = client.addArtifact(artifactCoordinates)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
+            version.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
         )
         val componentVersionArtifacts = client.getComponentVersionArtifacts(
             eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
+            version.releaseVersion,
             ArtifactType.DISTRIBUTION
         )
         assertEquals(1, componentVersionArtifacts.artifacts.size)
@@ -401,12 +400,12 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrows(NotFoundException::class.java) {
             client.getComponentVersionArtifact(
                 "some-$eeComponent",
-                eeComponentReleaseVersion0354.releaseVersion,
+                version.releaseVersion,
                 artifact.id
             )
         }
         client.renameComponent("some-$eeComponent", eeComponent)
-        client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+        client.getComponentVersions(eeComponent, version.minorVersion)
         // Check that the operation(renaming) is idempotent
         client.renameComponent("some-$eeComponent", eeComponent)
         // Check exception to rename unexisting component
@@ -428,7 +427,7 @@ abstract class DmsServiceApplicationBaseTest {
             client.renameComponent(eeComponent, eeClientSpecificComponent)
         }
         // Check that artifact with new component name is available
-        client.downloadComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.releaseVersion, artifact.id)
+        client.downloadComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
             .use { response ->
                 assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
             }
