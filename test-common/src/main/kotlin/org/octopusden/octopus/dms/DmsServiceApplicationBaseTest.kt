@@ -715,22 +715,22 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    // TODO!!
-    @Test
-    fun testGetComponentVersionDependencies() {
+    @ParameterizedTest
+    @MethodSource("versionsWithDependencies")
+    fun testGetComponentVersionDependencies(version: Version) {
         assertEquals(
             ComponentVersionsDTO(emptyList()),
-            client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion)
+            client.getComponentVersions(eeComponent, version.minorVersion)
         )
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
+            version.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         mapOf(
-            eeComponent to eeComponentReleaseVersion0354.buildVersion,
+            eeComponent to version.buildVersion,
             "dependency1" to "1.0.1",
             "dependency2" to "2.0.1"
         ).forEach { (componentName, version) ->
@@ -742,7 +742,7 @@ abstract class DmsServiceApplicationBaseTest {
             )
         }
         val dependencies = client.getComponentVersionDependencies(
-            eeComponent, eeComponentReleaseVersion0354.buildVersion
+            eeComponent, version.buildVersion
         )
         assertIterableEquals(
             listOf("dependency1", "dependency2"),
@@ -1095,6 +1095,12 @@ abstract class DmsServiceApplicationBaseTest {
 
         @JvmStatic
         private fun releaseVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentReleaseVersion0354),
+            Arguments.of(eeComponentHotfixReleaseVersion0354)
+        )
+
+        @JvmStatic
+        private fun versionsWithDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354),
             Arguments.of(eeComponentHotfixReleaseVersion0354)
         )
