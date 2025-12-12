@@ -93,6 +93,17 @@
   },
   {
     "component": "ee-component",
+    "status": "RELEASE",
+    "version": "03.54.30.74-1",
+    "release_version": "03.54.30.74",
+    "hotfix": true,
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ee-component",
     "status": "BUILD",
     "version": "03.55.30.42-1",
     "release_version": "03.55.30.42",
