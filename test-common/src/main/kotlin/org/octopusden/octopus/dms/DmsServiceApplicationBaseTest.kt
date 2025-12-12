@@ -741,13 +741,13 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("stagingArtifacts")
-    fun testRegisterStagingArtifact(artifactCoordinates: ArtifactCoordinatesDTO) {
+    @MethodSource("stagingArtifactsReleaseVersions")
+    fun testRegisterStagingArtifact(artifactCoordinates: ArtifactCoordinatesDTO, version: Version) {
         val artifact = client.addArtifact(artifactCoordinates)
         assertThrowsExactly(UnableToFindArtifactException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
+                version.buildVersion,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -1023,6 +1023,15 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of(devDebianDistributionCoordinates),
             Arguments.of(devRpmDistributionCoordinates)
         )
+
+        @JvmStatic
+        private fun stagingArtifactsReleaseVersions(): Stream<Arguments> =
+            stagingArtifacts().flatMap { artifact ->
+                Stream.of(
+                    Arguments.of(artifact.get()[0], eeComponentReleaseVersion0354),
+                    Arguments.of(artifact.get()[0], eeComponentHotfixReleaseVersion0354)
+                )
+            }
 
         @JvmStatic
         private fun releaseArtifacts(): Stream<Arguments> = Stream.of(
