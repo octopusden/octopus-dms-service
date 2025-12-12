@@ -284,31 +284,34 @@ abstract class DmsServiceApplicationBaseTest {
         )
     }
 
-    // TODO!!
-    @Test
-    fun testGetComponentMinorVersions() {
+    @ParameterizedTest
+    @MethodSource
+    fun testGetComponentMinorVersions(
+        releaseVersion0354: Version, rcVersion0354: Version,
+        rcVersion0355: Version, buildVersion0356: Version
+    ) {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
+            releaseVersion0354.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0354.releaseVersion,
+            rcVersion0354.releaseVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         client.registerComponentVersionArtifact(
             eeComponent,
-            eeComponentRCVersion0355.buildVersion,
+            rcVersion0355.buildVersion,
             artifact.id,
             RegisterArtifactDTO(ArtifactType.NOTES)
         )
         insertVersion(
             eeComponent,
-            eeComponentBuildVersion0356
+            buildVersion0356
         ) //NOTE: getComponentMinorVersions does not check build status
         assertEquals(
             getResource("component-minor-versions.json").openStream().use {
@@ -952,6 +955,7 @@ abstract class DmsServiceApplicationBaseTest {
         val eeComponentHotfixRCVersion0355 = Version("03.55.31", "03.55.30.73-1", "03.55.30.73")
 
         val eeComponentBuildVersion0356 = Version("03.56.31", "03.56.30.42-1", "03.56.30.56")
+        val eeComponentHotfixBuildVersion0356 = Version("03.56.31", "03.56.30.52-1", "03.56.30.52")
         val eeComponentNonExistsVersion0357 = Version("03.57.31", "03.57.30.64-1", "03.57.30.64")
 
         const val devReleaseNotesFileName = "release-notes-RC.txt"
@@ -1102,6 +1106,12 @@ abstract class DmsServiceApplicationBaseTest {
         private fun versionsWithDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354),
             Arguments.of(eeComponentHotfixReleaseVersion0354)
+        )
+
+        @JvmStatic
+        private fun testGetComponentMinorVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentReleaseVersion0354, eeComponentRCVersion0354, eeComponentRCVersion0355, eeComponentBuildVersion0356),
+            Arguments.of(eeComponentHotfixReleaseVersion0354, eeComponentHotfixRCVersion0354, eeComponentHotfixRCVersion0355, eeComponentHotfixBuildVersion0356)
         )
 
         @JvmStatic
