@@ -441,7 +441,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("previousLinesLatestVersions")
+    @MethodSource
     fun testGetPreviousLinesLatestVersions(
         buildVersion0353: Version, rcVersion0353: Version, releaseVersion0353: Version,
         buildVersion0354: Version, rcVersion0354: Version, releaseVersion0354: Version,
@@ -528,7 +528,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("releaseVersions")
+    @MethodSource
     fun testRegisterUploadedArtifact(version: Version) {
         val releaseNotesRELEASE = getResource(releaseReleaseNotesFileName)
         val artifact = releaseNotesRELEASE.openStream().use {
@@ -580,7 +580,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("patchVersions")
+    @MethodSource
     fun testPatchComponentVersion(rcVersion: Version, releaseVersion: Version, hotfix: Boolean) {
         assertThrowsExactly(IllegalVersionStatusException::class.java) {
             client.patchComponentVersion(
@@ -722,7 +722,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("versionsWithDependencies")
+    @MethodSource
     fun testGetComponentVersionDependencies(version: Version) {
         assertEquals(
             ComponentVersionsDTO(emptyList()),
@@ -1095,24 +1095,6 @@ abstract class DmsServiceApplicationBaseTest {
             }
 
         @JvmStatic
-        private fun patchVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of(eeComponentRCVersion0354, eeComponentReleaseVersion0354, false),
-            Arguments.of(eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354, true)
-        )
-
-        @JvmStatic
-        private fun releaseVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of(eeComponentReleaseVersion0354),
-            Arguments.of(eeComponentHotfixReleaseVersion0354)
-        )
-
-        @JvmStatic
-        private fun versionsWithDependencies(): Stream<Arguments> = Stream.of(
-            Arguments.of(eeComponentReleaseVersion0354),
-            Arguments.of(eeComponentHotfixReleaseVersion0354)
-        )
-
-        @JvmStatic
         private fun testGetComponentMinorVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354, eeComponentRCVersion0354, eeComponentRCVersion0355, eeComponentBuildVersion0356),
             Arguments.of(eeComponentHotfixReleaseVersion0354, eeComponentHotfixRCVersion0354, eeComponentHotfixRCVersion0355, eeComponentHotfixBuildVersion0356)
@@ -1121,47 +1103,47 @@ abstract class DmsServiceApplicationBaseTest {
         @JvmStatic
         private fun testGetComponentVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(
-                eeComponentBuildVersion0354,
-                eeComponentRCVersion0354,
-                eeComponentReleaseVersion0354,
-                eeComponentBuildVersion0355,
-                eeComponentRCVersion0355,
-                eeComponentBuildVersion0356,
+                eeComponentBuildVersion0354, eeComponentRCVersion0354, eeComponentReleaseVersion0354,
+                eeComponentBuildVersion0355, eeComponentRCVersion0355, eeComponentBuildVersion0356,
                 "component-versions"
             ),
             Arguments.of(
-                eeComponentHotfixBuildVersion0354,
-                eeComponentHotfixRCVersion0354,
-                eeComponentHotfixReleaseVersion0354,
-                eeComponentHotfixBuildVersion0355,
-                eeComponentHotfixRCVersion0355,
-                eeComponentHotfixBuildVersion0356,
+                eeComponentHotfixBuildVersion0354, eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354,
+                eeComponentHotfixBuildVersion0355, eeComponentHotfixRCVersion0355, eeComponentHotfixBuildVersion0356,
                 "component-versions-hotfix"
             )
         )
 
         @JvmStatic
-        private fun previousLinesLatestVersions(): Stream<Arguments> = Stream.of(
+        private fun testGetPreviousLinesLatestVersions(): Stream<Arguments> = Stream.of(
             Arguments.of(
-                eeComponentBuildVersion0353,
-                eeComponentRCVersion0353,
-                eeComponentReleaseVersion0353,
-                eeComponentBuildVersion0354,
-                eeComponentRCVersion0354,
-                eeComponentReleaseVersion0354,
-                eeComponentRCVersion0355,
-                "previous-lines-latest-versions"
+                eeComponentBuildVersion0353, eeComponentRCVersion0353, eeComponentReleaseVersion0353,
+                eeComponentBuildVersion0354, eeComponentRCVersion0354, eeComponentReleaseVersion0354,
+                eeComponentRCVersion0355, "previous-lines-latest-versions"
             ),
             Arguments.of(
-                eeComponentHotfixBuildVersion0353,
-                eeComponentHotfixRCVersion0353,
-                eeComponentHotfixReleaseVersion0353,
-                eeComponentHotfixBuildVersion0354,
-                eeComponentHotfixRCVersion0354,
-                eeComponentHotfixReleaseVersion0354,
-                eeComponentHotfixRCVersion0355,
-                "previous-lines-latest-versions-hotfix"
+                eeComponentHotfixBuildVersion0353, eeComponentHotfixRCVersion0353, eeComponentHotfixReleaseVersion0353,
+                eeComponentHotfixBuildVersion0354, eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354,
+                eeComponentHotfixRCVersion0355, "previous-lines-latest-versions-hotfix"
             )
+        )
+
+        @JvmStatic
+        private fun testRegisterUploadedArtifact(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentReleaseVersion0354),
+            Arguments.of(eeComponentHotfixReleaseVersion0354)
+        )
+
+        @JvmStatic
+        private fun testPatchComponentVersion(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentRCVersion0354, eeComponentReleaseVersion0354, false),
+            Arguments.of(eeComponentHotfixRCVersion0354, eeComponentHotfixReleaseVersion0354, true)
+        )
+
+        @JvmStatic
+        private fun testGetComponentVersionDependencies(): Stream<Arguments> = Stream.of(
+            Arguments.of(eeComponentReleaseVersion0354),
+            Arguments.of(eeComponentHotfixReleaseVersion0354)
         )
     }
     //</editor-fold>
