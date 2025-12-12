@@ -50,6 +50,7 @@ abstract class ConfigureMockServer : DefaultTask() {
                     JSONObject().put("component", build.getString("component"))
                         .put("version", build.getString("version"))
                         .put("status", build.getString("status"))
+                        .put("hotfix", build.optBoolean("hotfix", false))
                 }).toString(2))
         }
         mockServerClient.`when`(

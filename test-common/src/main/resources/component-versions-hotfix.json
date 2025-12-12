@@ -1,0 +1,16 @@
+{
+  "versions": [
+    {
+      "component": "ee-component",
+      "version": "03.54.30.74-1",
+      "status": "RELEASE",
+      "hotfix": true
+    },
+    {
+      "component": "ee-component",
+      "version": "03.54.30.70-1",
+      "status": "RC",
+      "hotfix": true
+    }
+  ]
+}

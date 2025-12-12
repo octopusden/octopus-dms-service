@@ -8,10 +8,11 @@ class BuildFullDTO(
     component: String,
     version: String,
     status: ComponentVersionStatus,
+    hotfix: Boolean,
     val promotedAt: Date?,
     val parents: List<BuildDTO>,
     val dependencies: List<BuildDTO>
-) : BuildDTO(component, version, status) {
+) : BuildDTO(component, version, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -28,5 +29,5 @@ class BuildFullDTO(
 
     override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, parents, dependencies)
 
-    override fun toString() = "BuildFullDTO(component='$component', version='$version', status=$status, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"
+    override fun toString() = "BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"
 }
