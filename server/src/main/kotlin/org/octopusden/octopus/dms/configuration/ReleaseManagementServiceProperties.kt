@@ -5,5 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "release-management-service")
 data class ReleaseManagementServiceProperties(
     val url: String,
-    val retry: Int = 30000
+    val retry: Int = 30000,
+    val connectTimeout: Int = 30000,
+    val readTimeout: Int = 30000
 )
