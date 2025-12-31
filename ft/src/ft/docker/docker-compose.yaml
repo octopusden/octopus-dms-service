@@ -10,25 +10,37 @@ services:
             - POSTGRES_DB=dms
             - POSTGRES_USER=dms
             - POSTGRES_PASSWORD=dms
+            -
+    artifactory-db:
+        image: postgres:17-alpine
+        container_name: artifactory-postgres
+        environment:
+            POSTGRES_DB: ${ARTIFACTORY_POSTGRES_DB}
+            POSTGRES_USER: ${ARTIFACTORY_POSTGRES_USER}
+            POSTGRES_PASSWORD: ${ARTIFACTORY_POSTGRES_PASSWORD}
+        healthcheck:
+            test: CMD-SHELL pg_isready -U ${ARTIFACTORY_POSTGRES_USER}
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     artifactory:
-        container_name: dms-ft-artifactory
-        image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.125.7
+        container_name: artifactory
+        depends_on:
+            artifactory-db:
+                condition: service_healthy
         ports:
-            - "8081:8081"
-            - "8082:8082"
-        volumes:
-            - ../../../../test-common/src/main/artifactory/dump:/dump
-        logging:
-            driver: json-file
-            options:
-                max-size: "50m"
-                max-file: "10"
-        ulimits:
-            nproc: 65535
-            nofile:
-                soft: 32000
-                hard: 40000
+            - "${ARTIFACTORY_PORT}:8081"
+            - "${ARTIFACTORY_ROUTER_PORT}:8082"
+        environment:
+            JF_SHARED_DATABASE_TYPE: postgresql
+            JF_SHARED_DATABASE_DRIVER: org.postgresql.Driver
+            JF_SHARED_DATABASE_URL: jdbc:postgresql://${ARTIFACTORY_DB_HOST}:${ARTIFACTORY_DB_PORT}/${ARTIFACTORY_POSTGRES_DB}
+            JF_SHARED_DATABASE_USERNAME: ${ARTIFACTORY_POSTGRES_USER}
+            JF_SHARED_DATABASE_PASSWORD: ${ARTIFACTORY_POSTGRES_PASSWORD}
+        restart: unless-stopped
+
 
     components-registry-service:
         container_name: dms-ft-components-registry-service

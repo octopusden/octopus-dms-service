@@ -35,7 +35,14 @@ dockerCompose {
             "TEST_ARTIFACTORY_HOST" to "artifactory:8081",
             "TEST_ARTIFACTORY_HOST_EXTERNAL" to "localhost:8081",
             "TEST_COMPONENTS_REGISTRY_HOST" to "components-registry-service:4567",
-            "TEST_RELEASE_MANAGEMENT_HOST" to "release-management-service:8083"
+            "TEST_RELEASE_MANAGEMENT_HOST" to "release-management-service:8083",
+            "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory.db.name").toString(),
+            "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory.db.user").toString(),
+            "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory.db.password").toString(),
+            "ARTIFACTORY_DB_HOST" to project.property("artifactory.db.host").toString(),
+            "ARTIFACTORY_DB_PORT" to project.property("artifactory.db.port").toString(),
+            "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
+            "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
         )
     )
 }
