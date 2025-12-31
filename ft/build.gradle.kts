@@ -10,6 +10,9 @@ plugins {
 fun String.getExt() = project.ext[this] as String
 
 dockerCompose {
+    captureContainersOutput = true
+    stopContainers = true
+    removeContainers = true
     useComposeFiles.add("${projectDir}/src/ft/docker/docker-compose.yaml")
     waitForTcpPorts = true
     captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
@@ -36,11 +39,11 @@ dockerCompose {
             "TEST_ARTIFACTORY_HOST_EXTERNAL" to "localhost:8081",
             "TEST_COMPONENTS_REGISTRY_HOST" to "components-registry-service:4567",
             "TEST_RELEASE_MANAGEMENT_HOST" to "release-management-service:8083",
-            "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory.db.name").toString(),
-            "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory.db.user").toString(),
-            "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory.db.password").toString(),
-            "ARTIFACTORY_DB_HOST" to project.property("artifactory.db.host").toString(),
-            "ARTIFACTORY_DB_PORT" to project.property("artifactory.db.port").toString(),
+            "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
+            "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
+            "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
+            "ARTIFACTORY_DB_HOST" to project.property("artifactory-postgres.host").toString(),
+            "ARTIFACTORY_DB_PORT" to project.property("artifactory-postgres.port").toString(),
             "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
             "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
         )
@@ -135,18 +138,43 @@ ocTemplate{
         dependsOn.set(listOf("mockserver"))
     }
 
+    service("dms-postgres") {
+        templateFile.set(rootProject.layout.projectDirectory.file("okd/postgres.yaml"))
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "POSTGRES_NAME" to "dms-postgres",
+                "POSTGRES_IMAGE_TAG" to project.properties["dms-postgres.version"] as String,
+                "POSTGRES_DB" to project.properties["dms-postgres.db"] as String,
+                "POSTGRES_USER" to project.properties["dms-postgres.user"] as String,
+                "POSTGRES_PASSWORD" to project.properties["dms-postgres.password"] as String,
+                "POSTGRES_STORAGE" to project.properties["dms-postgres.storage"] as String,
+            )
+        )
+    }
+
+    service("artifactory-postgres") {
+        templateFile.set(rootProject.layout.projectDirectory.file("okd/postgres.yaml"))
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "POSTGRES_NAME" to "artifactory-postgres",
+                "POSTGRES_IMAGE_TAG" to project.properties["artifactory-postgres.version"] as String,
+                "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
+                "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
+                "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+                "POSTGRES_STORAGE" to project.properties["artifactory-postgres.storage"] as String,
+            )
+        )
+    }
+
     service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
         parameters.set(commonOkdParameters + mapOf(
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String
-        ))
-    }
-
-    service("postgres") {
-        templateFile.set(rootProject.layout.projectDirectory.file("okd/postgres.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
-            "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"] as String
-        ))
+            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
+            "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
+            "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
+            "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+            ))
+        dependsOn.set(listOf("artifactory-postgres"))
     }
 
     service("gateway") {

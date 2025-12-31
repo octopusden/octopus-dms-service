@@ -10,7 +10,7 @@ services:
             - POSTGRES_DB=dms
             - POSTGRES_USER=dms
             - POSTGRES_PASSWORD=dms
-            -
+
     artifactory-db:
         image: postgres:17-alpine
         container_name: artifactory-postgres
@@ -39,8 +39,12 @@ services:
             JF_SHARED_DATABASE_URL: jdbc:postgresql://${ARTIFACTORY_DB_HOST}:${ARTIFACTORY_DB_PORT}/${ARTIFACTORY_POSTGRES_DB}
             JF_SHARED_DATABASE_USERNAME: ${ARTIFACTORY_POSTGRES_USER}
             JF_SHARED_DATABASE_PASSWORD: ${ARTIFACTORY_POSTGRES_PASSWORD}
+        healthcheck:
+            test: [ "CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1" ]
+            interval: 30s
+            timeout: 10s
+            retries: 20
         restart: unless-stopped
-
 
     components-registry-service:
         container_name: dms-ft-components-registry-service
