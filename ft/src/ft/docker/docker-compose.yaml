@@ -28,8 +28,7 @@ services:
         image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.125.7
         container_name: artifactory
         depends_on:
-            artifactory-db:
-                condition: service_healthy
+            - artifactory-db
         ports:
             - "${ARTIFACTORY_PORT}:8081"
             - "${ARTIFACTORY_ROUTER_PORT}:8082"
@@ -43,7 +42,7 @@ services:
             test: [ "CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1" ]
             interval: 30s
             timeout: 10s
-            retries: 20
+            retries: 40
         restart: unless-stopped
 
     components-registry-service:
