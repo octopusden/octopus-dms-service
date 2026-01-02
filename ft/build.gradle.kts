@@ -224,12 +224,13 @@ tasks.register("waitPostgresExternalIP") {
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
         val svc = "$deploymentPrefix-postgres-service"
-        val timeoutMs = 5 * 60 * 1000
+        val timeoutMs = 10 * 60 * 1000
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             println("Wait external IP for $svc ...")
             val proc = ProcessBuilder("oc", "-n", ns, "get", "svc", svc, "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}").start()
             val result = proc.inputStream.bufferedReader().readText().trim()
+            println(result)
             proc.waitFor()
             if (result.isNotBlank() && result != "<pending>") {
                 println("$svc is ready: $result")
