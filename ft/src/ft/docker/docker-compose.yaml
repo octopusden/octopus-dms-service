@@ -35,6 +35,8 @@ services:
         ports:
             - "${ARTIFACTORY_PORT}:8081"
             - "${ARTIFACTORY_ROUTER_PORT}:8082"
+        volumes:
+            - ./system.yaml:/opt/jfrog/artifactory/var/etc/system.yaml
         environment:
             - JF_SHARED_DATABASE_TYPE=postgresql
             - JF_SHARED_DATABASE_DRIVER=org.postgresql.Driver
