@@ -12,7 +12,10 @@ services:
             - POSTGRES_PASSWORD=dms
 
     artifactory-db:
+        container_name: dms-ft-artifactory-db
         image: postgres:17-alpine
+        ports:
+            - "5433:5432"
         environment:
             - POSTGRES_DB=${ARTIFACTORY_POSTGRES_DB}
             - POSTGRES_USER=${ARTIFACTORY_POSTGRES_USER}
@@ -24,6 +27,7 @@ services:
             retries: 5
 
     artifactory:
+        container_name: dms-ft-artifactory
         image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.125.7
         depends_on:
             artifactory-db:
@@ -78,6 +82,7 @@ services:
             - "1080:1080"
 
     dms-service:
+        container_name: dms-ft-dms-service
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
         ports:
             - "8080:8080"
@@ -103,6 +108,7 @@ services:
             - TEST_RELEASE_MANAGEMENT_HOST=${TEST_RELEASE_MANAGEMENT_HOST}
 
     api-gateway:
+        container_name: dms-ft-api-gateway
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:${API_GATEWAY_VERSION}
         ports:
             - "8765:8765"
