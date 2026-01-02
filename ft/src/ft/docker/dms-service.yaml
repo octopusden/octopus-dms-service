@@ -9,9 +9,9 @@ spring:
         jwt:
           issuer-uri: ${auth-server.url}/realms/${auth-server.realm}
   datasource:
-    url: jdbc:postgresql://${TEST_POSTGRES_HOST}/${POSTGRES_DB}
-    username: ${ARTIFACTORY_POSTGRES_USER}
-    password: ${ARTIFACTORY_POSTGRES_PASSWORD}
+    url: jdbc:postgresql://${TEST_POSTGRES_HOST}/dms
+    username: dms
+    password: dms
 
 auth-server:
   url: # set via env

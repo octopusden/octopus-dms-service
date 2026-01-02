@@ -13,11 +13,10 @@ services:
 
     artifactory-db:
         image: postgres:17-alpine
-        container_name: artifactory-postgres
         environment:
-            POSTGRES_DB: ${ARTIFACTORY_POSTGRES_DB}
-            POSTGRES_USER: ${ARTIFACTORY_POSTGRES_USER}
-            POSTGRES_PASSWORD: ${ARTIFACTORY_POSTGRES_PASSWORD}
+            - POSTGRES_DB=${ARTIFACTORY_POSTGRES_DB}
+            - POSTGRES_USER=${ARTIFACTORY_POSTGRES_USER}
+            - POSTGRES_PASSWORD=${ARTIFACTORY_POSTGRES_PASSWORD}
         healthcheck:
             test: [ "CMD-SHELL", "pg_isready -U artifactory" ]
             interval: 10s
@@ -26,18 +25,19 @@ services:
 
     artifactory:
         image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.125.7
-        container_name: artifactory
         depends_on:
-            - artifactory-db
+            artifactory-db:
+                condition: service_healthy
         ports:
             - "${ARTIFACTORY_PORT}:8081"
             - "${ARTIFACTORY_ROUTER_PORT}:8082"
         environment:
-            JF_SHARED_DATABASE_TYPE: postgresql
-            JF_SHARED_DATABASE_DRIVER: org.postgresql.Driver
-            JF_SHARED_DATABASE_URL: jdbc:postgresql://${ARTIFACTORY_DB_HOST}:${ARTIFACTORY_DB_PORT}/${ARTIFACTORY_POSTGRES_DB}
-            JF_SHARED_DATABASE_USERNAME: ${ARTIFACTORY_POSTGRES_USER}
-            JF_SHARED_DATABASE_PASSWORD: ${ARTIFACTORY_POSTGRES_PASSWORD}
+            - JF_SHARED_DATABASE_TYPE=postgresql
+            - JF_SHARED_DATABASE_DRIVER=org.postgresql.Driver
+            - JF_SHARED_DATABASE_URL=jdbc:postgresql://${ARTIFACTORY_DB_HOST}:${ARTIFACTORY_DB_PORT}/${ARTIFACTORY_POSTGRES_DB}
+            - JF_SHARED_DATABASE_USERNAME=${ARTIFACTORY_POSTGRES_USER}
+            - JF_SHARED_DATABASE_PASSWORD=${ARTIFACTORY_POSTGRES_PASSWORD}
+            - JF_SHARED_SECURITY_ALLOW_PLAINTEXT_KEYS=true
         healthcheck:
             test: [ "CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1" ]
             interval: 30s
@@ -69,7 +69,7 @@ services:
             - SPRING_CLOUD_CONFIG_ENABLED=false
             - TEST_MOCK_SERVER_HOST=${TEST_MOCK_SERVER_HOST}
         volumes:
-          - ./release-management-service.yaml:/application-ft.yaml
+            - ./release-management-service.yaml:/application-ft.yaml
 
     mockserver:
         container_name: dms-ft-mockserver
