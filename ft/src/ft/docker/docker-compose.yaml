@@ -78,7 +78,6 @@ services:
             - "1080:1080"
 
     dms-service:
-        container_name: dms-ft-dms-service
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
         ports:
             - "8080:8080"
@@ -104,7 +103,6 @@ services:
             - TEST_RELEASE_MANAGEMENT_HOST=${TEST_RELEASE_MANAGEMENT_HOST}
 
     api-gateway:
-        container_name: dms-ft-api-gateway
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:${API_GATEWAY_VERSION}
         ports:
             - "8765:8765"
