@@ -222,8 +222,13 @@ ocTemplate{
 
 val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
     val localFile = layout.projectDirectory.dir("../test-common/src/main/artifactory/dump").asFile.absolutePath
-    commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
-        "${ocTemplate.getPod("artifactory")}:/")
+    commandLine(
+        "oc", "cp",
+        localFile,
+        "-n", "okdProject".getExt(),
+        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/dump"
+    )
+
     dependsOn("ocCreate")
 }
 

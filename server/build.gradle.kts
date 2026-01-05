@@ -207,8 +207,12 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         .absolutePath
         // oc treats text before colon as pod name, strip Windows drive letter
         .substringAfter(":")
-    commandLine("oc", "cp", localFile, "-n", "okdProject".getExt(),
-        "${ocTemplate.getPod("artifactory")}:/")
+    commandLine(
+        "oc", "cp",
+        localFile,
+        "-n", "okdProject".getExt(),
+        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/dump"
+    )
     dependsOn("ocCreate")
 }
 
@@ -231,7 +235,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
-            retryLimit.set(3)
+            retryLimit.set(20)
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
