@@ -28,11 +28,17 @@ abstract class ImportArtifactoryDump : DefaultTask() {
             var available = false
             repeat(retryLimit.get()) {
                 try {
-                    if (get(url = "http://${host.get()}/artifactory/api/system/ping").statusCode == 200) {
+                    val response = get("http://${host.get()}/artifactory/api/system/ping")
+                    if (response.statusCode == 200) {
                         available = true
                         return@repeat
+                    } else {
+                        project.logger.warn(
+                            "Artifactory ping failed. Status=${response.statusCode}, Body=${response.text}"
+                        )
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    project.logger.warn("Ping failed: ${e.message}")
                 }
                 Thread.sleep(5000)
             }
@@ -43,7 +49,7 @@ abstract class ImportArtifactoryDump : DefaultTask() {
                 url = "http://${host.get()}/artifactory/api/import/system",
                 auth = BasicAuthorization("admin", "password"),
                 json = mapOf(
-                    "importPath" to "/dump/$latest",
+                    "importPath" to "/opt/jfrog/artifactory/var/dump/$latest",
                     "includeMetadata" to true,
                     "verbose" to true,
                     "failOnError" to true,

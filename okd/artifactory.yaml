@@ -102,8 +102,6 @@ objects:
       to:
         kind: Service
         name: ${DEPLOYMENT_PREFIX}-artifactory-service
-      tls:
-        termination: edge
 
 parameters:
   - description: Unique deployment prefix
