@@ -76,7 +76,8 @@ fun String.getPort() = when (this) {
     "comp-reg" -> 4567
     "mockserver" -> 1080
     "rm" -> 8083
-    "postgres" -> 5432
+    "dms-postgres" -> 5432
+    "artifactory-postgres" -> 5432
     else -> throw Exception("Unknown service '$this'")
 }
 fun getOkdInternalHost(serviceName: String) = "${ocTemplate.getPod(serviceName)}-service:${serviceName.getPort()}"
@@ -106,7 +107,14 @@ dockerCompose {
         "MOCK_SERVER_VERSION" to project.properties["mockserver.version"],
         "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"],
         "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"],
-        "TEST_MOCK_SERVER_HOST" to "mockserver:1080"
+        "TEST_MOCK_SERVER_HOST" to "mockserver:1080",
+        "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
+        "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
+        "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
+        "ARTIFACTORY_DB_HOST" to project.property("artifactory-postgres.host").toString(),
+        "ARTIFACTORY_DB_PORT" to project.property("artifactory-postgres.port").toString(),
+        "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
+        "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
     ))
 }
 
@@ -141,7 +149,8 @@ ocTemplate{
 
     service("rm") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/release-management.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
+        parameters.set(mapOf(
+            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
             "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
             "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("src/test/docker/release-management-service.yaml").asFile.readText(),
@@ -149,18 +158,45 @@ ocTemplate{
         ))
     }
 
-    service("artifactory") {
-        templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String
-        ))
+    service("dms-postgres") {
+        templateFile.set(rootProject.layout.projectDirectory.file("okd/postgres.yaml"))
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "POSTGRES_NAME" to "dms-postgres",
+                "POSTGRES_IMAGE_TAG" to project.properties["dms-postgres.version"] as String,
+                "POSTGRES_DB" to project.properties["dms-postgres.db"] as String,
+                "POSTGRES_USER" to project.properties["dms-postgres.user"] as String,
+                "POSTGRES_PASSWORD" to project.properties["dms-postgres.password"] as String,
+                "POSTGRES_STORAGE" to project.properties["dms-postgres.storage"] as String,
+            )
+        )
     }
 
-    service("postgres") {
+    service("artifactory-postgres") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/postgres.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
-            "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"] as String
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "POSTGRES_NAME" to "artifactory-postgres",
+                "POSTGRES_IMAGE_TAG" to project.properties["artifactory-postgres.version"] as String,
+                "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
+                "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
+                "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+                "POSTGRES_STORAGE" to project.properties["artifactory-postgres.storage"] as String
+            )
+        )
+    }
+
+    service("artifactory") {
+        templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
+        parameters.set(mapOf(
+            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
+            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
+            "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
+            "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
+            "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+            "POSTGRES_HOST" to getOkdInternalHost("artifactory-postgres")
         ))
+        dependsOn.set(listOf("artifactory-postgres"))
     }
 }
 

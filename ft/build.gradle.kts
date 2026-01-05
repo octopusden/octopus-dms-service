@@ -70,9 +70,10 @@ fun String.getPort() = when (this) {
     "comp-reg" -> 4567
     "mockserver" -> 1080
     "rm" -> 8083
-    "postgres" -> 5432
+    "dms-postgres" -> 5432
     "gateway" -> 8765
     "dms-service" -> 8080
+    "artifactory-postgres" -> 5432
     else -> throw Exception("Unknown service '$this'")
 }
 fun getOkdInternalHost(serviceName: String) = "${ocTemplate.getPod(serviceName)}-service:${serviceName.getPort()}"
@@ -129,7 +130,8 @@ ocTemplate{
 
     service("rm") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/release-management.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
+        parameters.set(mapOf(
+            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
             "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
             "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("src/ft/docker/release-management-service.yaml").asFile.readText(),
@@ -168,11 +170,13 @@ ocTemplate{
 
     service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
+        parameters.set(mapOf(
+            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
             "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
             "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
             "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
             "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+            "POSTGRES_HOST" to getOkdInternalHost("artifactory-postgres")
             ))
         dependsOn.set(listOf("artifactory-postgres"))
     }
@@ -204,7 +208,7 @@ ocTemplate{
             "AUTH_SERVER_URL" to "authServerUrl".getExt(),
             "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
             "TEST_API_GATEWAY_HOST_EXTERNAL" to ocTemplate.getOkdHost("gateway"),
-            "TEST_POSTGRES_HOST" to getOkdInternalHost("postgres"),
+            "TEST_POSTGRES_HOST" to getOkdInternalHost("dms-postgres"),
             "TEST_ARTIFACTORY_HOST" to getOkdInternalHost("artifactory"),
             "TEST_ARTIFACTORY_HOST_EXTERNAL" to ocTemplate.getOkdHost("artifactory"),
             "TEST_COMPONENTS_REGISTRY_HOST" to getOkdInternalHost("comp-reg"),
