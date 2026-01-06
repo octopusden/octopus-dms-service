@@ -10,15 +10,45 @@ services:
             - POSTGRES_DB=dms
             - POSTGRES_USER=dms
             - POSTGRES_PASSWORD=dms
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U dms"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    artifactory-db:
+        container_name: dms-ut-artifactory-db
+        image: postgres:17-alpine
+        ports:
+            - "5433:5432"
+        environment:
+            - POSTGRES_DB=${ARTIFACTORY_POSTGRES_DB}
+            - POSTGRES_USER=${ARTIFACTORY_POSTGRES_USER}
+            - POSTGRES_PASSWORD=${ARTIFACTORY_POSTGRES_PASSWORD}
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${ARTIFACTORY_POSTGRES_USER}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     artifactory:
         container_name: dms-ut-artifactory
-        image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+        image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.125.7
+        depends_on:
+            artifactory-db:
+                condition: service_healthy
         ports:
-            - "8081:8081"
-            - "8082:8082"
+            - "${ARTIFACTORY_PORT}:8081"
+            - "${ARTIFACTORY_ROUTER_PORT}:8082"
         volumes:
-            - ../../../../test-common/src/main/artifactory/dump:/dump
+            - ./system.yaml:/opt/jfrog/artifactory/var/etc/system.yaml
+            - ../../../../test-common/src/main/artifactory/dump:/opt/jfrog/artifactory/var/dump
+        healthcheck:
+            test: ["CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1"]
+            interval: 30s
+            timeout: 10s
+            retries: 40
+        restart: unless-stopped
         logging:
             driver: json-file
             options:
