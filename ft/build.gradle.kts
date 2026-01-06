@@ -166,6 +166,7 @@ ocTemplate{
                 "POSTGRES_STORAGE" to project.properties["artifactory-postgres.storage"] as String,
             )
         )
+        dependsOn.set(listOf("dms-postgres"))
     }
 
     service("artifactory") {
