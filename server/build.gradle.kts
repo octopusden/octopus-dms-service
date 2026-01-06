@@ -209,7 +209,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         // oc treats text before colon as pod name, strip Windows drive letter
         .substringAfter(":")
     commandLine(
-        "/opt/homebrew/bin/oc", "cp",
+        "oc", "cp",
         localFile,
         "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/dump"
@@ -258,7 +258,7 @@ tasks.register("waitPostgresExternalIP") {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
             println("Wait external IP for $svc ...")
-            val proc = ProcessBuilder("/opt/homebrew/bin/oc", "-n", ns, "get", "svc", svc, "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}").start()
+            val proc = ProcessBuilder("oc", "-n", ns, "get", "svc", svc, "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}").start()
             val result = proc.inputStream.bufferedReader().readText().trim()
             proc.waitFor()
             if (result.isNotBlank() && result != "<pending>") {
