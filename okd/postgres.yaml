@@ -62,6 +62,7 @@ objects:
           targetPort: 5432
       selector:
         app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}
+      type: LoadBalancer
 
 parameters:
   - name: DEPLOYMENT_PREFIX

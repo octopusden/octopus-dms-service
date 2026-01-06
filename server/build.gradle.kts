@@ -235,7 +235,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
-            retryLimit.set(20)
+            retryLimit.set(3)
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
@@ -252,7 +252,7 @@ tasks.register("waitPostgresExternalIP") {
     doLast{
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
-        val svc = "$deploymentPrefix-postgres-service"
+        val svc = "$deploymentPrefix-dms-postgres-service"
         val timeoutMs = 5 * 60 * 1000
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
