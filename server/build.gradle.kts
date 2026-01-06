@@ -252,7 +252,7 @@ tasks.register("waitPostgresExternalIP") {
     doLast{
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
-        val svc = "$deploymentPrefix-dms-postgres-service"
+        val svc = "$deploymentPrefix-dms-postgres"
         val timeoutMs = 5 * 60 * 1000
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
