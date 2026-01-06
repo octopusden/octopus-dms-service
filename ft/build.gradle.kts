@@ -217,7 +217,7 @@ ocTemplate{
             "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver")
 
         ))
-        dependsOn.set(listOf("postgres", "artifactory", "comp-reg", "rm", "mockserver"))
+        dependsOn.set(listOf("dms-postgres", "artifactory", "comp-reg", "rm", "mockserver"))
     }
 }
 
