@@ -31,14 +31,14 @@ dockerCompose {
             "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"],
             "API_GATEWAY_VERSION" to project.properties["api-gateway.version"],
             "MOCK_SERVER_VERSION" to project.properties["mockserver.version"],
-            "TEST_MOCK_SERVER_HOST" to "mockserver:1080",
-            "TEST_DMS_SERVICE_HOST" to "dms-service:8080",
+            "TEST_MOCK_SERVER_HOST" to "dms-ft-mockserver:1080",
+            "TEST_DMS_SERVICE_HOST" to "dms-ft-dms-service:8080",
             "TEST_API_GATEWAY_HOST_EXTERNAL" to "localhost:8765",
-            "TEST_POSTGRES_HOST" to "dms-db:5432",
-            "TEST_ARTIFACTORY_HOST" to "artifactory:8081",
+            "TEST_POSTGRES_HOST" to "dms-ft-dms-db:5432",
+            "TEST_ARTIFACTORY_HOST" to "dms-ft-artifactory:8081",
             "TEST_ARTIFACTORY_HOST_EXTERNAL" to "localhost:8081",
-            "TEST_COMPONENTS_REGISTRY_HOST" to "components-registry-service:4567",
-            "TEST_RELEASE_MANAGEMENT_HOST" to "release-management-service:8083",
+            "TEST_COMPONENTS_REGISTRY_HOST" to "dms-ft-components-registry-service:4567",
+            "TEST_RELEASE_MANAGEMENT_HOST" to "dms-ft-release-management-service:8083",
             "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
             "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
             "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
@@ -310,7 +310,7 @@ val ft by tasks.creating(Test::class) {
             }
         }
         "docker" -> {
-            dockerCompose.isRequiredBy(this)
+//            dockerCompose.isRequiredBy(this)
             systemProperties["test.postgres-host"] = "localhost:5432"
             systemProperties["test.artifactory-host"] = "localhost:8081"
             systemProperties["test.components-registry-host"] = "localhost:4567"
