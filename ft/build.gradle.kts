@@ -310,7 +310,7 @@ val ft by tasks.creating(Test::class) {
             }
         }
         "docker" -> {
-//            dockerCompose.isRequiredBy(this)
+            dockerCompose.isRequiredBy(this)
             systemProperties["test.postgres-host"] = "localhost:5432"
             systemProperties["test.artifactory-host"] = "localhost:8081"
             systemProperties["test.components-registry-host"] = "localhost:4567"
