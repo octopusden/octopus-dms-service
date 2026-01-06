@@ -42,10 +42,11 @@ objects:
                 - /bin/sh
                 - -c
                 - exec pg_isready -U ${POSTGRES_USER}
+            initialDelaySeconds: 30
             periodSeconds: 10
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/
+              mountPath: /var/lib/postgresql
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
