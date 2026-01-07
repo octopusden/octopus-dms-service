@@ -232,6 +232,24 @@ tasks.named<ConfigureMockServer>("configureMockServer") {
     }
 }
 
+tasks.register<Exec>("composeDownWithVolumes") {
+    commandLine(
+        "docker",
+        "compose",
+        "-f",
+        "${projectDir}/src/test/docker/docker-compose.yaml",
+        "down",
+        "-v",
+        "--remove-orphans"
+    )
+}
+
+tasks.named("composeUp") {
+    dependsOn(
+        "composeDownWithVolumes"
+    )
+}
+
 tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     when ("testPlatform".getExt()) {
         "okd" -> {

@@ -86,10 +86,24 @@ ftImplementation.isCanBeResolved = true
 
 configurations["ftRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
+tasks.register<Exec>("composeDownWithVolumes") {
+    commandLine(
+        "docker",
+        "compose",
+        "-f",
+        "${projectDir}/src/ft/docker/docker-compose.yaml",
+        "down",
+        "-v",
+        "--remove-orphans"
+    )
+}
+
+
 tasks.named("composeUp") {
     dependsOn(
         ":maven-dms-plugin:publishToMavenLocal", ":gradle-dms-client:publishToMavenLocal",
-        ":gradle-dms-plugin:publishToMavenLocal", ":dms-service:dockerBuildImage"
+        ":gradle-dms-plugin:publishToMavenLocal", ":dms-service:dockerBuildImage",
+        "composeDownWithVolumes"
     )
 }
 tasks.named("ocCreate") {
