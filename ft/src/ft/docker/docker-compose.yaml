@@ -40,6 +40,13 @@ services:
         volumes:
             - ./system.yaml:/opt/jfrog/artifactory/var/etc/system.yaml
             - ../../../../test-common/src/main/artifactory/dump:/dump
+        healthcheck:
+            test: [ "CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1" ]
+            interval: 30s
+            timeout: 10s
+            retries: 60
+            start_period: 120s
+        restart: unless-stopped
         logging:
             driver: json-file
             options:
