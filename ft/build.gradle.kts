@@ -9,7 +9,40 @@ plugins {
 
 fun String.getExt() = project.ext[this] as String
 
+val composeEnv = mapOf(
+    "DMS_SERVICE_VERSION" to project.version,
+    "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"],
+    "OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION" to project.properties["octopus-release-management-service.version"],
+    "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
+    "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
+    "AUTH_SERVER_URL" to "authServerUrl".getExt(),
+    "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
+    "AUTH_SERVER_CLIENT_ID" to "authServerClientId".getExt(),
+    "AUTH_SERVER_CLIENT_SECRET" to "authServerClientSecret".getExt(),
+    "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"],
+    "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"],
+    "API_GATEWAY_VERSION" to project.properties["api-gateway.version"],
+    "MOCK_SERVER_VERSION" to project.properties["mockserver.version"],
+    "TEST_MOCK_SERVER_HOST" to "dms-ft-mockserver:1080",
+    "TEST_DMS_SERVICE_HOST" to "dms-ft-dms-service:8080",
+    "TEST_API_GATEWAY_HOST_EXTERNAL" to "localhost:8765",
+    "TEST_POSTGRES_HOST" to "dms-ft-dms-db:5432",
+    "TEST_ARTIFACTORY_HOST" to "dms-ft-artifactory:8081",
+    "TEST_ARTIFACTORY_HOST_EXTERNAL" to "localhost:8081",
+    "TEST_COMPONENTS_REGISTRY_HOST" to "dms-ft-components-registry-service:4567",
+    "TEST_RELEASE_MANAGEMENT_HOST" to "dms-ft-release-management-service:8083",
+    "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
+    "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
+    "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
+    "ARTIFACTORY_DB_HOST" to project.property("artifactory-postgres.host").toString(),
+    "ARTIFACTORY_DB_PORT" to project.property("artifactory-postgres.port").toString(),
+    "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
+    "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
+)
+
 dockerCompose {
+    executable = "/usr/local/bin/docker-compose"
+    dockerExecutable = "/usr/local/bin/docker"
     captureContainersOutput = true
     stopContainers = true
     removeContainers = true
@@ -17,36 +50,7 @@ dockerCompose {
     waitForTcpPorts = true
     captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
     environment.putAll(
-        mapOf(
-            "DMS_SERVICE_VERSION" to project.version,
-            "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"],
-            "OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION" to project.properties["octopus-release-management-service.version"],
-            "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
-            "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
-            "AUTH_SERVER_URL" to "authServerUrl".getExt(),
-            "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
-            "AUTH_SERVER_CLIENT_ID" to "authServerClientId".getExt(),
-            "AUTH_SERVER_CLIENT_SECRET" to "authServerClientSecret".getExt(),
-            "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"],
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"],
-            "API_GATEWAY_VERSION" to project.properties["api-gateway.version"],
-            "MOCK_SERVER_VERSION" to project.properties["mockserver.version"],
-            "TEST_MOCK_SERVER_HOST" to "dms-ft-mockserver:1080",
-            "TEST_DMS_SERVICE_HOST" to "dms-ft-dms-service:8080",
-            "TEST_API_GATEWAY_HOST_EXTERNAL" to "localhost:8765",
-            "TEST_POSTGRES_HOST" to "dms-ft-dms-db:5432",
-            "TEST_ARTIFACTORY_HOST" to "dms-ft-artifactory:8081",
-            "TEST_ARTIFACTORY_HOST_EXTERNAL" to "localhost:8081",
-            "TEST_COMPONENTS_REGISTRY_HOST" to "dms-ft-components-registry-service:4567",
-            "TEST_RELEASE_MANAGEMENT_HOST" to "dms-ft-release-management-service:8083",
-            "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
-            "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
-            "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
-            "ARTIFACTORY_DB_HOST" to project.property("artifactory-postgres.host").toString(),
-            "ARTIFACTORY_DB_PORT" to project.property("artifactory-postgres.port").toString(),
-            "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
-            "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
-        )
+        composeEnv
     )
 }
 
@@ -87,6 +91,10 @@ ftImplementation.isCanBeResolved = true
 configurations["ftRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 tasks.register<Exec>("composeDownWithVolumes") {
+    environment.putAll(
+        composeEnv
+    )
+
     commandLine(
         "docker",
         "compose",
