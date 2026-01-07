@@ -15,6 +15,8 @@ abstract class ImportArtifactoryDump : DefaultTask() {
     abstract val host: Property<String>
     @get:Input
     abstract val retryLimit: Property<Int>
+    @get:Input
+    abstract val importPath: Property<String>
 
     @TaskAction
     fun importArtifactoryDump() {
@@ -49,7 +51,7 @@ abstract class ImportArtifactoryDump : DefaultTask() {
                 url = "http://${host.get()}/artifactory/api/import/system",
                 auth = BasicAuthorization("admin", "password"),
                 json = mapOf(
-                    "importPath" to "/opt/jfrog/artifactory/var/dump/$latest",
+                    "importPath" to "${importPath.get()}/$latest",
                     "includeMetadata" to true,
                     "verbose" to true,
                     "failOnError" to true,

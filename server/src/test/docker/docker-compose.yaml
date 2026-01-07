@@ -26,7 +26,7 @@ services:
             - POSTGRES_USER=${ARTIFACTORY_POSTGRES_USER}
             - POSTGRES_PASSWORD=${ARTIFACTORY_POSTGRES_PASSWORD}
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${ARTIFACTORY_POSTGRES_USER}"]
+            test: ["CMD-SHELL", "pg_isready -U  artifactory"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -42,7 +42,7 @@ services:
             - "${ARTIFACTORY_ROUTER_PORT}:8082"
         volumes:
             - ./system.yaml:/opt/jfrog/artifactory/var/etc/system.yaml
-            - ../../../../test-common/src/main/artifactory/dump:/opt/jfrog/artifactory/var/dump
+            - ../../../../test-common/src/main/artifactory/dump:/dump
         healthcheck:
             test: ["CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1"]
             interval: 30s
