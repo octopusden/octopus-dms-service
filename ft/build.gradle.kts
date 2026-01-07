@@ -41,8 +41,6 @@ val composeEnv = mapOf(
 )
 
 dockerCompose {
-    executable = "/usr/local/bin/docker-compose"
-    dockerExecutable = "/usr/local/bin/docker"
     captureContainersOutput = true
     stopContainers = true
     removeContainers = true

@@ -113,8 +113,6 @@ val composeEnv = mapOf(
 )
 
 dockerCompose {
-    executable = "/usr/local/bin/docker-compose"
-    dockerExecutable = "/usr/local/bin/docker"
     useComposeFiles.add("$projectDir/src/test/docker/docker-compose.yaml")
     waitForTcpPorts = true
     captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
