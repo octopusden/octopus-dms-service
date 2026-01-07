@@ -237,7 +237,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
         "okd" -> {
             host.set(ocTemplate.getOkdHost("artifactory"))
             importPath.set("/opt/jfrog/artifactory/var/dump")
-            retryLimit.set(3)
+            retryLimit.set(30)
             dependsOn(copyArtifactoryDump)
         }
         "docker" -> {
