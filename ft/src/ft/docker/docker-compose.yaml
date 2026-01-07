@@ -40,12 +40,16 @@ services:
         volumes:
             - ./system.yaml:/opt/jfrog/artifactory/var/etc/system.yaml
             - ../../../../test-common/src/main/artifactory/dump:/dump
-        healthcheck:
-            test: ["CMD-SHELL", "curl -f http://localhost:8081/artifactory/api/system/ping || exit 1"]
-            interval: 30s
-            timeout: 10s
-            retries: 40
-        restart: unless-stopped
+        logging:
+            driver: json-file
+            options:
+                max-size: "50m"
+                max-file: "10"
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 32000
+                hard: 40000
 
     dms-ft-components-registry-service:
         image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/components-registry-service:${OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION}
