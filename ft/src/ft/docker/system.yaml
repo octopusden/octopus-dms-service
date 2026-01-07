@@ -1,12 +1,7 @@
 shared:
-    node:
-        id: artifactory-node-1
-        ip: 127.0.0.1
     database:
         type: postgresql
         driver: org.postgresql.Driver
         url: jdbc:postgresql://dms-ft-artifactory-db:5432/artifactory
         username: artifactory
         password: secret
-security:
-    joinKeyFile: /opt/jfrog/artifactory/var/etc/security/join.key
