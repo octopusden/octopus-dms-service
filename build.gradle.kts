@@ -105,13 +105,16 @@ subprojects {
             set("okdWebConsoleUrl", (it.getOrDefault("OKD_WEB_CONSOLE_URL", properties["okd.web-console-url"]) as String).trimEnd('/'))
         }
         val supportedTestPlatforms = listOf("okd")
-        if (project.ext["testPlatform"] !in supportedTestPlatforms) {
+        val testPlatform = project.ext["testPlatform"] as String
+        if (testPlatform.isNotBlank() && testPlatform !in supportedTestPlatforms) {
             throw IllegalArgumentException("Test platform must be set to one of the following $supportedTestPlatforms. Start gradle build with -Ptest.platform=... or set env variable TEST_PLATFORM")
         }
         val mandatoryProperties = mutableListOf("dockerRegistry", "octopusGithubDockerRegistry")
-        mandatoryProperties.add("okdActiveDeadlineSeconds")
-        mandatoryProperties.add("okdProject")
-        mandatoryProperties.add("okdClusterDomain")
+        if (project.ext["testPlatform"] == "okd") {
+            mandatoryProperties.add("okdActiveDeadlineSeconds")
+            mandatoryProperties.add("okdProject")
+            mandatoryProperties.add("okdClusterDomain")
+        }
         val undefinedProperties = mandatoryProperties.filter { (project.ext[it] as String).isBlank() }
         if (undefinedProperties.isNotEmpty()) {
             throw IllegalArgumentException(
