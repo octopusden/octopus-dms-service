@@ -1,12 +1,6 @@
 import org.octopusden.octopus.task.ConfigureMockServer
 import org.octopusden.octopus.task.ImportArtifactoryDump
 
-buildscript {
-    dependencies {
-        classpath("com.bmuschko:gradle-docker-plugin:3.6.2")
-    }
-}
-
 plugins {
     id("org.springframework.boot")
     id("org.jetbrains.kotlin.plugin.spring")
@@ -14,7 +8,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.allopen")
     id("org.jetbrains.kotlin.plugin.noarg")
     id("com.bmuschko.docker-spring-boot-application") version "9.4.0"
-    id("com.avast.gradle.docker-compose") version "0.16.9"
     id("org.octopusden.octopus.oc-template")
     `maven-publish`
 }
@@ -94,32 +87,6 @@ docker {
         images.set(setOf("${"octopusGithubDockerRegistry".getExt()}/octopusden/${project.name}:${project.version}"))
     }
 }
-val composeEnv = mapOf(
-    "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
-    "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
-    "OCTOPUS_COMPONENTS_REGISTRY_SERVICE_VERSION" to project.properties["octopus-components-registry-service.version"],
-    "OCTOPUS_RELEASE_MANAGEMENT_SERVICE_VERSION" to project.properties["octopus-release-management-service.version"],
-    "MOCK_SERVER_VERSION" to project.properties["mockserver.version"],
-    "POSTGRES_IMAGE_TAG" to project.properties["postgres.image-tag"],
-    "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"],
-    "TEST_MOCK_SERVER_HOST" to "mockserver:1080",
-    "ARTIFACTORY_POSTGRES_DB" to project.property("artifactory-postgres.db").toString(),
-    "ARTIFACTORY_POSTGRES_USER" to project.property("artifactory-postgres.user").toString(),
-    "ARTIFACTORY_POSTGRES_PASSWORD" to project.property("artifactory-postgres.password").toString(),
-    "ARTIFACTORY_DB_HOST" to project.property("artifactory-postgres.host").toString(),
-    "ARTIFACTORY_DB_PORT" to project.property("artifactory-postgres.port").toString(),
-    "ARTIFACTORY_PORT" to project.property("artifactory.port").toString(),
-    "ARTIFACTORY_ROUTER_PORT" to project.property("artifactory.router.port").toString()
-)
-
-dockerCompose {
-    useComposeFiles.add("$projectDir/src/test/docker/docker-compose.yaml")
-    waitForTcpPorts = true
-    captureContainersOutputToFiles = layout.buildDirectory.dir("docker-logs").get().asFile
-    environment.putAll(
-        composeEnv
-    )
-}
 
 ocTemplate{
     workDir.set(layout.buildDirectory.dir("okd"))
@@ -146,7 +113,7 @@ ocTemplate{
             "AGGREGATOR_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/Aggregator.groovy").readText(),
             "DEFAULTS_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/Defaults.groovy").readText(),
             "TEST_COMPONENTS_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/TestComponents.groovy").readText(),
-            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("src/test/docker/components-registry-service.yaml").asFile.readText()
+            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("../test-common/src/main/config/components-registry-service.yaml").asFile.readText()
         ))
     }
 
@@ -156,7 +123,7 @@ ocTemplate{
             "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
             "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
             "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
-            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("src/test/docker/release-management-service.yaml").asFile.readText(),
+            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("../test-common/src/main/config/release-management-service.yaml").asFile.readText(),
             "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver")
         ))
     }
@@ -221,58 +188,16 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
 }
 
 tasks.named<ConfigureMockServer>("configureMockServer") {
-    when ("testPlatform".getExt()) {
-        "okd" -> {
-            host.set(ocTemplate.getOkdHost("mockserver"))
-            port.set(80)
-            dependsOn("ocCreate")
-        }
-        "docker" -> {
-            host.set("localhost")
-            port.set(1080)
-            dependsOn("composeUp")
-        }
-    }
-}
-
-tasks.register<Exec>("composeDownWithVolumes") {
-    environment.putAll(
-        composeEnv
-    )
-
-    commandLine(
-        "docker",
-        "compose",
-        "-f",
-        "${projectDir}/src/test/docker/docker-compose.yaml",
-        "down",
-        "-v",
-        "--remove-orphans"
-    )
-}
-
-tasks.named("composeUp") {
-    dependsOn(
-        "composeDownWithVolumes"
-    )
+    host.set(ocTemplate.getOkdHost("mockserver"))
+    port.set(80)
+    dependsOn("ocCreate")
 }
 
 tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
-    when ("testPlatform".getExt()) {
-        "okd" -> {
-            host.set(ocTemplate.getOkdHost("artifactory"))
-            importPath.set("/opt/jfrog/artifactory/var/dump")
-            retryLimit.set(30)
-            dependsOn(copyArtifactoryDump)
-        }
-        "docker" -> {
-            host.set("localhost:8081")
-            retryLimit.set(30)
-            importPath.set("/dump")
-            dependsOn("composeUp")
-        }
-    }
-
+    host.set(ocTemplate.getOkdHost("artifactory"))
+    importPath.set("/opt/jfrog/artifactory/var/dump")
+    retryLimit.set(30)
+    dependsOn(copyArtifactoryDump)
 }
 
 tasks.register("waitPostgresExternalIP") {
@@ -301,26 +226,14 @@ tasks.register("waitPostgresExternalIP") {
 
 tasks.withType<Test> {
     dependsOn("importArtifactoryDump", "configureMockServer")
-    when ("testPlatform".getExt()) {
-        "okd" -> {
-            ocTemplate.isRequiredBy(this)
-            systemProperties["test.artifactory-host"] = ocTemplate.getOkdHost("artifactory")
-            systemProperties["test.components-registry-host"] = ocTemplate.getOkdHost("comp-reg")
-            systemProperties["test.mock-server-host"] = ocTemplate.getOkdHost("mockserver")
-            systemProperties["test.release-management-host"] = ocTemplate.getOkdHost("rm")
-            dependsOn("waitPostgresExternalIP")
-            doFirst {
-                systemProperties["test.postgres-host"] = "postgresExternalIp".getExt()
-            }
-        }
-        "docker" -> {
-            dockerCompose.isRequiredBy(this)
-            systemProperties["test.postgres-host"] = "localhost:5432"
-            systemProperties["test.artifactory-host"] = "localhost:8081"
-            systemProperties["test.components-registry-host"] = "localhost:4567"
-            systemProperties["test.mock-server-host"] = "localhost:1080"
-            systemProperties["test.release-management-host"] = "localhost:8083"
-        }
+    ocTemplate.isRequiredBy(this)
+    systemProperties["test.artifactory-host"] = ocTemplate.getOkdHost("artifactory")
+    systemProperties["test.components-registry-host"] = ocTemplate.getOkdHost("comp-reg")
+    systemProperties["test.mock-server-host"] = ocTemplate.getOkdHost("mockserver")
+    systemProperties["test.release-management-host"] = ocTemplate.getOkdHost("rm")
+    dependsOn("waitPostgresExternalIP")
+    doFirst {
+        systemProperties["test.postgres-host"] = "postgresExternalIp".getExt()
     }
     environment.putAll(mapOf(
         "AUTH_SERVER_URL" to "authServerUrl".getExt(),
