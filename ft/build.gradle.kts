@@ -179,7 +179,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         "oc", "cp",
         "$localFile/.",
         "-n", "okdProject".getExt(),
-        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/dump"
+        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/etc/artifactory/import"
     )
 
     dependsOn("ocCreate")
@@ -194,7 +194,7 @@ tasks.named<ConfigureMockServer>("configureMockServer") {
 tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     host.set(ocTemplate.getOkdHost("artifactory"))
     retryLimit.set(3)
-    importPath.set("/opt/jfrog/artifactory/var/dump")
+    importPath.set("/opt/jfrog/artifactory/var/etc/artifactory/import")
     dependsOn(copyArtifactoryDump)
 }
 
