@@ -180,7 +180,7 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         .substringAfter(":")
     commandLine(
         "oc", "cp",
-        localFile,
+        "$localFile/.",
         "-n", "okdProject".getExt(),
         "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/dump"
     )
