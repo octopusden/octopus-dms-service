@@ -93,7 +93,10 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
     implementation("org.springframework:spring-core")
 
-    implementation("org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}")
+    implementation("org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}") {
+        exclude(group = "org.codehaus.groovy", module = "groovy-all")
+    }
+
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
     implementation("org.octopusden.octopus.tools.wl:validation:2.0.7")
 
