@@ -1,0 +1,35 @@
+<artifactory-file>
+    <repoPath>
+        <repoKey>rpm-release-repo-local</repoKey>
+        <path>test-add-distribution/test-add-distribution-release-1.0-1.el8.x86_64.rpm</path>
+        <folder>false</folder>
+    </repoPath>
+    <name>test-add-distribution-release-1.0-1.el8.x86_64.rpm</name>
+    <created>1768898560659</created>
+    <lastModified>1768898560659</lastModified>
+    <size>21</size>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898560667</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+        <checksumsInfo>
+            <checksums>
+                <checksum>
+                    <type>sha1</type>
+                    <original>6a192f0de284d2ed6299dfe89e4fe784b7595d24</original>
+                    <actual>6a192f0de284d2ed6299dfe89e4fe784b7595d24</actual>
+                </checksum>
+                <checksum>
+                    <type>md5</type>
+                    <original>46944d6ccc94990eacfe0aee914cd8cf</original>
+                    <actual>46944d6ccc94990eacfe0aee914cd8cf</actual>
+                </checksum>
+                <checksum>
+                    <type>sha256</type>
+                    <original>80b7c3e57926a4d874a53bb46255b1d9af686f364edd897a141e6409d3a5ace9</original>
+                    <actual>80b7c3e57926a4d874a53bb46255b1d9af686f364edd897a141e6409d3a5ace9</actual>
+                </checksum>
+            </checksums>
+        </checksumsInfo>
+    </additionalInfo>
+</artifactory-file>

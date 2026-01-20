@@ -1,0 +1,35 @@
+<artifactory-file>
+    <repoPath>
+        <repoKey>debian-dev-repo-local-1</repoKey>
+        <path>pool/t/test-add-distribution/test-add-distribution-dev_1.0-1_amd64.deb</path>
+        <folder>false</folder>
+    </repoPath>
+    <name>test-add-distribution-dev_1.0-1_amd64.deb</name>
+    <created>1768898180283</created>
+    <lastModified>1768898180283</lastModified>
+    <size>24</size>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898180363</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+        <checksumsInfo>
+            <checksums>
+                <checksum>
+                    <type>sha1</type>
+                    <original>9dc22ed4dc1f63d61129540973bd32ac23c21389</original>
+                    <actual>9dc22ed4dc1f63d61129540973bd32ac23c21389</actual>
+                </checksum>
+                <checksum>
+                    <type>md5</type>
+                    <original>e5df0f9f553e0357cae7878dede66ef9</original>
+                    <actual>e5df0f9f553e0357cae7878dede66ef9</actual>
+                </checksum>
+                <checksum>
+                    <type>sha256</type>
+                    <original>0232e5c27890ac6f001c44409a8dec9705d5e41d42cf00eb8079e6afd8686113</original>
+                    <actual>0232e5c27890ac6f001c44409a8dec9705d5e41d42cf00eb8079e6afd8686113</actual>
+                </checksum>
+            </checksums>
+        </checksumsInfo>
+    </additionalInfo>
+</artifactory-file>
