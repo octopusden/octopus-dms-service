@@ -1,0 +1,906 @@
+{
+  "version" : "47",
+  "NodeIdServiceId" : "4edb6bc75fe2###-###jfac@01kfczfkqk2jkf1kf3shd71xcq",
+  "encryption" : "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb1FJQkFBS0NBUUVBbW1GdFJ4bDhPMDJZbDJUcHJtTjFWOWxYQlhMNjVOYi9sUmFVTE9DMjBWZDVHYlVMCjVVc3ZkM2U3SFUweklBWExwQ1IwWURGUysyK1RacFl3NDN6K1hDUXB1dkw1ZHQ5bFZ1NER5eWhGcysrMDBJRmMKRVJJUUJ2eDNqQm5YQllaMXhCcHMxSVBKR0NHbGZ0anBMTU5qSkZFckNKQ29laC9qN2lGOHV5ZFI1YVZNcmlSbgp2R05mRmZXa2IyZkFBUWxqZi9aNUIzQVVrK2lhMGdPTUxIVjl1azUyaGdmRmFvQUNhQzVwOVJ4MXo1TDlvQUNvCjFIWkQrTE9yei9KUmtUWER5Wk5ONXpROEtJcDJ1MHk3d3ZxSWh2WE56cWRrVWZTTlpxZEJpeklqaUlvSnkyUE4KUjFGN1QrVG1BMlBQTXM1cVVlZ1k5d0xYcmorZUd2NVJaanZ1MFFJREFRQUJBb0gvSXVhanJjODFKck1FTERYRQpIb2lkbnA2ajdiZHd3UXRaL0hwK1JTY0lMWXQ0OVRiWTJaMkZ2Wnh6ME13REl0b3NqNDh1UUJEbWtiRkh3WWx5Cncvc2VCZmFtK0h5MXFRb1gvdThRTEgyT1JIK01nUmE5bVo1YndUaVNUam9KUWxhRGlUSHdLSnNpZXpJZ0YrMHgKeWN6aVBQT2Nwdk1OSTQ3U0dLTzVieFlVamJYVytPeFFpL1U0NjNOWVovU084aHFCV1FieXV2dUExTnBIalU5UQo0NjloSEtwSitYcytyZnhEZVZMKzlDNk5IdUhxU2VzNXJKMzR3T1kycVVrWGFLYzV5RVF3TlNIVTk3RWYxNFQyCk5kWmNnQXVmaG41WWplVjNXNWFFbm9vbms1QmRsVUpRb0I0cVhyS2F3elZHcXV3czEyam5rT2p6clJTRlY0ZzEKUVdZQkFvR0JBTHY4Skpya3dSdjhtVk1uUllDUXU4cDUvNm9RU1pYc1h0ZkhGOVRmaDNzMnI1d2pWSkkwR0xqagp6Q3ZKem1VMXE1OFNwaGNmaFRsNWNVVmpJRDJqZ3ZVUnBPd0tkdjgrTVdSZW85R3FnMlZURDMvT3dFNVFwNitjCmtsMXh4dnZpUTBrWEl5K2dET2MrTUZQMnlRTlJYTHY3YXdqN3dUK0VmeGZFOXBZNEs0RUJBb0dCQU5JOHVXcU8KakowMmRBYTRKdFFPMDU3RWs2SWxXVzl4YjlaRGVkaXpOdWxzd1FUbEdSSnVWZGhaYThhZGhuQ1RqOW1sM1A3RgpyR0w3cnVyYmFIVjg3Vi9lSGhBbGFaSzZzU0d4dWRGTjRZaU5WT1V2Zlg3WStMdDlpaHNHNnNYU3BoeGtGTlYwCnNtMXJWSG5sbjVvZFl1VUR1blFxaFlZV3o3QW1QczFDbXAzUkFvR0FiWHhyYlhOeUxYU3ZjRWpkS0FZaitjZVkKYWxwV0lXV3J6NHo3aWxZdU9Fc2ZlSmJ6T0x2eThpeHF5ODRiMGNLeWxGRnVQdVZ5Mklpc3VqY0RuaUxQc1NCMwpwNnBvcUR4MjAvaHkvVGlNa3NVUHIrYWhCbnZmVGw2b3VKZjl4dEovVWVDUjg3a0tDdHlqbFNPVTY4UEZlUTd6CnhpV3E1ZTJyZ0JLTmMreC9HZ0VDZ1lBTXVQd0hoTVRocHEveTBDWVpZeVJQVVZvVnoralBvNisrNmFwd0FMaHIKKzliYWN2ckhjTUhsSzlRbjJ0U043NEFmRGJpSCtuSnFNd3pzellaT3hkYWZuSk41S3FwdTVMbGZicC91R0taegpXd291TEdlTnk1ZVIwUkVRZmFTcmdBbnBZZTBZMWMwT2JoWllvaHE4ZXRiSFFTaUJheWxWYWYvN2l2VDErdmZjCllRS0JnUUN1ZXpMWG9OMDlTL0ViT1hwcGFTRmFBRFM4eWVEcjNNbXMxVUJpd2VlWGJOUEVXOGpKRkdWRm92NEYKaFlKS1I2MjdpSFN3Z3Z4WE9JTi9FQXAxZ3U1Tnk2Mkxydm95RVl5ZXZEZXRPYVJDeUxQSXExa2hCUTZSNzVsdwpnaDVoMEkrSnYvMXY0NEhPbFYxSXBGMzRMakJrTjdJdXkzbVlhcjJXRUNWM1IyRStmZz09Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCiRhY2Nlc3MkLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURJRENDQWdpZ0F3SUJBZ0lSQUxuV2Mxblo3VXN6aS9NbW9WYXFVcWN3RFFZSktvWklodmNOQVFFTEJRQXcKUFRFN01Ea0dBMVVFQXd3eVNrWnliMmNnVkc5clpXNGdTWE56ZFdWeUlHcG1ZV05BTURGclptTjZabXR4YXpKcQphMll4YTJZemMyaGtOekY0WTNFd0lCY05Nall3TVRFNU1EVTFOREUyV2hnUE56QXdNREF4TURFd01EQXdNVFphCk1EMHhPekE1QmdOVkJBTU1Na3BHY205bklGUnZhMlZ1SUVsemMzVmxjaUJxWm1GalFEQXhhMlpqZW1acmNXc3kKYW10bU1XdG1NM05vWkRjeGVHTnhNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQQptbUZ0UnhsOE8wMllsMlRwcm1OMVY5bFhCWEw2NU5iL2xSYVVMT0MyMFZkNUdiVUw1VXN2ZDNlN0hVMHpJQVhMCnBDUjBZREZTKzIrVFpwWXc0M3orWENRcHV2TDVkdDlsVnU0RHl5aEZzKyswMElGY0VSSVFCdngzakJuWEJZWjEKeEJwczFJUEpHQ0dsZnRqcExNTmpKRkVyQ0pDb2VoL2o3aUY4dXlkUjVhVk1yaVJudkdOZkZmV2tiMmZBQVFsagpmL1o1QjNBVWsraWEwZ09NTEhWOXVrNTJoZ2ZGYW9BQ2FDNXA5UngxejVMOW9BQ28xSFpEK0xPcnovSlJrVFhECnlaTk41elE4S0lwMnUweTd3dnFJaHZYTnpxZGtVZlNOWnFkQml6SWppSW9KeTJQTlIxRjdUK1RtQTJQUE1zNXEKVWVnWTl3TFhyaitlR3Y1UlpqdnUwUUlEQVFBQm94a3dGekFWQmdSVkhSRUJCQTB3QzZBSkJnUlZIUkVCQWdFQQpNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFyYjNkdzJVZG5iNE9CeWRwUmpUcnlVbmF4YXprTkV3ZmhkL1NwCmszZzJQck9tK21ia3J1UVVqZnJ3Y1hnS0VTNHptc1lTMmN4elBmTVJ2SzdKcWVsaWRiNVNmNHQ5Z3ZTck5UcnIKaFo2dUF3RTY1T21HVUVUQUZDQ09GZnArQ1FFaWRiUGRCcE11dlpWUDhKclk2MGN4bEs0WURWU1J6RDg2aEVVMwoyNjlFUXcxaHR0VE9WUnd0OXNCK2x2aTVpK2tjMW1jejdNdldZMnVjLzhXZ2x5WDdwbEl0cExrcjNLZmVxSjdsCjFtMk5nT21PYWdjWDREQWZWT3lQaStMMzlJcDN5WTk1OHZOL0wvYWRrZzhKNE1rZnhJbmFJTnRWbUk3dDR3WUsKdE50WGZjTklBZTJsT2hFN3dxR014T3kzSXcra3ZTZm01by8waTkrWVZnODF2U1liCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KJGFjY2Vzcy1zZWdzJC0tLS0tQkVHSU4gUlNBIFBSSVZBVEUgS0VZLS0tLS0KTUlJRW93SUJBQUtDQVFFQXg5dDRjYXg5cEkwdDNoRGpxSGtia2ZLWng0TG5UOWl5MzFob2Uwd3hyYkNKVGE1LwpUUDNYNmNub2NpU3RzcE9KeE5nREswc2RZTVRBWERrcU5sZ0JRUjRFWnNOOGRNbFI5SFRMMkliWFVGV2FUeFRRCnA2SUtEdGVQU2xqcmwwSWg0OExVWUtIVUYrdWV5UHQ1eTBBYjgyQkdCYzhVZmF6blZCb25lRXRKc0lKWXBFQ0sKWGI2aktDNHlpVEJhcS9UbVFLLytwbk1wdklxTzg2dHFmK084Ti9oV29Cc2FMZ3ZES1cvWVhBdEloYlBIQ1VidAplN1RLSTlPRmFCbFhOUTBHMHZjUWVSSmNhWnRTbWthZVY1ZW54cTI2bFMwTHlLM2ZGV0kvUTRxcFNyRDU1MFlHCjFXLy9jSzZwRGZkRjE3VE9kRUljTXdmbGJOWTlmN2ZxZXRlRjh3SURBUUFCQW9JQkFBSEtoUkVsRUppRzdncjQKR25JMHZsQ0NoMnBJVVdFS2VoL25uNWdWODJRR2J2OCtqeG1BMzR4OWZoTWlkNjYxV25Oa2Z0MXhJT1JGeWN1Sgp5a2U1RU5uUDRRNDRDNXpTL21SZHlrTTRnaVFsZ0QvYjJlV0dzdWNMSml6dVpiNGNua2ZNN29aUjE2QVhRU2NLCm56N09aa2NQYlNhTzE5K0FkZHBGR2J3ZTYwYlBxdG1CSjJjNGZYUmpCcFN4VHdtbXpYTGlwZUJrbzYwcHN2VGcKMWxOY1JIN0pWTUpNQmc1dkxHM3E2SzV1bkczZ3VTWERmVHhtMmVDYnYxdlUxK3dKOXhRVmQrcDQ4TXRrd3pEdQp6bk5WM09vV0tsRSs1a3F2blFhcDVEbUVhbTN2SS83THlJYXhGTWRhbVlRMmlvWUgvMGxjbGV0YU5DZTlPQ0l6CnNpRzlMZ0VDZ1lFQTNOYUZEeHAyeG8xeFBkMEZJYWFSWWFRdEt4QkdWZXZ2dkxCRE1Lb29VM0dvZDRPN0tVSmQKQ0NNUHVWcVZQUXdUSEVvQlBQME9iSzNZRkxZYWs1Q2ZaYmo0Y0RRaDMzMHEwbGxiQzlXaXF1c2lNb3pQWDA3TwppYlp6VCtNaEYyTkhrU3ljaXJ5WEFEeU1tMTUzMmpibm9Fbm1Ta1RFTjRQNjRUN0dzaUpEWG9FQ2dZRUE1NjNFClltWjh2a3JvL2hnRmtLWGJvTzcrUi9JUVVnTWxxbjR4cDB3SG1wWGNhMVQ4c3g1SjBGZThRNTJGRWZJQmtHSUMKYTZ6UVlKb3RieUttMDRlMXlYaDhKLzdUditiU0s5UDBSSklYdjVGRWREMU5UL1pJRVVFdldOTHBjcWpWaVFMUwpkaFFVTnhpQ0pYTUlRS25mZmxxbWhZa1cycThEaEFaUjFtQnZFbk1DZ1lFQWd2eGFmOUxha0hwa3FLVG4za1hHCkJYd3pyazlBNk1YQXROSjNoKzNsYlZrRTY1NmU3S0lJUEVOUG1FazZLN04xd2xuQzBrSG14Rjk0d3hBZ1ExYU0KdFBFNXFwUEJZNllDT0RIMzV0VVlYdmlJbUNNYy9STHBQcFdSWDlrQVQ3YjdSQWlKOFdCYTBERVoxUzM3T050SQpGN0s5ZlYrOFlwRk54VHhPN21tVVBBRUNnWUJRUC91dmpncVZxOE1MQ08wY2pxY0dGdUxUcndDQ04vN2JFTDFJClV1aXJYaytzaWhMQ1JMS1N6V0UwRnFNYWRUYWZlYU9YQXBSbmNlQmRCNmE3ek4xbVBTcmNlOE9EVElQdWxJdWYKR08vSzlwbThuZU5pMkU5Y1VyVUEwb1gwcHBEWTFiWnJHa2RxVWozNmxONzk3eG13WGR3aWt6cnNZd1VYdlV5cApzbHVuQ3dLQmdIMFA5bXNLYVJkOXE5bjMwdnBibEl6cEMxVm5SZnhGNU1jdUg4WVM1K2JrWXp5Z2I4VDhNSzB3CnhhM0E1TnNsenFnYk1WUnNMYlA0K0txVEZicFVvTG43RGVPTi8wVVBDMEwrc1pZZkM3bTZFOE40NEZaOUdKTEEKR1ZRWlkvendPbVdhVWk3eHhndkUzQmQ2YWJvM2UrZTN0aUgyb09sU0NjeXR2ZE41ckw5UQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQokYWNjZXNzJC0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlETnpDQ0FoK2dBd0lCQWdJUkFKckNhakY1alUvUnJYcE1pNWVsbmRVd0RRWUpLb1pJaHZjTkFRRUxCUUF3Ck9ERTJNRFFHQTFVRUF3d3RTa1p5YjJjZ1VtOXZkQ0JEUVNCcVptRmpRREF4YTJaamVtWnJjV3N5YW10bU1XdG0KTTNOb1pEY3hlR054TUNBWERUSTJNREV4T1RBMU5UUXhObG9ZRHpjd01EQXdNVEF4TURBd01ERTJXakE0TVRZdwpOQVlEVlFRRERDMUtSbkp2WnlCU2IyOTBJRU5CSUdwbVlXTkFNREZyWm1ONlptdHhhekpxYTJZeGEyWXpjMmhrCk56RjRZM0V3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRREgyM2h4ckgya2pTM2UKRU9Pb2VSdVI4cG5IZ3VkUDJMTGZXR2g3VERHdHNJbE5ybjlNL2RmcHllaHlKSzJ5azRuRTJBTXJTeDFneE1CYwpPU28yV0FGQkhnUm13M3gweVZIMGRNdllodGRRVlpwUEZOQ25vZ29PMTQ5S1dPdVhRaUhqd3RSZ29kUVg2NTdJCiszbkxRQnZ6WUVZRnp4UjlyT2RVR2lkNFMwbXdnbGlrUUlwZHZxTW9MaktKTUZxcjlPWkFyLzZtY3ltOGlvN3oKcTJwLzQ3dzMrRmFnR3hvdUM4TXBiOWhjQzBpRnM4Y0pSdTE3dE1vajA0Vm9HVmMxRFFiUzl4QjVFbHhwbTFLYQpScDVYbDZmR3JicVZMUXZJcmQ4VllqOURpcWxLc1BublJnYlZiLzl3cnFrTjkwWFh0TTUwUWh3ekIrVnMxajEvCnQrcDYxNFh6QWdNQkFBR2pPakE0TUE0R0ExVWREd0VCL3dRRUF3SUNoREFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUJVR0JGVWRFUUVFRFRBTG9Ba0dCRlVkRVFFQ0FRQXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBSTF1cDlXRAowb1gya0VMcWpDcjJZeU4wUFVJcTMxQ0gxcE1hdEZxMURhb2pSOGZkd0xwZWoyZHFJVmlxcnF1aWhibTErdEdVCnRrVzJTNVlCbnBXTUg2MktmTEtGZGlOOHdMMHFSSThmVHZYZThGZkRZMGpsL3pqUUczcm9lRVZKWGlGQ3FDbVkKWkFPRjdmcUdqRWRyK3VNemNnOHgwbk9vMjBtT2UzdlVMY1h0UDlTQUMzc2F4U0ZPR2Fjd3k1Y2twRWVGMW4xWgpzTTF2Sk9vdEJHM0g3d1hiQWpjVUM4R05JWVgxK3V0ek9SUyt5bGErNElTbEhCZkhMT3UxYjdTdXBGVVZFZFhPCko1Qjhyd21KY2Zwa2tLdzMvWEVscWV3ZzlUZ3l5RER2akk3YVpMNW5zTis2UjdDZ3JDODVwV2N5Uk5FaHlSRXUKRTJ5R2lZZUV3MW9WbGVBPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+  "config" : {
+    "federation" : {
+      "inbound" : {
+        "service-id-mapping" : [ {
+          "from" : "jfrt@*",
+          "to" : "jfrt@01kfczfp45h5nj1agygpqn1v1p"
+        }, {
+          "from" : "jfevt@*",
+          "to" : "jfevt@01kfczfkqk2jkf1kf3shd71xcq"
+        }, {
+          "from" : "jfmd@*",
+          "to" : "jfmd@01kfczfkcj6fxph1nn08xkv9as"
+        }, {
+          "from" : "jfcfg@*",
+          "to" : "jfcfg@01kfczfkqk2jkf1kf3shd71xcq"
+        }, {
+          "from" : "jftpl@*",
+          "to" : "jftpl@01kfczfhwca03y0bt1180q1f6q"
+        }, {
+          "from" : "jfob@*",
+          "to" : "jfob@01kfczfp45h5nj1agygpqn1v1p"
+        }, {
+          "from" : "jffe@*",
+          "to" : "jffe@01kfczfkqk2jkf1kf3shd71xcq"
+        } ]
+      }
+    },
+    "schema-version" : 2
+  },
+  "environments" : [ {
+    "environmentKey" : "DEV",
+    "name" : "DEV",
+    "description" : null,
+    "created" : 1768888452433,
+    "modified" : 1768888452433,
+    "order" : 0,
+    "projectKey" : "default",
+    "category" : "promote",
+    "customData" : { }
+  }, {
+    "environmentKey" : "PROD",
+    "name" : "PROD",
+    "description" : null,
+    "created" : 1768888452435,
+    "modified" : 1768888452435,
+    "order" : 1,
+    "projectKey" : "default",
+    "category" : "release",
+    "customData" : { }
+  } ],
+  "federation_events" : [ ],
+  "federation_servers" : [ ],
+  "groups" : [ {
+    "name" : "readers",
+    "description" : "A group for read-only users",
+    "autoJoin" : true,
+    "realm" : "internal",
+    "realmAttributes" : null,
+    "created" : 1768888452480,
+    "modified" : 1768888452480,
+    "customData" : { },
+    "externalId" : null
+  } ],
+  "lifecycles" : [ {
+    "projectKey" : "default",
+    "categories" : [ {
+      "category" : "promote",
+      "stages" : [ {
+        "stageName" : "DEV",
+        "projectKey" : "default",
+        "ordinal" : 0,
+        "created" : 1768888452445,
+        "modified" : 1768888452445
+      } ]
+    }, {
+      "category" : "release",
+      "stages" : [ {
+        "stageName" : "PROD",
+        "projectKey" : "default",
+        "ordinal" : 0,
+        "created" : 1768888452445,
+        "modified" : 1768888452445
+      } ]
+    } ],
+    "created" : 1768888452445,
+    "modified" : 1768888452445
+  } ],
+  "permissions" : [ {
+    "name" : "Anything",
+    "resources" : {
+      "artifact" : {
+        "resourceType" : "artifact",
+        "actions" : {
+          "users" : { },
+          "groups" : {
+            "readers" : [ "READ" ]
+          }
+        },
+        "targets" : {
+          "ANY" : {
+            "includePatterns" : [ "**" ],
+            "excludePatterns" : [ ]
+          }
+        }
+      },
+      "build" : {
+        "resourceType" : "build",
+        "actions" : {
+          "users" : { },
+          "groups" : {
+            "readers" : [ "READ" ]
+          }
+        },
+        "targets" : {
+          "artifactory-build-info" : {
+            "includePatterns" : [ "**" ],
+            "excludePatterns" : [ ]
+          }
+        }
+      }
+    },
+    "created" : 1768888452486,
+    "modified" : 1768888452486,
+    "createdBy" : "anonymous",
+    "modifiedBy" : "anonymous",
+    "description" : "Default read permissions",
+    "realm" : "INTERNAL",
+    "implicit" : false,
+    "permissionType" : "PUBLIC"
+  }, {
+    "name" : "Any Remote",
+    "resources" : {
+      "artifact" : {
+        "resourceType" : "artifact",
+        "actions" : {
+          "users" : { },
+          "groups" : { }
+        },
+        "targets" : {
+          "ANY REMOTE" : {
+            "includePatterns" : [ "**" ],
+            "excludePatterns" : [ ]
+          }
+        }
+      }
+    },
+    "created" : 1768888452504,
+    "modified" : 1768888452504,
+    "createdBy" : "anonymous",
+    "modifiedBy" : "anonymous",
+    "description" : "Default any remote permission",
+    "realm" : "INTERNAL",
+    "implicit" : false,
+    "permissionType" : "PUBLIC"
+  }, {
+    "name" : "internal:platform-auditor",
+    "resources" : {
+      "*" : {
+        "resourceType" : "*",
+        "actions" : {
+          "users" : { },
+          "groups" : { }
+        },
+        "targets" : {
+          "*" : {
+            "includePatterns" : [ "**" ],
+            "excludePatterns" : [ ]
+          }
+        }
+      }
+    },
+    "created" : 1768888452506,
+    "modified" : 1768888452506,
+    "createdBy" : "anonymous",
+    "modifiedBy" : "anonymous",
+    "description" : "Internal Platform Auditor Permission",
+    "realm" : "internal",
+    "implicit" : false,
+    "permissionType" : "INTERNAL"
+  } ],
+  "permission_names_mapper" : [ ],
+  "platform_configurations" : [ {
+    "config_key" : "roles.v2.global.configuration",
+    "config" : "{\"roles\":[{\"name\":\"Developer\",\"description\":\"Developer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360752879,\"bitSetActions\":\"73oPAIgAAIAX\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Contributor\",\"description\":\"Contributor Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360604903,\"bitSetActions\":\"5zgNAIgAAIAT\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Viewer\",\"description\":\"Viewer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360592417,\"bitSetActions\":\"IQgNAAgAAAAR\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Release Manager\",\"description\":\"Release Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":309832188160,\"bitSetActions\":\"AAFwIwgAAAAZ\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Security Manager\",\"description\":\"Security Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":39712558129,\"bitSetActions\":\"MYwNPxkAAABx\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":39712558129,\"bitSetActions\":\"MYwNPxkAAABx\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Project Admin\",\"description\":\"Project Admin Role\",\"type\":\"ADMIN\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":9223372033625161727,\"bitSetActions\":\"//9/P7////9/\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":9223372033625161727,\"bitSetActions\":\"//9/P7////9/\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"AppTrust Manager\",\"description\":\"AppTrust Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":1065151889408,\"bitSetActions\":\"AAAAALgAAIB/\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":1065151889408,\"bitSetActions\":\"AAAAALgAAIB/\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Model Governor\",\"description\":\"Model Governor Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":4611786073985515520,\"bitSetActions\":\"AAAAAABbAEA=\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":4611786073985515520,\"bitSetActions\":\"AAAAAABbAEA=\"}],\"mask\":0,\"bitSetActions\":\"\"},{\"name\":\"Model Developer\",\"description\":\"Model Developer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":268803105200537600,\"bitSetActions\":\"AAAAAAD7ugM=\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":268803105200537600,\"bitSetActions\":\"AAAAAAD7ugM=\"}],\"mask\":0,\"bitSetActions\":\"\"}]}",
+    "secret" : false,
+    "revision" : 1,
+    "created" : 1768888452404,
+    "modified" : 1768888452404
+  }, {
+    "config_key" : "adoption.config",
+    "config" : "{\"disabled\":false}",
+    "secret" : false,
+    "revision" : 1,
+    "created" : 1768888464895,
+    "modified" : 1768888464895
+  }, {
+    "config_key" : "crowd.proxy.setting",
+    "config" : "{\"port\":0,\"platformDefault\":false}",
+    "secret" : false,
+    "revision" : 1,
+    "created" : 1768888465742,
+    "modified" : 1768888465742
+  }, {
+    "config_key" : "saml.general.settings",
+    "config" : "{\"enable\":false}",
+    "secret" : false,
+    "revision" : 3,
+    "created" : 1768888498581,
+    "modified" : 1768888498859
+  }, {
+    "config_key" : "projects.default.configuration",
+    "config" : "{\"name\":\"default\",\"description\":\"Virtual project with all resources\",\"roles\":{\"AppTrust Manager\":{\"name\":\"AppTrust Manager\",\"description\":\"AppTrust Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":1065151889408,\"bitSetActions\":\"AAAAALgAAIB/\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":1065151889408,\"bitSetActions\":\"AAAAALgAAIB/\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Release Manager\":{\"name\":\"Release Manager\",\"description\":\"Release Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":309832188160,\"bitSetActions\":\"AAFwIwgAAAAZ\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Model Governor\":{\"name\":\"Model Governor\",\"description\":\"Model Governor Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":4611786073985515520,\"bitSetActions\":\"AAAAAABbAEA=\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":4611786073985515520,\"bitSetActions\":\"AAAAAABbAEA=\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Developer\":{\"name\":\"Developer\",\"description\":\"Developer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360752879,\"bitSetActions\":\"73oPAIgAAIAX\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Contributor\":{\"name\":\"Contributor\",\"description\":\"Contributor Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360604903,\"bitSetActions\":\"5zgNAIgAAIAT\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Model Developer\":{\"name\":\"Model Developer\",\"description\":\"Model Developer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":268803105200537600,\"bitSetActions\":\"AAAAAAD7ugM=\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":268803105200537600,\"bitSetActions\":\"AAAAAAD7ugM=\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Viewer\":{\"name\":\"Viewer\",\"description\":\"Viewer Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":34360592417,\"bitSetActions\":\"IQgNAAgAAAAR\"}],\"mask\":0,\"bitSetActions\":\"\"},\"Project Admin\":{\"name\":\"Project Admin\",\"description\":\"Project Admin Role\",\"type\":\"ADMIN\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":9223372033625161727,\"bitSetActions\":\"//9/P7////9/\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":9223372033625161727,\"bitSetActions\":\"//9/P7////9/\"}],\"mask\":3229614080,\"bitSetActions\":\"AACAwA==\"},\"Security Manager\":{\"name\":\"Security Manager\",\"description\":\"Security Manager Role\",\"type\":\"PREDEFINED\",\"environmentActions\":[{\"id\":\"DEV\",\"name\":\"DEV\",\"mask\":39712558129,\"bitSetActions\":\"MYwNPxkAAABx\"},{\"id\":\"PROD\",\"name\":\"PROD\",\"mask\":39712558129,\"bitSetActions\":\"MYwNPxkAAABx\"}],\"mask\":0,\"bitSetActions\":\"\"}},\"users\":{},\"groups\":{},\"resources\":{\"repo\":{\"resources\":{}}},\"environments\":{\"PROD\":{\"id\":\"PROD\",\"name\":\"PROD\",\"order\":1,\"category\":\"release\",\"created\":0,\"modified\":0},\"DEV\":{\"id\":\"DEV\",\"name\":\"DEV\",\"order\":0,\"category\":\"promote\",\"created\":0,\"modified\":0}},\"projectAdminCanManageMembers\":true,\"projectAdminCanManageResources\":true,\"projectAdminCanIndexResources\":true,\"projectKey\":\"default\"}",
+    "secret" : false,
+    "revision" : 15,
+    "created" : 1768888452413,
+    "modified" : 1768889356270
+  } ],
+  "project_groups" : [ ],
+  "project_resources" : [ ],
+  "project_users" : [ ],
+  "projects" : [ {
+    "projectKey" : "default",
+    "name" : "default",
+    "description" : "Virtual project with all resources",
+    "created" : 1768888452426,
+    "modified" : 1768888452426,
+    "storageBytes" : -1,
+    "storageSoftLimit" : false,
+    "storageEmailNotification" : true
+  } ],
+  "roles" : [ {
+    "name" : "Developer",
+    "description" : "Developer Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 34360752879,
+      "bitSetActions" : "73oPAIgAAIAX"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452437,
+    "modified" : 1768888452437
+  }, {
+    "name" : "Contributor",
+    "description" : "Contributor Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 34360604903,
+      "bitSetActions" : "5zgNAIgAAIAT"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452440,
+    "modified" : 1768888452440
+  }, {
+    "name" : "Viewer",
+    "description" : "Viewer Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 34360592417,
+      "bitSetActions" : "IQgNAAgAAAAR"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452441,
+    "modified" : 1768888452441
+  }, {
+    "name" : "Release Manager",
+    "description" : "Release Manager Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 309832188160,
+      "bitSetActions" : "AAFwIwgAAAAZ"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452441,
+    "modified" : 1768888452441
+  }, {
+    "name" : "Security Manager",
+    "description" : "Security Manager Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 39712558129,
+      "bitSetActions" : "MYwNPxkAAABx"
+    }, {
+      "id" : "PROD",
+      "name" : null,
+      "mask" : 39712558129,
+      "bitSetActions" : "MYwNPxkAAABx"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452442,
+    "modified" : 1768888452442
+  }, {
+    "name" : "Project Admin",
+    "description" : "Project Admin Role",
+    "type" : null,
+    "environmentActions" : [ ],
+    "mask" : 3229614080,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452442,
+    "modified" : 1768888452442
+  }, {
+    "name" : "AppTrust Manager",
+    "description" : "AppTrust Manager Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 1065151889408,
+      "bitSetActions" : "AAAAALgAAIB/"
+    }, {
+      "id" : "PROD",
+      "name" : null,
+      "mask" : 1065151889408,
+      "bitSetActions" : "AAAAALgAAIB/"
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452443,
+    "modified" : 1768888452443
+  }, {
+    "name" : "Model Governor",
+    "description" : "Model Governor Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 4611786073985515520,
+      "bitSetActions" : "AAAAAABbAEA="
+    }, {
+      "id" : "PROD",
+      "name" : null,
+      "mask" : 4611786073985515520,
+      "bitSetActions" : "AAAAAABbAEA="
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452444,
+    "modified" : 1768888452444
+  }, {
+    "name" : "Model Developer",
+    "description" : "Model Developer Role",
+    "type" : null,
+    "environmentActions" : [ {
+      "id" : "DEV",
+      "name" : null,
+      "mask" : 268803105200537600,
+      "bitSetActions" : "AAAAAAD7ugM="
+    }, {
+      "id" : "PROD",
+      "name" : null,
+      "mask" : 268803105200537600,
+      "bitSetActions" : "AAAAAAD7ugM="
+    } ],
+    "mask" : 0,
+    "bitSetActions" : "",
+    "projectKey" : "default",
+    "created" : 1768888452444,
+    "modified" : 1768888452444
+  } ],
+  "tokens" : [ {
+    "id" : "f95c3d1f-2909-410a-ba93-7e52971bb361",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888541685,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "f95c3d1f-2909-410a-ba93-7e52971bb361",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"Hqm09HcFwc_kOX2XaU8iTRWpeC_RukhM\",\"revocable\":true,\"llt\":1768888541681,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888541685
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890341685,
+    "refreshToken" : "12a1af6b60bc1ca11c7a6f7e1db0f0045093f0be32634a3efc8b8e13bd479f61",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "fca5597e-d1c2-4ba0-b422-16fd531b10ff",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888615630,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "fca5597e-d1c2-4ba0-b422-16fd531b10ff",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"Uc-3Ir0XTEschaQETyZHYbg0nJbVdjRn\",\"revocable\":true,\"llt\":1768888615628,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888615630
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890415630,
+    "refreshToken" : "d56c89f40a92f34d820ad12138a90977c730b9e26d4d99b181c5424eeac585d0",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "4c6eaa01-db47-42b1-9760-453478709e43",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888634478,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "4c6eaa01-db47-42b1-9760-453478709e43",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"k7cjJJz4aAiJwS91tOdRNf_Hu7BQ0I3N\",\"revocable\":true,\"llt\":1768888634475,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888634478
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890434478,
+    "refreshToken" : "949a889bbe3942408f9663a6d0becadf171a6c328eee19224d56c744e96ab233",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "74a86764-a981-4cf5-9322-434c863c8785",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888679711,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "74a86764-a981-4cf5-9322-434c863c8785",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"yGjDdfDJFoYu9dTW_NMB4Jqx_YZ70eQu\",\"revocable\":true,\"llt\":1768888679709,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888679711
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890479711,
+    "refreshToken" : "4a95f903bcdfa2888ac2e2c91c8dd6138f0986b9b057f275564f48a619679044",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "2186e81c-99c4-49b7-9abc-f7c9858290d0",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888702348,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "2186e81c-99c4-49b7-9abc-f7c9858290d0",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"ohyOe4hnhzGnMWWte8M-w1t_KfmelIro\",\"revocable\":true,\"llt\":1768888702347,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888702348
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890502348,
+    "refreshToken" : "f9e468a9e02b78b485802af9dfe47152893ccc5ab86cae6af0ebcb33211eef93",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "8eb76ab7-711c-4973-aab7-024a2a4b80c5",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768889244315,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "8eb76ab7-711c-4973-aab7-024a2a4b80c5",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"QnSVtw-m5V8PB_o015UrgRtpQdJqx3hL\",\"revocable\":true,\"llt\":1768888943093,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768889244315
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891044315,
+    "refreshToken" : "41f4052462ec83365784a1c78a1869173cc1462c8b55eb07fdf417a5ef7cb87e",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "5a84817f-c936-4b22-9159-d0b863eeb583",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768889535037,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "5a84817f-c936-4b22-9159-d0b863eeb583",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"cmgGM3O-55TB8aCx101PM7CKqjJDdSMA\",\"revocable\":true,\"llt\":1768889535035,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768889535037
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891335037,
+    "refreshToken" : "37091f0538c1d6e94986af5d8d95c16110bf003f12a26d397da79c00c0f388ab",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "18832461-fc3c-4c75-bc6b-2ce69640f879",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888768625,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "18832461-fc3c-4c75-bc6b-2ce69640f879",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"2Zox42cEIPDPETWnOePJ_x6lefS34bAc\",\"revocable\":true,\"llt\":1768888768623,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888768625
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890568625,
+    "refreshToken" : "560b76414dad08ed4c4e114a9fa3059c1f0b28f11ca15f6ad70db66340ca7871",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "2e24bb96-d4e9-4ccc-b583-c615d6e68c3c",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888775175,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "2e24bb96-d4e9-4ccc-b583-c615d6e68c3c",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"wowEmP76tu-tLMRwWc-P4fAm386_bEKf\",\"revocable\":true,\"llt\":1768888775174,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888775175
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890575175,
+    "refreshToken" : "d24ef1ca6d9af0ecf411190e3058b5e7c9146eabfd8c52d638f0ba0f0b11c810",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "5d153e30-aca1-457d-95b8-e90fc8af75a4",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768888922897,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "5d153e30-aca1-457d-95b8-e90fc8af75a4",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"js0yooratIaJGbQMAX863W4b1VBNgw6w\",\"revocable\":true,\"llt\":1768888922896,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768888922897
+    },
+    "hashedReference" : null,
+    "expiry" : 1768890722897,
+    "refreshToken" : "bf1f44f4cfb1e44023a5b71d55673d9bfc95a8f0bbc5a1e290ba34d07d26b70b",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "f701db9f-1a4a-4bb7-8e80-d103fabbb0bf",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768889376419,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "f701db9f-1a4a-4bb7-8e80-d103fabbb0bf",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"PawO3zWZ9wSskFSixtHdHQnjNF7bf4pM\",\"revocable\":true,\"llt\":1768889376418,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768889376419
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891176419,
+    "refreshToken" : "11b7b9731aa4400d9da4ff6de1b34247ec2d23b605ffd6ccd1a6ea33062284e5",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "cef700bd-94c0-4a68-bad3-21e55b45f907",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768889699707,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "cef700bd-94c0-4a68-bad3-21e55b45f907",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"5DMlfHu3MehgU6XI7fCQbQqP10L85pSM\",\"revocable\":true,\"llt\":1768889699704,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768889699707
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891499707,
+    "refreshToken" : "d5cbd6381ed10b88b6f42af37703aa24e56d3e8cdce60c3df68f7cd848aebe47",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "ee9e5218-6990-4cd6-9735-248881e0b2ad",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768890066027,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "ee9e5218-6990-4cd6-9735-248881e0b2ad",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"ty8F3GjMM87IvqbC4ODNyGioVC0ObiaJ\",\"revocable\":true,\"llt\":1768890066025,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768890066027
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891866027,
+    "refreshToken" : "41e598a247d1b3ffc04ec1e28ca1f95b49f6a2b1e8b91d44a4fc388af1c4ecbe",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "2719388e-d49a-4f5d-a218-76187b7a22ff",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768890144404,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "2719388e-d49a-4f5d-a218-76187b7a22ff",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"TS0ZisYfHDc7LTvs7mpYdmXnboppJdkv\",\"revocable\":true,\"llt\":1768890144402,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768890144404
+    },
+    "hashedReference" : null,
+    "expiry" : 1768891944404,
+    "refreshToken" : "d158dc9094b22216eb043b1ed256d8a40454cae93de98630b2b182078cbd404a",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "75b454fa-e576-4aa3-bae1-6d689aa03c75",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768890244247,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "75b454fa-e576-4aa3-bae1-6d689aa03c75",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"F5Bwfg16UAeYyMN4UUyoqZqzimLq2wCP\",\"revocable\":true,\"llt\":1768889809556,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768890244247
+    },
+    "hashedReference" : null,
+    "expiry" : 1768892044247,
+    "refreshToken" : "7230e887a8dc22f59b91bccc84b980e4365124e076e97ffcf361459ee07591a9",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "33e494ad-4326-47b4-b51c-7e867d7a271b",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768890303506,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "33e494ad-4326-47b4-b51c-7e867d7a271b",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"831G1BH0G11Fg6WSjiMrAYCKsx1XAG1w\",\"revocable\":true,\"llt\":1768890303503,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768890303506
+    },
+    "hashedReference" : null,
+    "expiry" : 1768892103506,
+    "refreshToken" : "40ce5a1d5dd3da10e76e160422430f8cf0f526067502127658b328635f69e905",
+    "persistent" : true,
+    "lastUsed" : 0
+  }, {
+    "id" : "412f84e2-0b8e-4a8b-82dd-2a50395f0de3",
+    "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+    "owner" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+    "created" : 1768890339714,
+    "scope" : "HASHED:69c537d45f36a316ac544a2b6271540eb3e94abefcdbeef93d300f9ccea7c38e",
+    "type" : "session",
+    "username" : "admin",
+    "description" : null,
+    "projectKey" : null,
+    "payload" : {
+      "kid" : "fr15LURi9f85wVR1P1nmAL6zGpBID3nStmrXYrEWLDw",
+      "tokenId" : "412f84e2-0b8e-4a8b-82dd-2a50395f0de3",
+      "subject" : "jffe@01kfczfkqk2jkf1kf3shd71xcq/users/admin",
+      "scope" : "applied-permissions/user",
+      "audience" : "jffe@*",
+      "extension" : "{\"rpp\":true,\"rpu\":true,\"rlm\":\"internal\",\"sid\":\"loNUpJk3FYFkn8jpMjO7EZN16c8S3K9H\",\"revocable\":true,\"llt\":1768890339713,\"pud\":true,\"ev\":false}",
+      "version" : "2",
+      "expiry" : 1800,
+      "issuer" : "jffe@01kfczfkqk2jkf1kf3shd71xcq",
+      "issuedAt" : 1768890339714
+    },
+    "hashedReference" : null,
+    "expiry" : 1768892139714,
+    "refreshToken" : "af7f3f2cfb9a0beab957f1bfdf6c00dfefca04c1ccaa04ec2ef57bdec8316479",
+    "persistent" : true,
+    "lastUsed" : 0
+  } ],
+  "trusted_certificates" : [ ],
+  "users" : [ {
+    "username" : "anonymous",
+    "firstName" : null,
+    "lastName" : null,
+    "email" : null,
+    "realm" : "internal",
+    "status" : "enabled",
+    "lastLoginTime" : 0,
+    "lastLoginIp" : null,
+    "password" : null,
+    "allowedIps" : [ "*" ],
+    "created" : 1768888452484,
+    "modified" : 1768888452484,
+    "failedLoginAttempts" : 0,
+    "statusLastModified" : 1768888452484,
+    "passwordLastModified" : 0,
+    "customData" : {
+      "disabled_password" : {
+        "value" : "true",
+        "sensitive" : false,
+        "clusterLocal" : false
+      }
+    },
+    "groups" : [ ]
+  }, {
+    "username" : "admin",
+    "firstName" : null,
+    "lastName" : null,
+    "email" : null,
+    "realm" : "internal",
+    "status" : "enabled",
+    "lastLoginTime" : 1768890339660,
+    "lastLoginIp" : "192.168.65.1",
+    "password" : "argon$$argon2id$v=19$m=512,t=16,p=1$/wrd5AzGU8BGt+/n71XO1w$eiX8IrUKQBoThXcWYOZM+D6KjKZ9+PXMgsBgxaOUJ8g",
+    "allowedIps" : [ "127.0.0.1" ],
+    "created" : 1768888452378,
+    "modified" : 1768890246667,
+    "failedLoginAttempts" : 0,
+    "statusLastModified" : 1768890339660,
+    "passwordLastModified" : 1768888452378,
+    "customData" : {
+      "updatable_profile" : {
+        "value" : "true",
+        "sensitive" : false,
+        "clusterLocal" : false
+      },
+      "artifactory_admin" : {
+        "value" : "true",
+        "sensitive" : false,
+        "clusterLocal" : false
+      },
+      "userCustomData" : {
+        "value" : "{\"onboardingSteps\":{\"artifactory\":{\"children\":[{\"id\":\"create_repositories\",\"isDone\":true},{\"id\":\"create_users\",\"isDone\":false},{\"id\":\"create_groups\",\"isDone\":false},{\"id\":\"set_permissions\",\"isDone\":false},{\"id\":\"deploy_artifacts\",\"isDone\":false}]}},\"userSkippedOnboarding\":false,\"wizardIsClosed\":false,\"createdPrevRepo\":false,\"userDismissedDeployBubble\":false,\"userSeenGuide\":false,\"userSeenGettingStarted\":false,\"projectsGettingStartedProgress\":{\"isNewNotificationVisible\":false,\"isNotificationBubbleActive\":false,\"shouldShowAnimationBubble\":false,\"isAnimationBubbleActive\":false,\"shouldShowSpecialTile\":true,\"shouldShowWhatsNextBubble\":true,\"isWhatsNextBubbleActive\":false},\"showPersonalization\":null,\"isNavigationTourDismissed\":false,\"isTopBarV3Enabled\":null}",
+        "sensitive" : false,
+        "clusterLocal" : false
+      }
+    },
+    "groups" : [ ]
+  } ]
+}

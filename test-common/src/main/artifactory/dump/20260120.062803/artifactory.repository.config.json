@@ -1,0 +1,395 @@
+{
+  "localRepoConfigs" : [ {
+    "type" : "local",
+    "key" : "example-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "Example artifactory repository",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*"
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "downloadRedirectConfig" : {
+        "enabled" : false
+      },
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "asda",
+    "packageType" : "debian",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : {
+      "debianTrivialLayout" : "false",
+      "optionalIndexCompressionFormats" : "[\"bz2\"]",
+      "ddebSupported" : "false"
+    },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "artifactory-build-info",
+    "packageType" : "buildinfo",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*"
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "downloadRedirectConfig" : {
+        "enabled" : false
+      },
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "rpm-release-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "RPM release artifacts",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "maven-dev-repo-local",
+    "packageType" : "maven",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "MAVEN staging artifacts",
+      "notes" : "",
+      "repoLayoutRef" : "maven-2-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "server-generated-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "deployer"
+    },
+    "packageTypeConfig" : {
+      "suppressPomConsistencyChecks" : "false"
+    },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "debian-release-repo-local-2",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "DEBIAN release artifacts 2",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "maven-release-repo-local",
+    "packageType" : "maven",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "MAVEN release artifacts",
+      "notes" : "",
+      "repoLayoutRef" : "maven-2-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "server-generated-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "deployer"
+    },
+    "packageTypeConfig" : {
+      "suppressPomConsistencyChecks" : "false"
+    },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "debian-dev-repo-local-2",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "DEBIAN snapshot artifacts 2",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "debian-release-repo-local-1",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "DEBIAN release artifacts 1",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "debian-dev-repo-local-1",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "DEBIAN snapshot artifacts 1",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "maven-upload-repo-local",
+    "packageType" : "maven",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "MAVEN artifacts uploaded by DMS",
+      "notes" : "",
+      "repoLayoutRef" : "maven-2-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "server-generated-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "deployer"
+    },
+    "packageTypeConfig" : {
+      "suppressPomConsistencyChecks" : "false"
+    },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "docker-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "rpm-dev-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "RPM snapshot artifacts",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  } ],
+  "federatedRepoConfigs" : [ ],
+  "releaseBundleRepoConfigs" : [ ],
+  "remoteRepoConfigs" : [ ],
+  "virtualRepoConfigs" : [ ]
+}

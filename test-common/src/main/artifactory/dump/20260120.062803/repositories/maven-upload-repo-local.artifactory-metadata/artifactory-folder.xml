@@ -1,0 +1,13 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>maven-upload-repo-local</repoKey>
+        <path></path>
+        <folder>true</folder>
+    </repoPath>
+    <name></name>
+    <created>1768889306216</created>
+    <lastModified>1768889306216</lastModified>
+    <additionalInfo>
+        <lastUpdated>1768889306216</lastUpdated>
+    </additionalInfo>
+</artifactory-folder>
