@@ -2,6 +2,7 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: test-artifactory
+
 objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
@@ -30,6 +31,14 @@ objects:
             password: ${POSTGRES_PASSWORD}
 
   - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ${DEPLOYMENT_PREFIX}-artifactory-system-properties
+    data:
+      artifactory.system.properties: |
+        artifactory.allow.export.import.insecure.paths=true
+
+  - apiVersion: v1
     kind: Pod
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory
@@ -40,21 +49,30 @@ objects:
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
 
       initContainers:
-        - name: setup-system-yaml
+        - name: setup-artifactory-config
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
           command:
             - sh
             - -c
             - |
-              mkdir -p /opt/jfrog/artifactory/var/etc
+              set -e
+              echo "Initializing Artifactory configuration"
+              mkdir -p /opt/jfrog/artifactory/var/etc/artifactory
+              echo "Copying system.yaml"
               cp /tmp/system.yaml /opt/jfrog/artifactory/var/etc/system.yaml
+              echo "Copying artifactory.system.properties"
+              cp /tmp/artifactory.system.properties /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
               chmod 666 /opt/jfrog/artifactory/var/etc/system.yaml
+              chmod 666 /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var
             - name: system-yaml
               mountPath: /tmp/system.yaml
               subPath: system.yaml
+            - name: system-properties
+              mountPath: /tmp/artifactory.system.properties
+              subPath: artifactory.system.properties
 
       containers:
         - name: artifactory
@@ -74,12 +92,18 @@ objects:
           configMap:
             name: ${DEPLOYMENT_PREFIX}-artifactory-system-yaml
             defaultMode: 0666
+        - name: system-properties
+          configMap:
+            name: ${DEPLOYMENT_PREFIX}-artifactory-system-properties
+            defaultMode: 0666
 
   - apiVersion: v1
     kind: Service
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory-service
     spec:
+      selector:
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
       ports:
         - name: http-8081
           port: 8081
@@ -89,38 +113,43 @@ objects:
           port: 8082
           targetPort: 8082
           protocol: TCP
-      selector:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
 
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory-route
     spec:
-      port:
-        targetPort: 8082
       to:
         kind: Service
         name: ${DEPLOYMENT_PREFIX}-artifactory-service
+      port:
+        targetPort: http-8082
 
 parameters:
-  - description: Unique deployment prefix
-    name: DEPLOYMENT_PREFIX
+  - name: DEPLOYMENT_PREFIX
+    description: Unique deployment prefix
     required: true
-  - description: Active deadline seconds
-    name: ACTIVE_DEADLINE_SECONDS
+
+  - name: ACTIVE_DEADLINE_SECONDS
+    description: Active deadline seconds
     required: true
-  - description: Artifactory version
-    name: ARTIFACTORY_IMAGE_TAG
+
+  - name: ARTIFACTORY_IMAGE_TAG
+    description: Artifactory image tag
     required: true
+
   - name: POSTGRES_DB
     description: Database name
     required: true
+
   - name: POSTGRES_USER
     description: Database user
     required: true
+
   - name: POSTGRES_PASSWORD
     description: Database password
     required: true
+
   - name: POSTGRES_HOST
+    description: Database host
     required: true
