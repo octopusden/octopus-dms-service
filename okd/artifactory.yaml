@@ -74,6 +74,12 @@ objects:
           ports:
             - containerPort: 8081
             - containerPort: 8082
+          readinessProbe:
+            httpGet:
+              path: /artifactory/api/system/ping
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var
