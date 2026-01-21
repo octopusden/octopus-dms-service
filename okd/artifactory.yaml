@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: test-artifactory
+  name: artifactory-template
 
 objects:
   - apiVersion: v1
@@ -13,13 +13,13 @@ objects:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 2.5Gi
+          storage: 500Mi
       volumeMode: Filesystem
 
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-system-yaml
+      name: ${DEPLOYMENT_PREFIX}-artifactory-config
     data:
       system.yaml: |
         shared:
@@ -29,12 +29,6 @@ objects:
             url: jdbc:postgresql://${POSTGRES_HOST}/${POSTGRES_DB}
             username: ${POSTGRES_USER}
             password: ${POSTGRES_PASSWORD}
-
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-system-properties
-    data:
       artifactory.system.properties: |
         artifactory.allow.export.import.insecure.paths=true
 
@@ -67,10 +61,10 @@ objects:
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var
-            - name: system-yaml
+            - name: artifactory-config
               mountPath: /tmp/system.yaml
               subPath: system.yaml
-            - name: system-properties
+            - name: artifactory-config
               mountPath: /tmp/artifactory.system.properties
               subPath: artifactory.system.properties
 
@@ -88,13 +82,9 @@ objects:
         - name: artifactory-data
           persistentVolumeClaim:
             claimName: ${DEPLOYMENT_PREFIX}-artifactory-pvc
-        - name: system-yaml
+        - name: artifactory-config
           configMap:
-            name: ${DEPLOYMENT_PREFIX}-artifactory-system-yaml
-            defaultMode: 0666
-        - name: system-properties
-          configMap:
-            name: ${DEPLOYMENT_PREFIX}-artifactory-system-properties
+            name: ${DEPLOYMENT_PREFIX}-artifactory-config
             defaultMode: 0666
 
   - apiVersion: v1
