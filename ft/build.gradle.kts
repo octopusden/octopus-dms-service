@@ -193,7 +193,7 @@ tasks.named<ConfigureMockServer>("configureMockServer") {
 
 tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
     host.set(ocTemplate.getOkdHost("artifactory"))
-    retryLimit.set(3)
+    retryLimit.set(30)
     importPath.set("/opt/jfrog/artifactory/var/etc/artifactory/import")
     dependsOn(copyArtifactoryDump)
 }
