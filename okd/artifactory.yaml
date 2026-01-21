@@ -13,7 +13,7 @@ objects:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 500Mi
+          storage: 2.5Gi
       volumeMode: Filesystem
 
   - apiVersion: v1
