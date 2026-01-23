@@ -45,8 +45,8 @@ class ComponentsRegistryServiceImpl(
 
     override fun getExternalComponents(filter: ComponentRequestFilter?) =
         client.getAllComponents(solution = filter?.solution).components
-            .filter { component -> //TODO: filter archived components?
-                component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit) } ?: false
+            .filter { component ->
+                !component.archived && (component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit)} ?: false)
             }.map {
                 it.toComponentDTO()
             }

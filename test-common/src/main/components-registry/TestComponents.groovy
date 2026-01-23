@@ -89,6 +89,23 @@
     }
 }
 
+"archived-component" {
+    componentDisplayName = "Archived Component"
+    componentOwner = "Archived Component Owner"
+    releaseManager = "Archived Component Release Manager"
+    archived = true
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ii/ii-component.git"
+    jira {
+        projectKey = 'ARCHIVED'
+        displayName = 'Archived Component'
+    }
+    distribution {
+        explicit = true
+        external = true
+    }
+}
+
 dependency1 {
     system = "CLASSIC"
     componentDisplayName = "Dependency 1"
