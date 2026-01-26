@@ -44,6 +44,9 @@ objects:
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+          resources:
+            requests:
+              memory: "3Gi"
           ports:
             - containerPort: 8081
               protocol: TCP
