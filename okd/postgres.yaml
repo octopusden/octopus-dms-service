@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: test-postgres
+  name: postgres-template
 objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
