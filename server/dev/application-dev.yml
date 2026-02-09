@@ -45,7 +45,7 @@ release-management-service:
   url: # set via env
 
 validation:
-  license-validator:
+  file-validator:
     enabled: true
     requiredPatterns:
       - ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
