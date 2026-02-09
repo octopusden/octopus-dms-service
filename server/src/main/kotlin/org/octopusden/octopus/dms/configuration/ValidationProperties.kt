@@ -4,11 +4,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "validation")
 data class ValidationProperties(
-    val licenseValidator: LicenseValidatorProperties,
+    val fileValidator: FileValidatorProperties,
     val nameValidator: NameValidatorProperties,
     val contentValidator: ContentValidatorProperties
 ) {
-    data class LicenseValidatorProperties(val enabled: Boolean, val pattern: Regex)
+    data class FileValidatorProperties(val enabled: Boolean, val requiredPatterns: Set<Regex>)
 
     data class NameValidatorProperties(val enabled: Boolean, val allowedPattern: Regex)
 

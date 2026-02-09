@@ -1,7 +1,7 @@
 package org.octopusden.octopus.dms.controller
 
 import org.octopusden.octopus.dms.client.common.dto.ContentValidatorPropertiesDTO
-import org.octopusden.octopus.dms.client.common.dto.LicenseValidatorPropertiesDTO
+import org.octopusden.octopus.dms.client.common.dto.FileValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.NameValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO
@@ -27,9 +27,9 @@ class ConfigurationController(
     fun getConfiguration() = PropertiesDTO(
         storageProperties.mavenGroupPrefix,
         ValidationPropertiesDTO(
-            LicenseValidatorPropertiesDTO(
-                validationProperties.licenseValidator.enabled,
-                validationProperties.licenseValidator.pattern
+            FileValidatorPropertiesDTO(
+                validationProperties.fileValidator.enabled,
+                validationProperties.fileValidator.requiredPatterns
             ),
             NameValidatorPropertiesDTO(
                 validationProperties.nameValidator.enabled,

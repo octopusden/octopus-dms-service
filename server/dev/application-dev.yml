@@ -47,7 +47,9 @@ release-management-service:
 validation:
   license-validator:
     enabled: true
-    pattern: ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
+    requiredPatterns:
+      - ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
+      - ((.*[/\\])|^)COPYRIGHT$
   name-validator:
     enabled: true
     allowed-pattern: ^(?!.*([Uu][Nn][Aa][Ll][Ll][Oo][Ww][Ee][Dd])).*$
