@@ -53,10 +53,13 @@ class ArtifactValidator private constructor(
             pattern: Regex,
             errorMessage: String
         ) = if (file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
-            !ZipFile(file.toFile()).stream()
-                .filter { entry -> !entry.isDirectory && pattern.matches(entry.name) }
-                .map { entry -> entry.name }
-                .findAny().isPresent
+            !ZipFile(file.toFile()).use { zip ->
+                zip.stream()
+                    .filter { entry -> !entry.isDirectory && pattern.matches(entry.name) }
+                    .map { entry -> entry.name }
+                    .findAny()
+                    .isPresent
+            }
         ) {
             listOf("$path: $errorMessage")
         } else {
