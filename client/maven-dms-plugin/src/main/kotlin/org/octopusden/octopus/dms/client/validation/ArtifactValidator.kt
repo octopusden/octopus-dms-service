@@ -1,7 +1,7 @@
 package org.octopusden.octopus.dms.client.validation
 
 import org.octopusden.octopus.dms.client.common.dto.ContentValidatorPropertiesDTO
-import org.octopusden.octopus.dms.client.common.dto.LicenseValidatorPropertiesDTO
+import org.octopusden.octopus.dms.client.common.dto.FileValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.NameValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO
 import java.io.BufferedInputStream
@@ -31,21 +31,40 @@ class ArtifactValidator private constructor(
     validationProperties: ValidationPropertiesDTO,
     private val log: Log
 ) {
-    private class LicenseValidator(
-        val licenseValidatorProperties: LicenseValidatorPropertiesDTO
+    private class FileValidator(
+        val fileValidatorProperties: FileValidatorPropertiesDTO
     ) {
-        fun validate(path: String, file: Path) =
-            if (licenseValidatorProperties.enabled &&
-                file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
-                !ZipFile(file.toFile()).stream()
-                    .filter { entry -> !entry.isDirectory && licenseValidatorProperties.pattern.matches(entry.name) }
-                    .map { entry -> entry.name }
-                    .findAny().isPresent
-            ) {
-                listOf("$path: third party license file does not found")
-            } else {
-                emptyList()
+
+        fun validate(path: String, file: Path): List<String> {
+            if (!fileValidatorProperties.enabled) return emptyList()
+            return fileValidatorProperties.requiredPatterns.flatMap { pattern ->
+                validateFile(
+                    path = path,
+                    file = file,
+                    pattern = pattern,
+                    errorMessage = "file matching pattern '${pattern.pattern}' not found"
+                )
             }
+        }
+
+        private fun validateFile(
+            path: String,
+            file: Path,
+            pattern: Regex,
+            errorMessage: String
+        ) = if (file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
+            !ZipFile(file.toFile()).use { zip ->
+                zip.stream()
+                    .filter { entry -> !entry.isDirectory && pattern.matches(entry.name) }
+                    .map { entry -> entry.name }
+                    .findAny()
+                    .isPresent
+            }
+        ) {
+            listOf("$path: $errorMessage")
+        } else {
+            emptyList()
+        }
     }
 
     private class NameValidator(
@@ -102,7 +121,7 @@ class ArtifactValidator private constructor(
 
     }
 
-    private val licenseValidator = LicenseValidator(validationProperties.licenseValidation)
+    private val fileValidator = FileValidator(validationProperties.fileValidation)
     private val nameValidator = NameValidator(validationProperties.nameValidation)
     private val contentValidator = ContentValidator(validationProperties.contentValidation)
 
@@ -186,7 +205,7 @@ class ArtifactValidator private constructor(
         }
     }
 
-    private fun validate(name: String, file: Path) = licenseValidator.validate(name, file) +
+    private fun validate(name: String, file: Path) = fileValidator.validate(name, file) +
             file.inputStream().use { validateFile(name, BufferedInputStream(it, BUFFER_SIZE)) }
 
     companion object {
