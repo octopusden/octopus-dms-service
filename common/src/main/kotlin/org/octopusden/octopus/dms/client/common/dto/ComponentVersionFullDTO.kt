@@ -31,7 +31,7 @@ class ComponentVersionFullDTO(
     val solution: Boolean,
     val clientCode: String?,
     val parentComponent: String?,
-    val labels: Set<String>
+    val labels: Set<String> = emptySet()
 ) : ComponentVersionDTO(component, version, published, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

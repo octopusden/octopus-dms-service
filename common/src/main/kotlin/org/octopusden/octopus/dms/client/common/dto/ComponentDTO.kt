@@ -27,5 +27,5 @@ data class ComponentDTO(
     val clientCode: String?,
     val parentComponent: String?,
     val securityGroups: SecurityGroupsDTO,
-    val labels: Set<String>
+    val labels: Set<String> =  emptySet()
 )
