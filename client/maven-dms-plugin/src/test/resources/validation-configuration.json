@@ -1,10 +1,16 @@
 {
-  "licenseValidation": {
+  "fileValidation": {
     "enabled": true,
-    "pattern": {
-      "pattern": "((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$",
-      "options": []
-    }
+    "requiredPatterns": [
+      {
+        "pattern": "((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$",
+        "options": []
+      },
+      {
+        "pattern": "((.*[/\\\\])|^)COPYRIGHT$",
+        "options": []
+      }
+    ]
   },
   "nameValidation": {
     "enabled": true,

@@ -2,7 +2,7 @@ package org.octopusden.octopus.dms.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.octopusden.octopus.dms.client.common.dto.LicenseValidatorPropertiesDTO;
+import org.octopusden.octopus.dms.client.common.dto.FileValidatorPropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.service.ArtifactService;
@@ -38,8 +38,8 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
     @Parameter(property = "wlIgnore")
     private File wlIgnore;
 
-    @Parameter(property = "skipLicenceValidation", defaultValue = "false")
-    private boolean skipLicenceValidation;
+    @Parameter(property = "skipFileValidation", defaultValue = "false")
+    private boolean skipFileValidation;
 
     @Inject
     public ValidateArtifactsMojo(ArtifactService artifactService, DMSService dmsService) {
@@ -98,10 +98,10 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
         }
         ValidationPropertiesDTO originalValidation = dmsConfiguration.getValidation();
         ValidationPropertiesDTO validationToUse;
-        if (skipLicenceValidation) {
-            log.info("Skipping licence validation");
-            LicenseValidatorPropertiesDTO disabledLicense = new LicenseValidatorPropertiesDTO(false, originalValidation.getLicenseValidation().getPattern());
-            validationToUse = new ValidationPropertiesDTO(disabledLicense, originalValidation.getNameValidation(), originalValidation.getContentValidation());
+        if (skipFileValidation) {
+            log.info("Skipping file validation");
+            FileValidatorPropertiesDTO disabledFileValidation = new FileValidatorPropertiesDTO(false, originalValidation.getFileValidation().getRequiredPatterns());
+            validationToUse = new ValidationPropertiesDTO(disabledFileValidation, originalValidation.getNameValidation(), originalValidation.getContentValidation());
         } else {
             validationToUse = originalValidation;
         }

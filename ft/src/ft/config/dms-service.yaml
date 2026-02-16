@@ -66,9 +66,11 @@ release-management-service:
   url: http://${TEST_RELEASE_MANAGEMENT_HOST}
 
 validation:
-  license-validator:
+  file-validator:
     enabled: true
-    pattern: ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
+    required-patterns:
+      - ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$
+      - ((.*[/\\])|^)COPYRIGHT$
   name-validator:
     enabled: true
     allowed-pattern: ^(?!.*([Uu][Nn][Aa][Ll][Ll][Oo][Ww][Ee][Dd])).*$
