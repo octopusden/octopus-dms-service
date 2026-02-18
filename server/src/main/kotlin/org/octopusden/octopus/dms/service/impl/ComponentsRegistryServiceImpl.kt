@@ -96,7 +96,8 @@ class ComponentsRegistryServiceImpl(
             distribution?.explicit == true,
             clientCode,
             parentComponent,
-            SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList())
+            SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList()),
+            labels
         )
 
         private fun matches(

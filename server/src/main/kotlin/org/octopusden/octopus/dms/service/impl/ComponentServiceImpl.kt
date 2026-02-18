@@ -352,11 +352,11 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
     )
 
     private fun ComponentVersion.toFullDTO(component: ComponentDTO, build: BuildFullDTO) = ComponentVersionFullDTO(
-        component.id, version, published, build.status, build.hotfix, build.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
+        component.id, version, published, build.status, build.hotfix, build.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent, component.labels
     )
 
     private fun BuildFullDTO.toComponentVersionFullDTO(component: ComponentDTO) = ComponentVersionFullDTO(
-        component.id, version, false, status, hotfix, promotedAt, component.name, component.solution, component.clientCode, component.parentComponent
+        component.id, version, false, status, hotfix, promotedAt, component.name, component.solution, component.clientCode, component.parentComponent, component.labels
     )
 
     companion object {

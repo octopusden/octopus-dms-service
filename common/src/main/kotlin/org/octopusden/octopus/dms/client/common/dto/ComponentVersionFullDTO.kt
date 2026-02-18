@@ -16,7 +16,8 @@ import java.util.Objects
             "  \"displayName\": \"EE Client Specific Component\",\n" +
             "  \"solution\": false,\n" +
             "  \"clientCode\": \"CLIENT_CODE\",\n" +
-            "  \"parentComponent\": \"ee-component\"\n" +
+            "  \"parentComponent\": \"ee-component\",\n" +
+            "  \"labels\": [\"production\", \"critical\"]\n" +
             "}"
 )
 class ComponentVersionFullDTO(
@@ -29,7 +30,8 @@ class ComponentVersionFullDTO(
     val displayName: String,
     val solution: Boolean,
     val clientCode: String?,
-    val parentComponent: String?
+    val parentComponent: String?,
+    val labels: Set<String> = emptySet()
 ) : ComponentVersionDTO(component, version, published, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -43,12 +45,13 @@ class ComponentVersionFullDTO(
         if (solution != other.solution) return false
         if (clientCode != other.clientCode) return false
         if (parentComponent != other.parentComponent) return false
+        if (labels != other.labels) return false
 
         return true
     }
 
-    override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent)
+    override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent, labels)
     override fun toString(): String {
-        return "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent)"
+        return "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels)"
     }
 }

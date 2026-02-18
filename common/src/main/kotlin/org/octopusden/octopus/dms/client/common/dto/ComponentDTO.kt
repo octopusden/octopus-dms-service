@@ -15,7 +15,8 @@ import io.swagger.v3.oas.annotations.media.Schema
             "    \"read\": [\n" +
             "      \"Production Security\"\n" +
             "    ]\n" +
-            "  }\n" +
+            "  },\n" +
+            "  \"labels\": [\"production\", \"critical\"]\n" +
             "}"
 )
 data class ComponentDTO(
@@ -25,5 +26,6 @@ data class ComponentDTO(
     val explicit: Boolean,
     val clientCode: String?,
     val parentComponent: String?,
-    val securityGroups: SecurityGroupsDTO
+    val securityGroups: SecurityGroupsDTO,
+    val labels: Set<String> =  emptySet()
 )
