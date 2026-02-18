@@ -6,20 +6,20 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-postgres-data
+      name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}-pvc
     spec:
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
-          storage: 1Gi
+          storage: ${POSTGRES_STORAGE}
       volumeMode: Filesystem
   - apiVersion: v1
     kind: Pod
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-postgres
+      name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}
       labels:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
@@ -28,11 +28,11 @@ objects:
           image: ${DOCKER_REGISTRY}/postgres:${POSTGRES_IMAGE_TAG}
           env:
             - name: POSTGRES_DB
-              value: dms
-            - name: POSTGRES_PASSWORD
-              value: dms
+              value: ${POSTGRES_DB}
             - name: POSTGRES_USER
-              value: dms
+              value: ${POSTGRES_USER}
+            - name: POSTGRES_PASSWORD
+              value: ${POSTGRES_PASSWORD}
           ports:
             - containerPort: 5432
               protocol: TCP
@@ -41,7 +41,7 @@ objects:
               command:
                 - /bin/sh
                 - -c
-                - exec pg_isready -U dms
+                - exec pg_isready -U ${POSTGRES_USER}
             initialDelaySeconds: 30
             periodSeconds: 10
           volumeMounts:
@@ -50,28 +50,46 @@ objects:
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
-            claimName: ${DEPLOYMENT_PREFIX}-postgres-data
+            claimName: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}-pvc
+
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-postgres-service
+      name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}-service
     spec:
       ports:
         - port: 5432
           targetPort: 5432
       selector:
-        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-postgres
+        app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-${POSTGRES_NAME}
       type: LoadBalancer
+
 parameters:
-  - description: Unique deployment prefix
-    name: DEPLOYMENT_PREFIX
+  - name: DEPLOYMENT_PREFIX
+    description: Unique deployment prefix
     required: true
-  - description: Active deadline seconds
-    name: ACTIVE_DEADLINE_SECONDS
-    required: true
-  - description: Docker registry
-    name: DOCKER_REGISTRY
+  - name: POSTGRES_NAME
+    description: Logical name of postgres (e.g. artifactory, test, reporting)
     required: true
   - description: Postgres image tag
     name: POSTGRES_IMAGE_TAG
+    required: true
+  - name: POSTGRES_DB
+    description: Database name
+    required: true
+  - name: POSTGRES_USER
+    description: Database user
+    required: true
+  - name: POSTGRES_PASSWORD
+    description: Database password
+    required: true
+  - name: POSTGRES_STORAGE
+    description: PVC storage size
+    required: true
+    value: 500Mi
+  - name: ACTIVE_DEADLINE_SECONDS
+    description: Active deadline seconds
+    required: true
+  - name: DOCKER_REGISTRY
+    description: Docker registry
     required: true

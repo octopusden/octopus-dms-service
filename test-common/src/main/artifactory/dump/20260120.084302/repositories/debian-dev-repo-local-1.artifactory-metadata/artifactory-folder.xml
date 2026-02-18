@@ -1,0 +1,13 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>debian-dev-repo-local-1</repoKey>
+        <path></path>
+        <folder>true</folder>
+    </repoPath>
+    <name></name>
+    <created>1768888975000</created>
+    <lastModified>1768888975000</lastModified>
+    <additionalInfo>
+        <lastUpdated>1768888975000</lastUpdated>
+    </additionalInfo>
+</artifactory-folder>

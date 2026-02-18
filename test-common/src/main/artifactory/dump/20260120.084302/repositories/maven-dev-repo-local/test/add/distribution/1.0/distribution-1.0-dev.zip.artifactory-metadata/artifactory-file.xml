@@ -1,0 +1,35 @@
+<artifactory-file>
+    <repoPath>
+        <repoKey>maven-dev-repo-local</repoKey>
+        <path>test/add/distribution/1.0/distribution-1.0-dev.zip</path>
+        <folder>false</folder>
+    </repoPath>
+    <name>distribution-1.0-dev.zip</name>
+    <created>1768898419635</created>
+    <lastModified>1768898419635</lastModified>
+    <size>223</size>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898419643</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+        <checksumsInfo>
+            <checksums>
+                <checksum>
+                    <type>sha1</type>
+                    <original>4bc47787101150ca5fb98e501a480537932b3a92</original>
+                    <actual>4bc47787101150ca5fb98e501a480537932b3a92</actual>
+                </checksum>
+                <checksum>
+                    <type>md5</type>
+                    <original>27a3ba983670bca81d5022d492a7e345</original>
+                    <actual>27a3ba983670bca81d5022d492a7e345</actual>
+                </checksum>
+                <checksum>
+                    <type>sha256</type>
+                    <original>1af779d0a47705a59600fbb0139e0001c3b40cc622b0e95035e0bd1cdf006f8b</original>
+                    <actual>1af779d0a47705a59600fbb0139e0001c3b40cc622b0e95035e0bd1cdf006f8b</actual>
+                </checksum>
+            </checksums>
+        </checksumsInfo>
+    </additionalInfo>
+</artifactory-file>

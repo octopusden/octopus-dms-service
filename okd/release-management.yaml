@@ -80,9 +80,6 @@ parameters:
   - description: Active deadline seconds
     name: ACTIVE_DEADLINE_SECONDS
     required: true
-  - description: Docker registry
-    name: DOCKER_REGISTRY
-    required: true
   - description: Release management service version
     name: RELEASE_MANAGEMENT_SERVICE_VERSION
     required: true

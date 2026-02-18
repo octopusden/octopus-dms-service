@@ -2,11 +2,12 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: artifactory-template
+
 objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-data
+      name: ${DEPLOYMENT_PREFIX}-artifactory-pvc
     spec:
       accessModes:
         - ReadWriteOnce
@@ -14,17 +15,23 @@ objects:
         requests:
           storage: 1Gi
       volumeMode: Filesystem
+
   - apiVersion: v1
-    kind: PersistentVolumeClaim
+    kind: ConfigMap
     metadata:
-      name: ${DEPLOYMENT_PREFIX}-artifactory-dump
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
-      volumeMode: Filesystem
+      name: ${DEPLOYMENT_PREFIX}-artifactory-config
+    data:
+      system.yaml: |
+        shared:
+          database:
+            type: postgresql
+            driver: org.postgresql.Driver
+            url: jdbc:postgresql://${POSTGRES_HOST}/${POSTGRES_DB}
+            username: ${POSTGRES_USER}
+            password: ${POSTGRES_PASSWORD}
+      artifactory.system.properties: |
+        artifactory.allow.export.import.insecure.paths=true
+
   - apiVersion: v1
     kind: Pod
     metadata:
@@ -34,13 +41,33 @@ objects:
     spec:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
-      volumes:
-        - name: artifactory-data
-          persistentVolumeClaim:
-            claimName: ${DEPLOYMENT_PREFIX}-artifactory-data
-        - name: artifactory-dump
-          persistentVolumeClaim:
-            claimName: ${DEPLOYMENT_PREFIX}-artifactory-dump
+
+      initContainers:
+        - name: setup-artifactory-config
+          image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              echo "Initializing Artifactory configuration"
+              mkdir -p /opt/jfrog/artifactory/var/etc/artifactory
+              echo "Copying system.yaml"
+              cp /tmp/system.yaml /opt/jfrog/artifactory/var/etc/system.yaml
+              echo "Copying artifactory.system.properties"
+              cp /tmp/artifactory.system.properties /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
+              chmod 666 /opt/jfrog/artifactory/var/etc/system.yaml
+              chmod 666 /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
+          volumeMounts:
+            - name: artifactory-data
+              mountPath: /opt/jfrog/artifactory/var
+            - name: artifactory-config
+              mountPath: /tmp/system.yaml
+              subPath: system.yaml
+            - name: artifactory-config
+              mountPath: /tmp/artifactory.system.properties
+              subPath: artifactory.system.properties
+
       containers:
         - name: artifactory
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
@@ -49,9 +76,7 @@ objects:
               memory: "3Gi"
           ports:
             - containerPort: 8081
-              protocol: TCP
             - containerPort: 8082
-              protocol: TCP
           readinessProbe:
             httpGet:
               path: /artifactory/api/system/ping
@@ -61,44 +86,69 @@ objects:
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var
-            - name: artifactory-dump
-              mountPath: /dump
+
+      volumes:
+        - name: artifactory-data
+          persistentVolumeClaim:
+            claimName: ${DEPLOYMENT_PREFIX}-artifactory-pvc
+        - name: artifactory-config
+          configMap:
+            name: ${DEPLOYMENT_PREFIX}-artifactory-config
+            defaultMode: 0666
+
   - apiVersion: v1
     kind: Service
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory-service
     spec:
-      ports:
-        - name: port-8081
-          port: 8081
-          protocol: TCP
-          targetPort: 8081
-        - name: port-8082
-          port: 8082
-          protocol: TCP
-          targetPort: 8082
       selector:
         app.kubernetes.io/name: ${DEPLOYMENT_PREFIX}-artifactory
+      ports:
+        - name: http-8081
+          port: 8081
+          targetPort: 8081
+          protocol: TCP
+        - name: http-8082
+          port: 8082
+          targetPort: 8082
+          protocol: TCP
+
   - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory-route
     spec:
-      port:
-        targetPort: 8082
       to:
         kind: Service
         name: ${DEPLOYMENT_PREFIX}-artifactory-service
+      port:
+        targetPort: http-8082
+
 parameters:
-  - description: Unique deployment prefix
-    name: DEPLOYMENT_PREFIX
+  - name: DEPLOYMENT_PREFIX
+    description: Unique deployment prefix
     required: true
-  - description: Active deadline seconds
-    name: ACTIVE_DEADLINE_SECONDS
+
+  - name: ACTIVE_DEADLINE_SECONDS
+    description: Active deadline seconds
     required: true
-  - description: Docker registry
-    name: DOCKER_REGISTRY
+
+  - name: ARTIFACTORY_IMAGE_TAG
+    description: Artifactory image tag
     required: true
-  - description: Tag of Artifactory image
-    name: ARTIFACTORY_IMAGE_TAG
+
+  - name: POSTGRES_DB
+    description: Database name
+    required: true
+
+  - name: POSTGRES_USER
+    description: Database user
+    required: true
+
+  - name: POSTGRES_PASSWORD
+    description: Database password
+    required: true
+
+  - name: POSTGRES_HOST
+    description: Database host
     required: true

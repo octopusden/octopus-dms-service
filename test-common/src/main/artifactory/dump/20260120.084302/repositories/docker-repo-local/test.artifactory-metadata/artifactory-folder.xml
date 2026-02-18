@@ -1,0 +1,15 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>docker-repo-local</repoKey>
+        <path>test</path>
+        <folder>true</folder>
+    </repoPath>
+    <name>test</name>
+    <created>1768898373305</created>
+    <lastModified>1768898373305</lastModified>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898373305</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+    </additionalInfo>
+</artifactory-folder>

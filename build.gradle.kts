@@ -104,8 +104,9 @@ subprojects {
             set("okdClusterDomain", it.getOrDefault("OKD_CLUSTER_DOMAIN", properties["okd.cluster-domain"]))
             set("okdWebConsoleUrl", (it.getOrDefault("OKD_WEB_CONSOLE_URL", properties["okd.web-console-url"]) as String).trimEnd('/'))
         }
-        val supportedTestPlatforms = listOf("docker", "okd")
-        if (project.ext["testPlatform"] !in supportedTestPlatforms) {
+        val supportedTestPlatforms = listOf("okd")
+        val testPlatform = project.ext["testPlatform"] as String
+        if (testPlatform.isNotBlank() && testPlatform !in supportedTestPlatforms) {
             throw IllegalArgumentException("Test platform must be set to one of the following $supportedTestPlatforms. Start gradle build with -Ptest.platform=... or set env variable TEST_PLATFORM")
         }
         val mandatoryProperties = mutableListOf("dockerRegistry", "octopusGithubDockerRegistry")

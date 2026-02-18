@@ -1,0 +1,13 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>artifactory-build-info</repoKey>
+        <path></path>
+        <folder>true</folder>
+    </repoPath>
+    <name></name>
+    <created>1768888466380</created>
+    <lastModified>1768888466380</lastModified>
+    <additionalInfo>
+        <lastUpdated>1768888466380</lastUpdated>
+    </additionalInfo>
+</artifactory-folder>

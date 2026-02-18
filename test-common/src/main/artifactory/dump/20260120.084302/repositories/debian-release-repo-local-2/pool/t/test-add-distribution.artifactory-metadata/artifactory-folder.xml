@@ -1,0 +1,15 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>debian-release-repo-local-2</repoKey>
+        <path>pool/t/test-add-distribution</path>
+        <folder>true</folder>
+    </repoPath>
+    <name>test-add-distribution</name>
+    <created>1768898316542</created>
+    <lastModified>1768898316542</lastModified>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898316542</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+    </additionalInfo>
+</artifactory-folder>

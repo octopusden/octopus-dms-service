@@ -1,0 +1,15 @@
+<artifactory-folder>
+    <repoPath>
+        <repoKey>maven-release-repo-local</repoKey>
+        <path>test/add/distribution</path>
+        <folder>true</folder>
+    </repoPath>
+    <name>distribution</name>
+    <created>1768898466564</created>
+    <lastModified>1768898466564</lastModified>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898466564</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+    </additionalInfo>
+</artifactory-folder>
