@@ -19,8 +19,8 @@
             <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>
-            <param name="DMS_FILE_VALIDATION_SKIP" value="false" spec="text description='Skip file validation in DMS (e.g. licences, copyright etc.). Possible values are: true, false' validationMode='not_empty' display='normal'"/>
-            <param name="DMS_DISABLED_FILE_VALIDATORS" value="" spec="text description='Disable some validators (e.g. licence, copyright etc.).' validationMode='any' display='normal'"/>
+            <param name="DMS_FILE_VALIDATION_SKIP" value="false" spec="text description='Skip file validation in DMS (e.g. licenses, copyright etc.). Possible values are: true, false' validationMode='not_empty' display='normal'"/>
+            <param name="DMS_DISABLED_FILE_VALIDATORS" value="" spec="text description='Disable some validators (e.g. license, copyright etc.).' validationMode='any' display='normal'"/>
             <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="" spec="text description='Path to dms log file' validationMode='not_empty' display='normal'"/>
             <param name="WL_IGNORE_FILE" value="" spec="text description='Path to white labeling configuration file' validationMode='any' display='normal'"/>
             <param name="WL_EXCLUDE_FILES" value="" spec="text description='Paths to files excluded from white labeling separated by comma' validationMode='any' display='normal'"/>
