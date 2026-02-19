@@ -1,14 +1,14 @@
 {
   "fileValidation": {
     "enabled": true,
-    "requiredPatterns": [
+    "rules": [
       {
-        "pattern": "((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$",
-        "options": []
+        "id": "license",
+        "pattern": "((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$"
       },
       {
-        "pattern": "((.*[/\\\\])|^)COPYRIGHT$",
-        "options": []
+        "id": "copyright",
+        "pattern": "((.*[/\\\\])|^)COPYRIGHT$"
       }
     ]
   },

@@ -20,6 +20,7 @@
             <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>
             <param name="DMS_FILE_VALIDATION_SKIP" value="false" spec="text description='Skip file validation in DMS (e.g. licences, copyright etc.). Possible values are: true, false' validationMode='not_empty' display='normal'"/>
+            <param name="DMS_DISABLED_FILE_VALIDATORS" value="" spec="text description='Disable some validators (e.g. licence, copyright etc.).' validationMode='any' display='normal'"/>
             <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="" spec="text description='Path to dms log file' validationMode='not_empty' display='normal'"/>
             <param name="WL_IGNORE_FILE" value="" spec="text description='Path to white labeling configuration file' validationMode='any' display='normal'"/>
             <param name="WL_EXCLUDE_FILES" value="" spec="text description='Paths to files excluded from white labeling separated by comma' validationMode='any' display='normal'"/>
@@ -30,7 +31,7 @@
                     <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:validate-artifacts" />
                     <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% -Djava.util.concurrent.ForkJoinPool.common.parallelism=10 %DMS_JVM_OPTS%" />
                     <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/%DMS_MAVEN_VERSION%" />
-                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Dtype=%ARTIFACT_TYPE% -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -DskipFileValidation=%DMS_FILE_VALIDATION_SKIP% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -DwlIgnore=%WL_IGNORE_FILE% -DexcludeFiles=%WL_EXCLUDE_FILES% %DMS_EXTRA_PARAMETERS%"/>
+                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Dtype=%ARTIFACT_TYPE% -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -DskipFileValidation=%DMS_FILE_VALIDATION_SKIP% -DdisabledFileValidators=%DMS_DISABLED_FILE_VALIDATORS% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% -DwlIgnore=%WL_IGNORE_FILE% -DexcludeFiles=%WL_EXCLUDE_FILES% %DMS_EXTRA_PARAMETERS%"/>
                     <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/%DMS_JDK_VERSION%" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />
