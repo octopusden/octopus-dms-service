@@ -2,6 +2,7 @@ package org.octopusden.octopus.dms.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.octopusden.octopus.dms.client.common.dto.FileValidatorRulePropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.FileValidatorPropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
@@ -38,8 +39,8 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
     @Parameter(property = "wlIgnore")
     private File wlIgnore;
 
-    @Parameter(property = "skipFileValidation", defaultValue = "false")
-    private boolean skipFileValidation;
+    @Parameter(property = "enabledFileValidators")
+    private String enabledFileValidators;
 
     @Inject
     public ValidateArtifactsMojo(ArtifactService artifactService, DMSService dmsService) {
@@ -96,14 +97,25 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 throw new RuntimeMojoExecutionException(e.getMessage(), e);
             }
         }
+        Set<String> enabledFileValidatorsSet = StringUtils.isBlank(enabledFileValidators)
+                ? Collections.emptySet()
+                : Arrays.stream(enabledFileValidators.split("\\s?(,)\\s?"))
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .collect(Collectors.toSet());
         ValidationPropertiesDTO originalValidation = dmsConfiguration.getValidation();
         ValidationPropertiesDTO validationToUse;
-        if (skipFileValidation) {
-            log.info("Skipping file validation");
-            FileValidatorPropertiesDTO disabledFileValidation = new FileValidatorPropertiesDTO(false, originalValidation.getFileValidation().getRequiredPatterns());
-            validationToUse = new ValidationPropertiesDTO(disabledFileValidation, originalValidation.getNameValidation(), originalValidation.getContentValidation());
+        if (enabledFileValidatorsSet.isEmpty()) {
+            log.info("All file validators are disabled (enabledFileValidators is blank)");
+            FileValidatorPropertiesDTO adjustedFileValidation = new FileValidatorPropertiesDTO(Collections.emptySet());
+            validationToUse = new ValidationPropertiesDTO(adjustedFileValidation, originalValidation.getNameValidation(), originalValidation.getContentValidation());
         } else {
-            validationToUse = originalValidation;
+            log.info("Enabled file validators: " + enabledFileValidatorsSet);
+            Set<FileValidatorRulePropertiesDTO> filteredRules = originalValidation.getFileValidation().getRules().stream()
+                    .filter(rule -> enabledFileValidatorsSet.contains(rule.getId()))
+                    .collect(Collectors.toSet());
+            FileValidatorPropertiesDTO adjustedFileValidation = new FileValidatorPropertiesDTO(filteredRules);
+            validationToUse = new ValidationPropertiesDTO(adjustedFileValidation, originalValidation.getNameValidation(), originalValidation.getContentValidation());
         }
         artifactService.processArtifacts(log,
                 dmsConfiguration.getMavenGroupPrefix(),

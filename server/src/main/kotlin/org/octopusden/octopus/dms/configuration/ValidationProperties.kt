@@ -8,7 +8,9 @@ data class ValidationProperties(
     val nameValidator: NameValidatorProperties,
     val contentValidator: ContentValidatorProperties
 ) {
-    data class FileValidatorProperties(val enabled: Boolean, val requiredPatterns: Set<Regex>)
+    data class FileValidatorProperties(val rules: Set<FileValidatorRuleProperties>)
+
+    data class FileValidatorRuleProperties(val id: String, val pattern: Regex)
 
     data class NameValidatorProperties(val enabled: Boolean, val allowedPattern: Regex)
 

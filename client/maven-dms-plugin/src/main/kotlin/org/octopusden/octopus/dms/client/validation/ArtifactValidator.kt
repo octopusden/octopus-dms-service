@@ -34,15 +34,14 @@ class ArtifactValidator private constructor(
     private class FileValidator(
         val fileValidatorProperties: FileValidatorPropertiesDTO
     ) {
-
         fun validate(path: String, file: Path): List<String> {
-            if (!fileValidatorProperties.enabled) return emptyList()
-            return fileValidatorProperties.requiredPatterns.flatMap { pattern ->
+            if (fileValidatorProperties.rules.isEmpty()) return emptyList()
+            return fileValidatorProperties.rules.flatMap {
                 validateFile(
                     path = path,
                     file = file,
-                    pattern = pattern,
-                    errorMessage = "file matching pattern '${pattern.pattern}' not found"
+                    pattern = it.pattern,
+                    errorMessage = "required file rule '${it.id}' failed: no file matching '${it.pattern.pattern}' found"
                 )
             }
         }

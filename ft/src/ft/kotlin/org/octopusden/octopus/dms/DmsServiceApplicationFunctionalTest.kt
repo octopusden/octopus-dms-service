@@ -159,15 +159,16 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates.version=1.0",
             "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
             "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+            "-DenabledFileValidators=license,copyright",
             "-Dtype=distribution"
         ))) {
             assertEquals(1, this.first)
             assertContains(this.second, "[ERROR] Artifact '${devMavenDistributionCoordinates.toPath()}' validation errors:")
-            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: file matching pattern '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' not found")
-            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: file matching pattern '((.*[/\\\\])|^)COPYRIGHT$' not found")
+            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found")
+            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found")
             assertContains(this.second, "[ERROR] Artifact '${releaseMavenDistributionCoordinates.toPath()}' validation errors:")
-            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: file matching pattern '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' not found")
-            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: file matching pattern '((.*[/\\\\])|^)COPYRIGHT$' not found")
+            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found")
+            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found")
             assertContains(this.second, "[INFO] Validated artifact '${devDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
             assertContains(this.second, "[INFO] Validated artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
             assertContains(this.second, "[INFO] Validated artifact '${devRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")

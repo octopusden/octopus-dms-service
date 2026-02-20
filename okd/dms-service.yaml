@@ -20,7 +20,7 @@ objects:
       restartPolicy: Never
       activeDeadlineSeconds: ${{ACTIVE_DEADLINE_SECONDS}}
       containers:
-        - name: gateway
+        - name: dms-service
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
           ports:
             - containerPort: 8080
