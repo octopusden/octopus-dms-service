@@ -17,7 +17,11 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
+import java.util.stream.Stream
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private val isWindowsSystem by lazy {
@@ -45,8 +49,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         }
     )
 
-    @Test
-    fun testGradleDmsClient() {
+    @ParameterizedTest
+    @MethodSource("gradleVersions")
+    fun testGradleDmsClient(gradleVersion: String) {
         val reports = listOf(
             "REPORT0354" to MavenArtifactCoordinatesDTO(
                 GavDTO(
@@ -77,9 +82,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         }
         val buildDir = File("").resolve("build")
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
-        val targetDir = projectDir.resolve("export")
+        val targetDir = projectDir.resolve("export-$gradleVersion")
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
+            .withGradleVersion(gradleVersion)
             .withArguments(
                 "-Pdms-service.version=${System.getProperty("dms-service.version")}",
                 "-Pdms-service.url=$dmsServiceUrl",
@@ -92,7 +98,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "exportArtifactsTask",
                 "--info"
             ).build()
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-client.log")) {
+        with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
             this.parentFile.mkdirs()
             this.outputStream().use {
                 it.writer(UTF_8).write(result.output)
@@ -385,5 +391,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     companion object {
         private const val mvnWinCommand = "mvn.cmd"
         private const val mvnCommonCommand = "mvn"
+
+        @JvmStatic
+        private fun gradleVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of("7.6"),
+            Arguments.of("8.6")
+        )
     }
 }
