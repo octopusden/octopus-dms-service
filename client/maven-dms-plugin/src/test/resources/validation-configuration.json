@@ -1,6 +1,5 @@
 {
   "fileValidation": {
-    "enabled": true,
     "rules": [
       {
         "id": "license",

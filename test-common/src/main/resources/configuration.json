@@ -2,7 +2,6 @@
   "mavenGroupPrefix": "corp.domain.dms",
   "validation": {
     "fileValidation": {
-      "enabled": true,
       "rules": [
         {
           "id": "license",

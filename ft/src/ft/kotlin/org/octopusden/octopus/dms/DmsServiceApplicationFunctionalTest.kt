@@ -159,6 +159,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "-Dartifacts.coordinates.version=1.0",
             "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
             "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+            "-DenabledFileValidators=license,copyright",
             "-Dtype=distribution"
         ))) {
             assertEquals(1, this.first)

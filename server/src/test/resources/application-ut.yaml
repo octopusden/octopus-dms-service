@@ -60,7 +60,6 @@ release-management-service:
 
 validation:
   file-validator:
-    enabled: true
     rules:
       - id: license
         pattern: ((.*[/\\])|^)licenses[/\\]THIRD-PARTY.txt$

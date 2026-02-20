@@ -29,7 +29,6 @@ class ConfigurationController(
         storageProperties.mavenGroupPrefix,
         ValidationPropertiesDTO(
             FileValidatorPropertiesDTO(
-                validationProperties.fileValidator.enabled,
                 validationProperties.fileValidator.rules
                     .map { FileValidatorRulePropertiesDTO(it.id, it.pattern) }.toSet()
             ),

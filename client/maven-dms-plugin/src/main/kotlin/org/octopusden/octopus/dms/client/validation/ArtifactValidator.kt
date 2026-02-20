@@ -35,7 +35,7 @@ class ArtifactValidator private constructor(
         val fileValidatorProperties: FileValidatorPropertiesDTO
     ) {
         fun validate(path: String, file: Path): List<String> {
-            if (!fileValidatorProperties.enabled) return emptyList()
+            if (fileValidatorProperties.rules.isEmpty()) return emptyList()
             return fileValidatorProperties.rules.flatMap {
                 validateFile(
                     path = path,
