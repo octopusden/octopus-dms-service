@@ -51,7 +51,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @ParameterizedTest
     @MethodSource("gradleVersions")
-    fun testGradleDmsClient(gradleVersion: String) {
+    fun testGradleDmsClient(gradleVersion: String, shouldSucceed: Boolean) {
         val reports = listOf(
             "REPORT0354" to MavenArtifactCoordinatesDTO(
                 GavDTO(
@@ -83,7 +83,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val buildDir = File("").resolve("build")
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
         val targetDir = projectDir.resolve("export-$gradleVersion")
-        val result = GradleRunner.create()
+        val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
             .withArguments(
@@ -97,17 +97,24 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                 "exportArtifactsTask",
                 "--info"
-            ).build()
+            )
+        val result = if (shouldSucceed) {
+            runner.build()
+        } else {
+            runner.buildAndFail()
+        }
         with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
             this.parentFile.mkdirs()
             this.outputStream().use {
                 it.writer(UTF_8).write(result.output)
             }
         }
-        reports.forEach {
-            it.first.byteInputStream(UTF_8).use { expected ->
-                targetDir.resolve(it.second.gav.toPath().substringAfterLast('/')).inputStream().use { actual ->
-                    assertArrayEquals(expected.readBytes(), actual.readBytes())
+        if (shouldSucceed) {
+            reports.forEach {
+                it.first.byteInputStream(UTF_8).use { expected ->
+                    targetDir.resolve(it.second.gav.toPath().substringAfterLast('/')).inputStream().use { actual ->
+                        assertArrayEquals(expected.readBytes(), actual.readBytes())
+                    }
                 }
             }
         }
@@ -391,8 +398,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of("7.6"),
-            Arguments.of("8.6")
+            Arguments.of("7.6", false),  // false = expect failure
+            Arguments.of("8.6", true)     // true = expect success
         )
     }
 }
