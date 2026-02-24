@@ -85,10 +85,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("tmp").resolve("test-gradle-dms-client-$gradleVersion")
         val targetDir = projectDir.resolve("export")
 
-        // Copy the fixture project to a version-specific directory
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
-        // Extract GradleRunner creation
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
