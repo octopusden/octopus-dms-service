@@ -92,7 +92,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
-            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion"))
+            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
             .withArguments(
                 "-Pdms-service.version=${System.getProperty("dms-service.version")}",
                 "-Pdms-service.url=$dmsServiceUrl",
