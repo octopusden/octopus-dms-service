@@ -81,11 +81,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             }
         }
         val buildDir = File("").resolve("build")
-        val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
-        val targetDir = projectDir.resolve("export-$gradleVersion")
+        val sourceProjectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
+        val projectDir = buildDir.resolve("tmp").resolve("test-gradle-dms-client-$gradleVersion")
+        val targetDir = projectDir.resolve("export")
+
+        // Copy the fixture project to a version-specific directory
+        sourceProjectDir.copyRecursively(projectDir, overwrite = true)
+
+        // Extract GradleRunner creation
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
+            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion"))
             .withArguments(
                 "-Pdms-service.version=${System.getProperty("dms-service.version")}",
                 "-Pdms-service.url=$dmsServiceUrl",
@@ -98,17 +105,27 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "exportArtifactsTask",
                 "--info"
             )
+
         val result = if (shouldSucceed) {
             runner.build()
         } else {
             runner.buildAndFail()
         }
+
+        if (!shouldSucceed) {
+            assertTrue(
+                result.output.contains("Failed to create Jar file") && result.output.contains("jackson-core"),
+                "Build should have failed due to Gradle version incompatibility (Jackson jar creation issue), but failed with: ${result.output.take(500)}"
+            )
+        }
+
         with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
             this.parentFile.mkdirs()
             this.outputStream().use {
                 it.writer(UTF_8).write(result.output)
             }
         }
+
         if (shouldSucceed) {
             reports.forEach {
                 it.first.byteInputStream(UTF_8).use { expected ->
@@ -398,8 +415,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of("7.6", false),  // false = expect failure
-            Arguments.of("8.6", true)     // true = expect success
+            Arguments.of("7.6", false),
+            Arguments.of("8.6", true)
         )
     }
 }
