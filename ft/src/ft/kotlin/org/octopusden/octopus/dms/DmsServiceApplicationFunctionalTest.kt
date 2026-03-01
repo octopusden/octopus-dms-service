@@ -85,6 +85,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("tmp").resolve("test-gradle-dms-client-$gradleVersion")
         val targetDir = projectDir.resolve("export")
 
+        projectDir.deleteRecursively()
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
         val runner = GradleRunner.create()
