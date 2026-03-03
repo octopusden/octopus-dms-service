@@ -17,7 +17,11 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
+import java.util.stream.Stream
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private val isWindowsSystem by lazy {
@@ -45,8 +49,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         }
     )
 
-    @Test
-    fun testGradleDmsClient() {
+    @ParameterizedTest
+    @MethodSource("gradleVersions")
+    fun testGradleDmsClient(gradleVersion: String, shouldSucceed: Boolean) {
         val reports = listOf(
             "REPORT0354" to MavenArtifactCoordinatesDTO(
                 GavDTO(
@@ -76,10 +81,17 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             }
         }
         val buildDir = File("").resolve("build")
-        val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
+        val sourceProjectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-client")
+        val projectDir = buildDir.resolve("tmp").resolve("test-gradle-dms-client-$gradleVersion")
         val targetDir = projectDir.resolve("export")
-        val result = GradleRunner.create()
+
+        projectDir.deleteRecursively()
+        sourceProjectDir.copyRecursively(projectDir, overwrite = true)
+
+        val runner = GradleRunner.create()
             .withProjectDir(projectDir)
+            .withGradleVersion(gradleVersion)
+            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
             .withArguments(
                 "-Pdms-service.version=${System.getProperty("dms-service.version")}",
                 "-Pdms-service.url=$dmsServiceUrl",
@@ -91,17 +103,34 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                 "exportArtifactsTask",
                 "--info"
-            ).build()
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-client.log")) {
+            )
+
+        val result = if (shouldSucceed) {
+            runner.build()
+        } else {
+            runner.buildAndFail()
+        }
+
+        if (!shouldSucceed) {
+            assertTrue(
+                result.output.contains("Failed to create Jar file") && result.output.contains("jackson-core"),
+                "Build should have failed due to Gradle version incompatibility (Jackson jar creation issue), but failed with: ${result.output.take(500)}"
+            )
+        }
+
+        with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
             this.parentFile.mkdirs()
             this.outputStream().use {
                 it.writer(UTF_8).write(result.output)
             }
         }
-        reports.forEach {
-            it.first.byteInputStream(UTF_8).use { expected ->
-                targetDir.resolve(it.second.gav.toPath().substringAfterLast('/')).inputStream().use { actual ->
-                    assertArrayEquals(expected.readBytes(), actual.readBytes())
+
+        if (shouldSucceed) {
+            reports.forEach {
+                it.first.byteInputStream(UTF_8).use { expected ->
+                    targetDir.resolve(it.second.gav.toPath().substringAfterLast('/')).inputStream().use { actual ->
+                        assertArrayEquals(expected.readBytes(), actual.readBytes())
+                    }
                 }
             }
         }
@@ -385,5 +414,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     companion object {
         private const val mvnWinCommand = "mvn.cmd"
         private const val mvnCommonCommand = "mvn"
+
+        @JvmStatic
+        private fun gradleVersions(): Stream<Arguments> = Stream.of(
+            Arguments.of("7.6", false),
+            Arguments.of("8.6", true)
+        )
     }
 }
