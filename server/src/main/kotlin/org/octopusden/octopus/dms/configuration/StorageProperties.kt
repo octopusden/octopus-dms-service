@@ -16,6 +16,7 @@ data class StorageProperties(
         val uploadRepositories: Map<RepositoryType, String> = emptyMap(),
         val stagingRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
         val releaseRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
+        val coldRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
         val trustAllCerts: Boolean = false
     )
 }
