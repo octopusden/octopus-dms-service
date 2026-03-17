@@ -29,7 +29,8 @@ class StorageServiceImpl(
     private fun getRepositories(repositoryType: RepositoryType, includeStaging: Boolean) =
         (storageProperties.artifactory.uploadRepositories[repositoryType]?.let { setOf(it) } ?: emptySet()) +
             (if (includeStaging) storageProperties.artifactory.stagingRepositories[repositoryType] ?: emptySet() else emptySet()) +
-            (storageProperties.artifactory.releaseRepositories[repositoryType] ?: emptySet())
+            (storageProperties.artifactory.releaseRepositories[repositoryType] ?: emptySet()) +
+            (storageProperties.artifactory.coldRepositories[repositoryType] ?: emptySet())
 
     override fun getRepositoriesUrls(repositoryType: RepositoryType, includeStaging: Boolean) =
         getRepositories(repositoryType, includeStaging).map {
