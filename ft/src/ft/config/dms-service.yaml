@@ -107,6 +107,7 @@ octopus-security:
       - ACCESS_DISTRIBUTION
       - PUBLISH_ARTIFACT
       - DELETE_DATA
+      - ACCESS_SBOM
 
 management:
   endpoints:
