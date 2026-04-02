@@ -22,6 +22,7 @@ class PermissionEvaluator(
             ArtifactType.MANUALS -> hasPermission("ACCESS_DOCUMENTATION")
             ArtifactType.DISTRIBUTION -> hasPermission("ACCESS_DISTRIBUTION")
             ArtifactType.STATIC -> false
+            ArtifactType.SBOM -> hasPermission("ACCESS_SBOM")
         }
     } ?: false
 

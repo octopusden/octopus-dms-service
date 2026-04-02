@@ -13,7 +13,7 @@
         <parameters>
             <param name="COMPONENT_NAME" value="" spec="text description='Name of Component registered in Component Registry' validationMode='not_empty' display='normal'"/>
             <param name="BUILD_VERSION" value="" spec="text description='Component version registered in JIRA' validationMode='not_empty' display='normal'"/>
-            <param name="ARTIFACT_TYPE" value="distribution" spec="select description='Artifact type' data_1='distribution' data_2='notes' data_3='report' data_4='static' data_5='documentation' display='normal'"/>
+            <param name="ARTIFACT_TYPE" value="distribution" spec="select description='Artifact type' data_1='distribution' data_2='notes' data_3='report' data_4='static' data_5='documentation' data_6='sbom' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES" value="" spec="text description='Maven artifacts coordinates (without version)' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_VERSION" value="" spec="text description='Maven artifacts coordinates version (if it differs from BUILD_VERSION)' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
