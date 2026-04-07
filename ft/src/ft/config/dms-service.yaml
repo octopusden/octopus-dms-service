@@ -105,9 +105,9 @@ octopus-security:
       - ACCESS_NOTES
       - ACCESS_DOCUMENTATION
       - ACCESS_DISTRIBUTION
+      - ACCESS_COMPLIANCE_ARTIFACTS
       - PUBLISH_ARTIFACT
       - DELETE_DATA
-      - ACCESS_SBOM
 
 management:
   endpoints:

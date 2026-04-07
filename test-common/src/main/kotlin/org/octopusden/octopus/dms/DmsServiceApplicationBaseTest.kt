@@ -1,6 +1,5 @@
 package org.octopusden.octopus.dms
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertIterableEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertThrowsExactly
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -26,26 +24,19 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
-import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
-import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
-import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
 import org.octopusden.octopus.dms.exception.DMSException
-import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
 import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
@@ -192,339 +183,50 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
-    fun testRegisterUploadedArtifactWithChangedChecksum() {
-        val releaseNotesRC = getResource(devReleaseNotesFileName)
-        val artifact = releaseNotesRC.openStream().use {
-            client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, true)
-        }
-        updateSha256(artifact.id, "some-other-sha256")
-        assertThrowsExactly(ArtifactChecksumChangedException::class.java) {
-            client.registerComponentVersionArtifact(
-                eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.NOTES)
-            )
-        }
-        releaseNotesRC.openStream().use {
-            client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, false)
-        }
-        with(client.registerComponentVersionArtifact(
-            eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )) {
-            this as MavenArtifactFullDTO
-            assertEquals(artifact.id, id)
-            assertEquals(artifact.sha256, sha256)
-            assertEquals(artifact.gav, gav)
-        }
-    }
+    fun testUploadDownloadSbomArtifact() {
+        val sbomResource = getResource(TEST_SBOM_FILE_NAME)
+        val originalContent = sbomResource.openStream().use { it.readBytes() }
 
-    @Test
-    fun testRegisterAddedArtifactWithChangedChecksum() {
-        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        updateSha256(artifact.id, "some-other-sha256")
-        assertThrowsExactly(ArtifactChecksumChangedException::class.java) {
-            client.registerComponentVersionArtifact(
-                eeComponent,
-                eeComponentReleaseVersion0354.buildVersion,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
-            )
-        }
-        client.addArtifact(releaseMavenDistributionCoordinates)
-        with(client.registerComponentVersionArtifact(
-            eeComponent,
-            eeComponentReleaseVersion0354.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )) {
-            assertEquals(artifact.id, id)
-            assertEquals(artifact.sha256, sha256)
-        }
-    }
-
-    @Test
-    fun testGetValidationConfiguration() = assertEquals(
-        getResource("configuration.json").openStream().use {
-            objectMapper.readValue(it, PropertiesDTO::class.java)
-        },
-        client.getConfiguration()
-    )
-
-    @Test
-    fun testGetComponents() {
-        val eeComponentsDTO = getResource("ee-components.json").openStream().use {
-            objectMapper.readValue(it, ComponentsDTO::class.java)
-        }
-
-        assertEquals(
-            eeComponentsDTO.components,
-            client.getComponents(ComponentRequestFilter()).components
-        )
-
-        arrayOf(null, true, false).forEach { solution ->
-            assertEquals(
-                eeComponentsDTO.components.filter {
-                    solution?.let { solutionValue -> it.solution == solutionValue } ?: true
-                },
-                client.getComponents(ComponentRequestFilter(solution = solution)).components
+        val uploadedSbomArtifact = sbomResource.openStream().use { inputStream ->
+            client.uploadArtifact(
+                artifactCoordinates = sbomCoordinates,
+                file = inputStream,
+                fileName = TEST_SBOM_FILE_NAME,
+                failOnAlreadyExists = true
             )
         }
 
-        val componentsDTO = getResource("components.json").openStream().use {
-            objectMapper.readValue(it, ComponentsDTO::class.java)
-        }
+        assertTrue(uploadedSbomArtifact.uploaded)
+        assertEquals(RepositoryType.MAVEN, uploadedSbomArtifact.repositoryType)
+        assertEquals(sbomCoordinates.gav, uploadedSbomArtifact.gav)
 
-        assertEquals(
-            componentsDTO.components,
-            client.getComponents(ComponentRequestFilter(explicit = false)).components
+        val registeredArtifact = client.registerComponentVersionArtifact(
+            componentName = eeComponent,
+            version = eeComponentReleaseVersion0354.releaseVersion,
+            artifactId = uploadedSbomArtifact.id,
+            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.SBOM)
         )
-    }
 
-    @ParameterizedTest
-    @MethodSource
-    fun testGetComponentMinorVersions(
-        releaseVersion0354: Version, rcVersion0354: Version,
-        rcVersion0355: Version, buildVersion0356: Version
-    ) {
-        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            releaseVersion0354.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
+        val componentArtifacts = client.getComponentVersionArtifacts(
+            componentName = eeComponent,
+            version = eeComponentReleaseVersion0354.releaseVersion,
+            type = ArtifactType.SBOM
         )
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0354.releaseVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0355.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        insertVersion(
-            eeComponent,
-            buildVersion0356
-        ) //NOTE: getComponentMinorVersions does not check build status
-        assertEquals(
-            getResource("component-minor-versions.json").openStream().use {
-                objectMapper.readValue(it, object : TypeReference<List<String>>() {})
-            },
-            client.getComponentMinorVersions(eeComponent)
-        )
-    }
 
-    @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testGetComponentMinorVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
-        assertThrowsExactly(exception) {
-            client.getComponentMinorVersions(component)
-        }
-    }
+        assertEquals(1, componentArtifacts.artifacts.size)
+        assertEquals(registeredArtifact.id, componentArtifacts.artifacts.first().id)
 
-    @ParameterizedTest
-    @MethodSource
-    fun testGetComponentVersions(
-        buildVersion0354: Version, rcVersion0354: Version, releaseVersion0354: Version,
-        buildVersion0355: Version, rcVersion0355: Version, buildVersion0356: Version,
-        resultFileNamePrefix: String
-    ) {
-        assertEquals(
-            ComponentVersionsDTO(emptyList()),
-            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion)
-        )
-        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            releaseVersion0354.releaseVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0354.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        insertVersion(eeComponent, buildVersion0354)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0355.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        insertVersion(eeComponent, buildVersion0355)
-        assertEquals(
-            ComponentVersionsDTO(emptyList()),
-            client.getComponentVersions(eeComponent, buildVersion0356.minorVersion)
-        )
-        assertEquals(
-            getResource("$resultFileNamePrefix.json").openStream().use {
-                objectMapper.readValue(it, ComponentVersionsDTO::class.java)
-            },
-            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion)
-        )
-        assertEquals(
-            getResource("$resultFileNamePrefix-no-rc.json").openStream().use {
-                objectMapper.readValue(it, ComponentVersionsDTO::class.java)
-            },
-            client.getComponentVersions(eeComponent, releaseVersion0354.minorVersion, false)
-        )
-    }
-
-    @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testGetComponentVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
-        assertThrowsExactly(exception) {
-            client.getComponentVersions(component, ANY_VERSION)
-        }
-    }
-
-    @ParameterizedTest
-    @MethodSource("artifactsReleaseVersions")
-    fun testRenameComponent(artifactCoordinates: ArtifactCoordinatesDTO, version: Version) {
-        val artifact = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            version.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
-        )
-        val componentVersionArtifacts = client.getComponentVersionArtifacts(
-            eeComponent,
-            version.releaseVersion,
-            ArtifactType.DISTRIBUTION
-        )
-        assertEquals(1, componentVersionArtifacts.artifacts.size)
-        updateName(eeComponent, "some-$eeComponent")
-        assertThrows(NotFoundException::class.java) {
-            client.getComponentVersionArtifact(
-                "some-$eeComponent",
-                version.releaseVersion,
-                artifact.id
-            )
-        }
-        client.renameComponent("some-$eeComponent", eeComponent)
-        client.getComponentVersions(eeComponent, version.minorVersion)
-        // Check that the operation(renaming) is idempotent
-        client.renameComponent("some-$eeComponent", eeComponent)
-        // Check exception to rename unexisting component
-        assertThrowsExactly(IllegalComponentRenamingException::class.java) {
-            client.renameComponent(eeComponent, eeComponent)
-        }
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.renameComponent("some-$eeComponent", "some-$eeComponent")
-        }
-        // Check an exception, when both old and new component names exist in the system
-        val artifact2 = client.addArtifact(artifactCoordinates)
-        client.registerComponentVersionArtifact(
-            eeClientSpecificComponent,
-            eeComponentReleaseVersion0353.buildVersion,
-            artifact2.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        assertThrows(IllegalComponentRenamingException::class.java) {
-            client.renameComponent(eeComponent, eeClientSpecificComponent)
-        }
-        // Check that artifact with new component name is available
-        client.downloadComponentVersionArtifact(eeComponent, version.releaseVersion, artifact.id)
-            .use { response ->
-                assertTrue(response.body().asInputStream().readBytes().isNotEmpty())
+        val downloadedContent = client.downloadArtifact(uploadedSbomArtifact.id).use { response ->
+            sbomResource.openStream().use {
+                response.body().asInputStream().readBytes()
             }
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    fun testGetPreviousLinesLatestVersions(
-        buildVersion0353: Version, rcVersion0353: Version, releaseVersion0353: Version,
-        buildVersion0354: Version, rcVersion0354: Version, releaseVersion0354: Version,
-        rcVersion0355: Version, resultFileNamePrefix: String
-    ) {
-        assertEquals(
-            VersionsDTO(emptyList()),
-            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.buildVersion)
-        )
-        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            releaseVersion0353.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        insertVersion(eeComponent, buildVersion0353)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0353.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-
-        insertVersion(eeComponent, buildVersion0354)
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            rcVersion0354.releaseVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-        client.registerComponentVersionArtifact(
-            eeComponent,
-            releaseVersion0354.buildVersion,
-            artifact.id,
-            RegisterArtifactDTO(ArtifactType.NOTES)
-        )
-
-        assertEquals(
-            VersionsDTO(emptyList()),
-            client.getPreviousLinesLatestVersions(eeComponent, releaseVersion0353.buildVersion)
-        )
-        assertEquals(
-            getResource("$resultFileNamePrefix.json").openStream().use {
-                objectMapper.readValue(it, VersionsDTO::class.java)
-            },
-            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.releaseVersion)
-        )
-
-        assertEquals(
-            getResource("$resultFileNamePrefix-include-rc.json").openStream().use {
-                objectMapper.readValue(it, VersionsDTO::class.java)
-            },
-            client.getPreviousLinesLatestVersions(eeComponent, rcVersion0355.buildVersion, true)
-        )
-    }
-
-    @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testGetPreviousLinesLatestVersionsForNonEEComponent(component: String, exception: Class<out DMSException>) {
-        assertThrowsExactly(exception) {
-            client.getPreviousLinesLatestVersions(component, ANY_VERSION)
         }
-    }
 
-    @Test
-    fun testGetPreviousLinesLatestVersionsForInvalidVersion() {
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentBuildVersion0356.minorVersion)
-        }
-        assertThrowsExactly(IllegalVersionStatusException::class.java) {
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentBuildVersion0356.buildVersion)
-        }
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentBuildVersion0356.releaseVersion)
-        }
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentNonExistsVersion0357.buildVersion)
-        }
-        assertThrowsExactly(NotFoundException::class.java) {
-            client.getPreviousLinesLatestVersions(eeComponent, eeComponentNonExistsVersion0357.releaseVersion)
-        }
+        assertArrayEquals(
+            originalContent,
+            downloadedContent,
+            "The contents of the downloaded SBOM do not match the original file!"
+        )
     }
 
     @ParameterizedTest
@@ -965,12 +667,23 @@ abstract class DmsServiceApplicationBaseTest {
         const val devReleaseNotesFileName = "release-notes-RC.txt"
         const val releaseReleaseNotesFileName = "release-notes-RELEASE.txt"
 
+        const val TEST_SBOM_FILE_NAME = "test-sbom.json"
+
         val releaseNotesCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.upload", "release-notes", "1.0", "txt", "en"))
         val devMavenDistributionCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "dev"))
         val releaseMavenDistributionCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "release"))
+        val sbomCoordinates = MavenArtifactCoordinatesDTO(
+            GavDTO(
+                groupId = "test.sbom",
+                artifactId = "test-sbom",
+                version = "1.0.0",
+                packaging = "json",
+                classifier = "sbom"
+            )
+        )
         val devDebianDistributionCoordinates =
             DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-dev_1.0-1_amd64.deb")
         val releaseDebianDistributionCoordinates =

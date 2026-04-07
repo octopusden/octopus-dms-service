@@ -3,7 +3,6 @@ package org.octopusden.octopus.dms
 import com.fasterxml.jackson.core.type.TypeReference
 import feign.Request
 import feign.Response
-import java.io.InputStream
 import org.apache.http.entity.ContentType
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
@@ -39,6 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.util.LinkedMultiValueMap
+import java.io.InputStream
 
 
 @AutoConfigureMockMvc
