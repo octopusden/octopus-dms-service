@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import feign.Request
 import feign.Response
 import org.apache.http.entity.ContentType
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
 import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
@@ -31,12 +32,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.util.LinkedMultiValueMap
 import java.io.InputStream
 
@@ -260,5 +263,37 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                 .body(this.contentAsByteArray)
                 .build()
         }
+    }
+
+    @Test
+    fun testComplianceArtifactAccessDeniedWithoutPermission() {
+        val sbomResource = getResource(TEST_SBOM_FILE_NAME)
+        val uploaded = sbomResource.openStream().use { inputStream ->
+            client.uploadArtifact(
+                artifactCoordinates = sbomCoordinates,
+                file = inputStream,
+                fileName = TEST_SBOM_FILE_NAME,
+            )
+        }
+
+        client.registerComponentVersionArtifact(
+            componentName = eeComponent,
+            version = eeComponentReleaseVersion0354.releaseVersion,
+            artifactId = uploaded.id,
+            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.COMPLIANCE_ARTIFACTS)
+        )
+
+        val restricted = SecurityMockMvcRequestPostProcessors
+            .user("restricted")
+            .authorities(SimpleGrantedAuthority("ROLE_DMS_USER_NO_COMPLIANCE"))
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get(
+                "/rest/api/3/components/$eeComponent/versions/${eeComponentReleaseVersion0354.releaseVersion}/artifacts"
+            ).param(
+                "type",
+                ArtifactType.COMPLIANCE_ARTIFACTS.value()
+            ).with(restricted)
+        ).andExpect(status().isForbidden)
     }
 }

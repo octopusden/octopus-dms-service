@@ -4,10 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import java.sql.Connection
-import java.sql.DriverManager
-import java.util.Properties
-import java.util.stream.Stream
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,6 +47,10 @@ import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.VersionPublishedException
+import java.sql.Connection
+import java.sql.DriverManager
+import java.util.*
+import java.util.stream.Stream
 
 @Suppress("SqlDialectInspection", "SameParameterValue")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -588,8 +588,7 @@ abstract class DmsServiceApplicationBaseTest {
             client.uploadArtifact(
                 artifactCoordinates = sbomCoordinates,
                 file = inputStream,
-                fileName = TEST_SBOM_FILE_NAME,
-                failOnAlreadyExists = true
+                fileName = TEST_SBOM_FILE_NAME
             )
         }
 
@@ -614,9 +613,7 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(registeredArtifact.id, componentArtifacts.artifacts.first().id)
 
         val downloadedContent = client.downloadArtifact(uploadedSbomArtifact.id).use { response ->
-            sbomResource.openStream().use {
-                response.body().asInputStream().readBytes()
-            }
+            response.body().asInputStream().readBytes()
         }
 
         assertArrayEquals(
