@@ -580,7 +580,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
-    fun testUploadDownloadSbomArtifact() {
+    fun testUploadDownloadComplianceArtifact() {
         val sbomResource = getResource(TEST_SBOM_FILE_NAME)
         val originalContent = sbomResource.openStream().use { it.readBytes() }
 
@@ -601,13 +601,13 @@ abstract class DmsServiceApplicationBaseTest {
             componentName = eeComponent,
             version = eeComponentReleaseVersion0354.releaseVersion,
             artifactId = uploadedSbomArtifact.id,
-            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.SBOM)
+            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.COMPLIANCE_ARTIFACTS)
         )
 
         val componentArtifacts = client.getComponentVersionArtifacts(
             componentName = eeComponent,
             version = eeComponentReleaseVersion0354.releaseVersion,
-            type = ArtifactType.SBOM
+            type = ArtifactType.COMPLIANCE_ARTIFACTS
         )
 
         assertEquals(1, componentArtifacts.artifacts.size)
@@ -1025,8 +1025,7 @@ abstract class DmsServiceApplicationBaseTest {
                 groupId = "test.sbom",
                 artifactId = "test-sbom",
                 version = "1.0.0",
-                packaging = "json",
-                classifier = "sbom"
+                packaging = "json"
             )
         )
         val devDebianDistributionCoordinates =

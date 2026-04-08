@@ -8,7 +8,7 @@ enum class ArtifactType(val type: String) {
     REPORT("report"),
     STATIC("static"),
     MANUALS("documentation"),
-    SBOM("sbom");
+    COMPLIANCE_ARTIFACTS("compliance-artifacts");
 
     @JsonValue
     fun value(): String {
