@@ -18,11 +18,11 @@ class PermissionEvaluator(
 ) : BasePermissionEvaluator(securityService) {
     fun hasPermissionByArtifactType(type: ArtifactType?) = type?.let {
         when (type) {
-            ArtifactType.NOTES, ArtifactType.REPORT -> hasPermission("ACCESS_NOTES")
-            ArtifactType.MANUALS -> hasPermission("ACCESS_DOCUMENTATION")
-            ArtifactType.DISTRIBUTION -> hasPermission("ACCESS_DISTRIBUTION")
+            ArtifactType.NOTES, ArtifactType.REPORT -> hasPermission(ACCESS_NOTES)
+            ArtifactType.MANUALS -> hasPermission(ACCESS_DOCUMENTATION)
+            ArtifactType.DISTRIBUTION -> hasPermission(ACCESS_DISTRIBUTION)
             ArtifactType.STATIC -> false
-            ArtifactType.SBOM -> hasPermission("ACCESS_SBOM")
+            ArtifactType.COMPLIANCE_ARTIFACTS -> hasPermission(ACCESS_COMPLIANCE_ARTIFACTS)
         }
     } ?: false
 
@@ -74,6 +74,11 @@ class PermissionEvaluator(
     }
 
     companion object {
+        private const val ACCESS_NOTES = "ACCESS_NOTES"
+        private const val ACCESS_DOCUMENTATION = "ACCESS_DOCUMENTATION"
+        private const val ACCESS_DISTRIBUTION = "ACCESS_DISTRIBUTION"
+        private const val ACCESS_COMPLIANCE_ARTIFACTS = "ACCESS_COMPLIANCE_ARTIFACTS"
+
         private val log = LoggerFactory.getLogger(PermissionEvaluator::class.java)
     }
 }

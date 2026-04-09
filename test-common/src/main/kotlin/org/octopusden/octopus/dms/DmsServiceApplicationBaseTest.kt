@@ -4,10 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import java.sql.Connection
-import java.sql.DriverManager
-import java.util.Properties
-import java.util.stream.Stream
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -51,6 +47,10 @@ import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.VersionPublishedException
+import java.sql.Connection
+import java.sql.DriverManager
+import java.util.*
+import java.util.stream.Stream
 
 @Suppress("SqlDialectInspection", "SameParameterValue")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -579,6 +579,50 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(artifact, client.getArtifact(artifact.id))
     }
 
+    @Test
+    fun testUploadDownloadComplianceArtifact() {
+        val sbomResource = getResource(TEST_SBOM_FILE_NAME)
+        val originalContent = sbomResource.openStream().use { it.readBytes() }
+
+        val uploadedSbomArtifact = sbomResource.openStream().use { inputStream ->
+            client.uploadArtifact(
+                artifactCoordinates = sbomCoordinates,
+                file = inputStream,
+                fileName = TEST_SBOM_FILE_NAME
+            )
+        }
+
+        assertTrue(uploadedSbomArtifact.uploaded)
+        assertEquals(RepositoryType.MAVEN, uploadedSbomArtifact.repositoryType)
+        assertEquals(sbomCoordinates.gav, uploadedSbomArtifact.gav)
+
+        val registeredArtifact = client.registerComponentVersionArtifact(
+            componentName = eeComponent,
+            version = eeComponentReleaseVersion0354.releaseVersion,
+            artifactId = uploadedSbomArtifact.id,
+            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.COMPLIANCE_ARTIFACTS)
+        )
+
+        val componentArtifacts = client.getComponentVersionArtifacts(
+            componentName = eeComponent,
+            version = eeComponentReleaseVersion0354.releaseVersion,
+            type = ArtifactType.COMPLIANCE_ARTIFACTS
+        )
+
+        assertEquals(1, componentArtifacts.artifacts.size)
+        assertEquals(registeredArtifact.id, componentArtifacts.artifacts.first().id)
+
+        val downloadedContent = client.downloadArtifact(uploadedSbomArtifact.id).use { response ->
+            response.body().asInputStream().readBytes()
+        }
+
+        assertArrayEquals(
+            originalContent,
+            downloadedContent,
+            "The contents of the downloaded SBOM do not match the original file!"
+        )
+    }
+
     @ParameterizedTest
     @MethodSource
     fun testPatchComponentVersion(rcVersion: Version, releaseVersion: Version, hotfix: Boolean) {
@@ -965,12 +1009,22 @@ abstract class DmsServiceApplicationBaseTest {
         const val devReleaseNotesFileName = "release-notes-RC.txt"
         const val releaseReleaseNotesFileName = "release-notes-RELEASE.txt"
 
+        const val TEST_SBOM_FILE_NAME = "test-sbom.json"
+
         val releaseNotesCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.upload", "release-notes", "1.0", "txt", "en"))
         val devMavenDistributionCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "dev"))
         val releaseMavenDistributionCoordinates =
             MavenArtifactCoordinatesDTO(GavDTO("test.add", "distribution", "1.0", "zip", "release"))
+        val sbomCoordinates = MavenArtifactCoordinatesDTO(
+            GavDTO(
+                groupId = "test.sbom",
+                artifactId = "test-sbom",
+                version = "1.0.0",
+                packaging = "json"
+            )
+        )
         val devDebianDistributionCoordinates =
             DebianArtifactCoordinatesDTO("pool/t/test-add-distribution/test-add-distribution-dev_1.0-1_amd64.deb")
         val releaseDebianDistributionCoordinates =
