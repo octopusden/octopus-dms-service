@@ -89,19 +89,16 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
         // Propagate use_dev_repository to the testkit child Gradle so its init.gradle
-        // activates the internal dev repo for transitive CRS snapshot deps. When the
-        // property is set, let the child use the agent's default GRADLE_USER_HOME so
-        // the infra init scripts apply — otherwise keep the isolated testkit dir for
-        // clean local runs.
+        // activates the internal dev repo for transitive CRS snapshot deps. The child
+        // runs under its own GRADLE_USER_HOME (isolated temp) and therefore doesn't
+        // auto-load the agent's `~/.gradle/init.d`; pass those scripts explicitly via
+        // `-I` when use_dev_repository is set.
         val useDevRepoArg = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
+        val initScriptArgs: List<String> = if (useDevRepoArg != null) collectAgentInitScripts() else emptyList()
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
-            .apply {
-                if (useDevRepoArg == null) {
-                    withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
-                }
-            }
+            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
             .withArguments(
                 listOfNotNull(
                     "-Pdms-service.version=${System.getProperty("dms-service.version")}",
@@ -113,6 +110,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Pcomponent.version=${eeComponentReleaseVersion0354.releaseVersion}",
                     "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                     useDevRepoArg,
+                    *initScriptArgs.toTypedArray(),
                     "exportArtifactsTask",
                     "--info",
                 ),
@@ -164,6 +162,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-plugin")
         val targetDir = projectDir.resolve("export")
         val useDevRepoArg2 = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
+        val initScriptArgs2: List<String> = if (useDevRepoArg2 != null) collectAgentInitScripts() else emptyList()
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
             .withArguments(
@@ -179,6 +178,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Partifact.classifier=${releaseNotesCoordinates.gav.classifier}",
                     "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                     useDevRepoArg2,
+                    *initScriptArgs2.toTypedArray(),
                     "downloadReleaseNotes",
                     "--info",
                 ),
@@ -430,6 +430,25 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     private fun assertContains(source: List<String>, actual: String) {
         assertTrue(source.contains(actual), "Expected the source $source to contain $actual")
+    }
+
+    /**
+     * Collect init scripts that the TC agent keeps under ~/.gradle so a testkit child
+     * Gradle — which runs under an isolated GRADLE_USER_HOME — can pick them up via `-I`.
+     * Covers both ~/.gradle/init.d/*.{gradle,gradle.kts} and a single ~/.gradle/init.gradle(.kts).
+     */
+    private fun collectAgentInitScripts(): List<String> {
+        val gradleHome = File(System.getProperty("user.home"), ".gradle")
+        val dirScripts =
+            File(gradleHome, "init.d").takeIf { it.isDirectory }
+                ?.listFiles { f -> f.isFile && (f.name.endsWith(".gradle") || f.name.endsWith(".gradle.kts")) }
+                ?.toList()
+                .orEmpty()
+        val rootScripts =
+            listOf("init.gradle", "init.gradle.kts")
+                .map { File(gradleHome, it) }
+                .filter { it.isFile }
+        return (dirScripts + rootScripts).flatMap { listOf("-I", it.absolutePath) }
     }
 
     companion object {
