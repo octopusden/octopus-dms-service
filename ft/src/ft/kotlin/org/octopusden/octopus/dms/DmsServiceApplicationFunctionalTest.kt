@@ -435,7 +435,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     /**
      * Collect init scripts that the TC agent keeps under ~/.gradle so a testkit child
      * Gradle — which runs under an isolated GRADLE_USER_HOME — can pick them up via `-I`.
-     * Covers both ~/.gradle/init.d/*.{gradle,gradle.kts} and a single ~/.gradle/init.gradle(.kts).
+     * Covers every .gradle / .gradle.kts file under ~/.gradle/init.d plus a single
+     * ~/.gradle/init.gradle(.kts) if present.
      */
     private fun collectAgentInitScripts(): List<String> {
         val gradleHome = File(System.getProperty("user.home"), ".gradle")
