@@ -89,22 +89,19 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
         // Propagate use_dev_repository to the testkit child Gradle so its init.gradle
-        // activates the internal dev repo for transitive CRS snapshot deps.
+        // activates the internal dev repo for transitive CRS snapshot deps. When the
+        // property is set, let the child use the agent's default GRADLE_USER_HOME so
+        // the infra init scripts apply — otherwise keep the isolated testkit dir for
+        // clean local runs.
         val useDevRepoArg = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
-        val testKitDir = buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile
-        // GradleRunner.withTestKitDir redirects GRADLE_USER_HOME away from the agent's
-        // ~/.gradle, so init.d scripts (which the infra uses to wire dev repo resolution)
-        // aren't loaded. Mirror any init scripts from the agent's home into the testkit
-        // dir so the child Gradle picks them up together with use_dev_repository.
-        val agentInitD = File(System.getProperty("user.home"), ".gradle/init.d")
-        if (agentInitD.isDirectory) {
-            val testKitInitD = File(testKitDir, "init.d").also { it.mkdirs() }
-            agentInitD.copyRecursively(testKitInitD, overwrite = true)
-        }
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
-            .withTestKitDir(testKitDir)
+            .apply {
+                if (useDevRepoArg == null) {
+                    withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
+                }
+            }
             .withArguments(
                 listOfNotNull(
                     "-Pdms-service.version=${System.getProperty("dms-service.version")}",
