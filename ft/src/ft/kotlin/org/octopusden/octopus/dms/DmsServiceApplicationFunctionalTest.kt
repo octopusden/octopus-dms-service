@@ -458,7 +458,12 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of("7.6", false),
+            // Gradle 7.6 used to reproduce a "Failed to create Jar file" / jackson-core
+            // classloader incompat under the old isolated testkit GRADLE_USER_HOME.
+            // With the testkit pointing at the agent's real ~/.gradle and
+            // use_dev_repository=all, dependency resolution succeeds on both 7.6 and
+            // 8.6, so both now expect success.
+            Arguments.of("7.6", true),
             Arguments.of("8.6", true)
         )
     }
