@@ -3,9 +3,6 @@ buildscript {
         mavenCentral()
         maven("https://repo.gradle.org/gradle/libs-releases-local/")
         mavenLocal()
-        // Resolve transitive CRS branch snapshots (used by the outer FT only;
-        // test runs in a testkit child Gradle that doesn't see TC init.d).
-        maven("https://artifactory.openwaygroup.com/artifactory/rnd-maven-dev-virtual")
     }
     dependencies {
         classpath("org.octopusden.octopus.dms:gradle-dms-client:${project.properties["dms-service.version"]}")
