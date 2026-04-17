@@ -88,18 +88,17 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         projectDir.deleteRecursively()
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
-        // Propagate use_dev_repository to the testkit child Gradle so its init.gradle
-        // activates the internal dev repo for transitive CRS snapshot deps. The child
-        // runs under its own GRADLE_USER_HOME (isolated temp) and therefore doesn't
-        // auto-load the agent's `~/.gradle/init.d`; pass those scripts explicitly via
-        // `-I` when use_dev_repository is set.
+        // Propagate use_dev_repository to the testkit child Gradle so the agent's
+        // init.gradle activates the internal dev repo for transitive CRS snapshot deps.
+        // Point the testkit at the agent's ~/.gradle as its GRADLE_USER_HOME so init
+        // scripts, gradle.properties (NEXUS_USER/NEXUS_PASSWORD), and wrapper caches
+        // are all picked up naturally — no need to forward scripts or credentials
+        // separately.
         val useDevRepoArg = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
-        val initScriptArgs: List<String> = if (useDevRepoArg != null) collectAgentInitScripts() else emptyList()
-        val nexusCredsArgs = agentNexusCredsAsProjectArgs()
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
-            .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
+            .withTestKitDir(agentGradleUserHome(buildDir, gradleVersion))
             .withArguments(
                 listOfNotNull(
                     "-Pdms-service.version=${System.getProperty("dms-service.version")}",
@@ -111,8 +110,6 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Pcomponent.version=${eeComponentReleaseVersion0354.releaseVersion}",
                     "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                     useDevRepoArg,
-                    *initScriptArgs.toTypedArray(),
-                    *nexusCredsArgs.toTypedArray(),
                     "exportArtifactsTask",
                     "--info",
                 ),
@@ -164,10 +161,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-plugin")
         val targetDir = projectDir.resolve("export")
         val useDevRepoArg2 = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
-        val initScriptArgs2: List<String> = if (useDevRepoArg2 != null) collectAgentInitScripts() else emptyList()
-        val nexusCredsArgs2 = agentNexusCredsAsProjectArgs()
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
+            .withTestKitDir(agentGradleUserHome(buildDir, "dms-plugin"))
             .withArguments(
                 listOfNotNull(
                     "-Pdms-service.version=${System.getProperty("dms-service.version")}",
@@ -181,8 +177,6 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Partifact.classifier=${releaseNotesCoordinates.gav.classifier}",
                     "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                     useDevRepoArg2,
-                    *initScriptArgs2.toTypedArray(),
-                    *nexusCredsArgs2.toTypedArray(),
                     "downloadReleaseNotes",
                     "--info",
                 ),
@@ -437,37 +431,25 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     /**
-     * Collect init scripts that the TC agent keeps under ~/.gradle so a testkit child
-     * Gradle — which runs under an isolated GRADLE_USER_HOME — can pick them up via `-I`.
-     * Covers every .gradle / .gradle.kts file under ~/.gradle/init.d plus a single
-     * ~/.gradle/init.gradle(.kts) if present.
+     * Resolve the GRADLE_USER_HOME the testkit child should use. Prefer the real
+     * ~/.gradle on the TC agent so init scripts, gradle.properties
+     * (NEXUS_USER/NEXUS_PASSWORD), and wrapper caches are picked up naturally — no
+     * need to forward scripts or credentials one by one. On a cleanroom dev box
+     * without ~/.gradle, fall back to an isolated dir under build/.
      */
-    /**
-     * Forward NEXUS_USER/NEXUS_PASSWORD as `-P` project properties to a testkit child
-     * Gradle. The agent's init.gradle (forwarded via `-I`) references these as project
-     * properties for the internal dev-virtual Maven credentials. They normally come
-     * from ~/.gradle/gradle.properties, but the testkit child has an isolated
-     * GRADLE_USER_HOME and doesn't load that file — hence a bare `-I` run fails with
-     * `Could not get unknown property 'NEXUS_USER'`.
-     */
-    private fun agentNexusCredsAsProjectArgs(): List<String> =
-        listOf("NEXUS_USER", "NEXUS_PASSWORD").flatMap { name ->
-            val value = System.getProperty(name)
-            if (value.isNullOrEmpty()) emptyList() else listOf("-P$name=$value")
+    private fun agentGradleUserHome(
+        buildDir: File,
+        scope: String,
+    ): File {
+        val home = File(System.getProperty("user.home"), ".gradle")
+        return if (home.isDirectory) {
+            home
+        } else {
+            buildDir
+                .resolve("tmp")
+                .resolve("testkit-$scope")
+                .absoluteFile
         }
-
-    private fun collectAgentInitScripts(): List<String> {
-        val gradleHome = File(System.getProperty("user.home"), ".gradle")
-        val dirScripts =
-            File(gradleHome, "init.d").takeIf { it.isDirectory }
-                ?.listFiles { f -> f.isFile && (f.name.endsWith(".gradle") || f.name.endsWith(".gradle.kts")) }
-                ?.toList()
-                .orEmpty()
-        val rootScripts =
-            listOf("init.gradle", "init.gradle.kts")
-                .map { File(gradleHome, it) }
-                .filter { it.isFile }
-        return (dirScripts + rootScripts).flatMap { listOf("-I", it.absolutePath) }
     }
 
     companion object {

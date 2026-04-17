@@ -233,15 +233,6 @@ val ft by tasks.creating(Test::class) {
     project.findProperty("use_dev_repository")?.let {
         systemProperties["use_dev_repository"] = it.toString()
     }
-    // The TC agent's init.gradle (forwarded via -I to the testkit child Gradle) reads
-    // NEXUS_USER/NEXUS_PASSWORD as project properties for the dev-virtual Maven
-    // credentials. Those come from ~/.gradle/gradle.properties on the agent, but the
-    // testkit child's GRADLE_USER_HOME is isolated and doesn't see that file, so the
-    // init script errors with `Could not get unknown property 'NEXUS_USER'`. Forward
-    // both to the test JVM so it can pass them on to the testkit child via -P.
-    listOf("NEXUS_USER", "NEXUS_PASSWORD").forEach { name ->
-        project.findProperty(name)?.let { systemProperties[name] = it.toString() }
-    }
     group = "verification"
     description = "Runs the functional tests"
     testClassesDirs = sourceSets["ft"].output.classesDirs
