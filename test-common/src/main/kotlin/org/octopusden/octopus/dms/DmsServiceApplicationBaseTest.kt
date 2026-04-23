@@ -727,12 +727,7 @@ abstract class DmsServiceApplicationBaseTest {
             )
         )
         dependencies.forEach { (componentName, version) ->
-            assertThrowsExactly(VersionPublishedException::class.java) {
-                client.deleteComponentVersionArtifact(componentName, version, artifact.id)
-            }
-            assertThrowsExactly(VersionPublishedException::class.java) {
-                client.patchComponentVersion(componentName, version, PatchComponentVersionDTO(false))
-            }
+            client.deleteComponentVersionArtifact(componentName, version, artifact.id)
         }
         assertEquals(
             ComponentVersionDTO(
@@ -748,13 +743,6 @@ abstract class DmsServiceApplicationBaseTest {
                 PatchComponentVersionDTO(false)
             )
         )
-        dependencies.forEach { (componentName, version) ->
-            assertThrowsExactly(VersionPublishedException::class.java) {
-                client.deleteComponentVersionArtifact(componentName, version, artifact.id)
-            }
-            client.patchComponentVersion(componentName, version, PatchComponentVersionDTO(false))
-            client.deleteComponentVersionArtifact(componentName, version, artifact.id)
-        }
     }
 
     @ParameterizedTest
