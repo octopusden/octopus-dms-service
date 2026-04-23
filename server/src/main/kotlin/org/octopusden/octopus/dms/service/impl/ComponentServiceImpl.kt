@@ -290,9 +290,6 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         val buildVersion = releaseManagementService.findRelease(componentName, version, true)?.version ?: version
         componentRepository.lock(componentName.hashCode())
         componentVersionRepository.findByComponentNameAndVersion(componentName, buildVersion)?.let { componentVersion ->
-            if (componentVersion.published) {
-                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version")
-            }
             componentVersionArtifactRepository.findByComponentVersionAndArtifactId(componentVersion, artifactId)?.let {
                 if (!dryRun) {
                     applicationEventPublisher.publishEvent(
