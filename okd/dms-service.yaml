@@ -22,6 +22,13 @@ objects:
       containers:
         - name: dms-service
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
+          resources:
+            requests:
+              cpu: "650m"
+              memory: "600Mi"
+            limits:
+              cpu: "1000m"
+              memory: "800Mi"
           ports:
             - containerPort: 8080
               protocol: TCP

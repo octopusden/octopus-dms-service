@@ -102,6 +102,10 @@ ocTemplate{
                 "POSTGRES_USER" to project.properties["dms-postgres.user"] as String,
                 "POSTGRES_PASSWORD" to project.properties["dms-postgres.password"] as String,
                 "POSTGRES_STORAGE" to project.properties["dms-postgres.storage"] as String,
+                "CPU_REQUEST" to "50m",
+                "CPU_LIMIT" to "100m",
+                "MEMORY_REQUEST" to "64Mi",
+                "MEMORY_LIMIT" to "128Mi",
             )
         )
     }
@@ -116,6 +120,10 @@ ocTemplate{
                 "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
                 "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
                 "POSTGRES_STORAGE" to project.properties["artifactory-postgres.storage"] as String,
+                "CPU_REQUEST" to "20m",
+                "CPU_LIMIT" to "50m",
+                "MEMORY_REQUEST" to "128Mi",
+                "MEMORY_LIMIT" to "200Mi",
             )
         )
         dependsOn.set(listOf("dms-postgres"))

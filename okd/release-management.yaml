@@ -22,6 +22,13 @@ objects:
       containers:
         - name: rm
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/release-management-service:${RELEASE_MANAGEMENT_SERVICE_VERSION}
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "350Mi"
+            limits:
+              cpu: "400m"
+              memory: "500Mi"
           ports:
             - containerPort: 8083
               protocol: TCP

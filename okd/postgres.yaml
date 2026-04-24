@@ -26,6 +26,13 @@ objects:
       containers:
         - name: postgres
           image: ${DOCKER_REGISTRY}/postgres:${POSTGRES_IMAGE_TAG}
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
           env:
             - name: POSTGRES_DB
               value: ${POSTGRES_DB}
@@ -92,4 +99,16 @@ parameters:
     required: true
   - name: DOCKER_REGISTRY
     description: Docker registry
+    required: true
+  - name: CPU_REQUEST
+    description: CPU request
+    required: true
+  - name: CPU_LIMIT
+    description: CPU limit
+    required: true
+  - name: MEMORY_REQUEST
+    description: Memory request
+    required: true
+  - name: MEMORY_LIMIT
+    description: Memory limit
     required: true
