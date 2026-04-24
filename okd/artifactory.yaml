@@ -76,7 +76,7 @@ objects:
               cpu: "250m"
               memory: "3Gi"
             limits:
-              cpu: "2000m"
+              cpu: "3000m"
               memory: "4Gi"
           ports:
             - containerPort: 8081
