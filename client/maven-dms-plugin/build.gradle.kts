@@ -81,7 +81,16 @@ tasks.register<Exec>("generatePluginDescriptor") {
     val mvnHome = System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]
     val mavenCommand = if (System.getProperty("os.name").lowercase().contains("win")) "mvn.cmd" else "mvn"
     val cmd = "${mvnHome?.let { "$it/bin/" } ?: ""}$mavenCommand"
-    this.setCommandLine(cmd, "-f", pomFile.canonicalPath, "-e", "-B", "org.apache.maven.plugins:maven-plugin-plugin:3.5:descriptor")
+    // Mirror use_dev_repository (Gradle init.gradle convention) at the Maven layer:
+    // when the property is set, add the Maven `staging` profile so mvn resolves from
+    // the internal dev-virtual repo. Needed when this project depends on a CRS
+    // branch snapshot (e.g. 2.0.84-3110).
+    val mavenArgs = listOfNotNull(
+        cmd, "-f", pomFile.canonicalPath, "-e", "-B",
+        "-Pstaging".takeIf { project.hasProperty("use_dev_repository") },
+        "org.apache.maven.plugins:maven-plugin-plugin:3.5:descriptor",
+    )
+    this.setCommandLine(mavenArgs)
 }
 
 tasks["jar"].dependsOn("generatePluginDescriptor")
