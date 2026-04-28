@@ -22,6 +22,13 @@ objects:
       containers:
         - name: gateway
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:${API_GATEWAY_VERSION}
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "450Mi"
+            limits:
+              cpu: "500m"
+              memory: "600Mi"
           ports:
             - containerPort: 8765
               protocol: TCP
