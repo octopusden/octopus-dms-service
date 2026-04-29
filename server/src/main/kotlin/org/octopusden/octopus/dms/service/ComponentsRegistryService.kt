@@ -7,6 +7,7 @@ import org.octopusden.releng.versions.VersionNames
 
 interface ComponentsRegistryService {
     fun isComponentExists(component: String): Boolean
+    fun getExternalComponentVersion(component: String, version: String): ComponentDTO
     fun getExternalComponent(component: String): ComponentDTO
     fun getExternalComponents(filter: ComponentRequestFilter?): List<ComponentDTO>
     fun getDetailedComponentVersion(component: String, version: String): DetailedComponentVersion

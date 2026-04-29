@@ -93,7 +93,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentName: String, version: String
     ): List<ComponentVersionWithInfoDTO> {
         log.info("Get dependencies of version '$version' of component '$componentName'")
-        if (!getExternalExplicitComponent(componentName).solution) {
+        if (!getExternalExplicitComponentVersion(componentName, version).solution) {
             throw IllegalComponentTypeException("Component '$componentName' is not solution")
         }
         val release = releaseManagementService.getRelease(componentName, version, true)
@@ -112,7 +112,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentName: String, version: String, patchComponentVersionDTO: PatchComponentVersionDTO
     ): ComponentVersionDTO {
         log.info("${if (patchComponentVersionDTO.published) "Publish" else "Revoke"} version '$version' of component '$componentName'")
-        val component = getExternalExplicitComponent(componentName)
+        val component = getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, !patchComponentVersionDTO.published)
         componentRepository.lock(component.id.hashCode())
         val componentVersion = componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
@@ -128,7 +128,11 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                 //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
                 val unpublishedDependencies = mutableListOf<BuildDTO>()
                 release.dependencies.forEach { dependencyBuild ->
-                    if (componentsRegistryService.getExternalComponent(dependencyBuild.component).explicit) {
+                    if (componentsRegistryService.getExternalComponentVersion(
+                            dependencyBuild.component,
+                            dependencyBuild.version
+                        ).explicit
+                    ) {
                         val dependencyComponentVersion = componentVersionRepository.findByComponentNameAndVersion(
                             dependencyBuild.component, dependencyBuild.version
                         )
@@ -149,7 +153,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                 }
             } else if (!patchComponentVersionDTO.published) {
                 release.parents.filter {
-                    componentsRegistryService.getExternalComponent(it.component).solution &&
+                    componentsRegistryService.getExternalComponentVersion(it.component, it.version).solution &&
                             componentVersionRepository.findByComponentNameAndVersion(
                                 it.component,
                                 it.version
@@ -189,7 +193,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentName: String, version: String, type: ArtifactType?
     ): ArtifactsDTO {
         log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
-        val component = getExternalExplicitComponent(componentName)
+        val component = getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, true)
         val componentVersion = componentVersionRepository.findByComponentNameAndVersion(component.id, release.version)
         val componentVersionArtifacts = if (componentVersion != null)
@@ -229,7 +233,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         registerArtifactDTO: RegisterArtifactDTO
     ): ArtifactFullDTO {
         log.info("Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'")
-        getExternalExplicitComponent(componentName)
+        getExternalExplicitComponentVersion(componentName, version)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
@@ -309,12 +313,18 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         }
     }
 
-    private fun getExternalExplicitComponent(componentName: String) =
-        componentsRegistryService.getExternalComponent(componentName).also {
-            if (!it.explicit) {
-                throw IllegalComponentTypeException("Component '$componentName' is not explicit")
-            }
+    private fun ComponentDTO.explicitOrBreak(): ComponentDTO {
+        if (!explicit) {
+            throw IllegalComponentTypeException("Component '$id' is not explicit")
         }
+        return this
+    }
+
+    private fun getExternalExplicitComponent(componentName: String) =
+        componentsRegistryService.getExternalComponent(componentName).explicitOrBreak()
+
+    private fun getExternalExplicitComponentVersion(componentName: String, version: String) =
+        componentsRegistryService.getExternalComponentVersion(componentName, version).explicitOrBreak()
 
     private fun getComponentVersions(
         componentName: String, minorVersions: List<String>, includeRc: Boolean
@@ -340,7 +350,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
     private fun getComponentVersionArtifactEntity(
         componentName: String, version: String, artifactId: Long
     ): ComponentVersionArtifact {
-        getExternalExplicitComponent(componentName)
+        getExternalExplicitComponentVersion(componentName, version)
         val buildVersion = releaseManagementService.getRelease(componentName, version, true).version
         return componentVersionArtifactRepository.getByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
             componentName, buildVersion, artifactId
