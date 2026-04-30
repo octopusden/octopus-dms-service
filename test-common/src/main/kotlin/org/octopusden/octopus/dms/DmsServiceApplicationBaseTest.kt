@@ -758,10 +758,10 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testPatchComponentVersionForNonEEComponent(component: String, exception: Class<out DMSException>) {
+    @MethodSource("nonEEComponentsVersioned")
+    fun testPatchComponentVersionForNonEEComponent(component: String, version: String, exception: Class<out DMSException>) {
         assertThrowsExactly(exception) {
-            client.patchComponentVersion(component, ANY_VERSION, PatchComponentVersionDTO(true))
+            client.patchComponentVersion(component, version, PatchComponentVersionDTO(true))
         }
     }
 
@@ -800,7 +800,7 @@ abstract class DmsServiceApplicationBaseTest {
         )
         assertThrowsExactly(IllegalComponentTypeException::class.java) {
             client.getComponentVersionDependencies(
-                eeClientSpecificComponent, ANY_VERSION
+                eeClientSpecificComponent, eeComponentReleaseVersion0353.buildVersion
             )
         }
     }
@@ -893,13 +893,13 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testRegisterArtifactForNonEEComponent(component: String, exception: Class<out DMSException>) {
+    @MethodSource("nonEEComponentsVersioned")
+    fun testRegisterArtifactForNonEEComponent(component: String, version: String, exception: Class<out DMSException>) {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         assertThrowsExactly(exception) {
             client.registerComponentVersionArtifact(
                 component,
-                ANY_VERSION,
+                version,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -1072,6 +1072,14 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of("ei-component", IllegalComponentTypeException::class.java),
             Arguments.of("ii-component", IllegalComponentTypeException::class.java),
             Arguments.of("no-component", NotFoundException::class.java)
+        )
+
+        @JvmStatic
+        private fun nonEEComponentsVersioned(): Stream<Arguments> = Stream.of(
+            Arguments.of("ie-component", "1.0.1", IllegalComponentTypeException::class.java),
+            Arguments.of("ei-component", "1.0.2", IllegalComponentTypeException::class.java),
+            Arguments.of("ii-component", "1.0.3", IllegalComponentTypeException::class.java),
+            Arguments.of("no-component", "1.0.4", NotFoundException::class.java)
         )
 
         @JvmStatic
