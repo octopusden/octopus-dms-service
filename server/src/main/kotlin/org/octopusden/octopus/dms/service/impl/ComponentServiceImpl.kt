@@ -291,7 +291,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentRepository.lock(componentName.hashCode())
         componentVersionRepository.findByComponentNameAndVersion(componentName, buildVersion)?.let { componentVersion ->
             if (componentVersion.published) {
-                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version")
+                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. To unpublish the version, use: PATCH /components/$componentName/versions/$buildVersion with body {\"published\": false}")
             }
             componentVersionArtifactRepository.findByComponentVersionAndArtifactId(componentVersion, artifactId)?.let {
                 if (!dryRun) {
