@@ -127,6 +127,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                 //TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
                 //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
                 val unpublishedDependencies = mutableListOf<BuildDTO>()
+                // TODO: add a cache for component information.
                 release.dependencies.forEach { dependencyBuild ->
                     if (componentsRegistryService.getExternalComponentVersion(
                             dependencyBuild.component,
@@ -153,7 +154,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
                 }
             } else if (!patchComponentVersionDTO.published) {
                 release.parents.filter {
-                    componentsRegistryService.getExternalComponentVersion(it.component, it.version).solution &&
+                    componentsRegistryService.getExternalComponent(it.component).solution &&
                             componentVersionRepository.findByComponentNameAndVersion(
                                 it.component,
                                 it.version
