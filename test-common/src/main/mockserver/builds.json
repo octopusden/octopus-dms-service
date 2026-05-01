@@ -327,5 +327,35 @@
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
+  },
+  {
+    "component": "ee-component-with-version-ranges",
+    "status": "RELEASE",
+    "version": "03.53.30.31-1",
+    "release_version": "03.53.30.31",
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ee-component-with-version-ranges",
+    "status": "RELEASE",
+    "version": "03.54.30.64-1",
+    "release_version": "03.54.30.64",
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "ee-component-with-version-ranges",
+    "status": "RELEASE",
+    "version": "03.55.30.63-1",
+    "release_version": "03.55.30.63",
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
   }
 ]
