@@ -271,7 +271,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             componentVersionArtifact.toFullDTO(dockerRegistry)
         } else {
             if (componentVersion.published) {
-                throw VersionPublishedException("Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version")
+                throw VersionPublishedException("Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version. The version must first be unpublished")
             }
             componentVersionArtifactRepository.save(
                 ComponentVersionArtifact(
@@ -296,7 +296,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         componentRepository.lock(componentName.hashCode())
         componentVersionRepository.findByComponentNameAndVersion(componentName, buildVersion)?.let { componentVersion ->
             if (componentVersion.published) {
-                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version")
+                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. The version must first be unpublished")
             }
             componentVersionArtifactRepository.findByComponentVersionAndArtifactId(componentVersion, artifactId)?.let {
                 if (!dryRun) {
