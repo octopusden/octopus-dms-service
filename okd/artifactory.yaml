@@ -73,7 +73,11 @@ objects:
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
           resources:
             requests:
+              cpu: "250m"
               memory: "3Gi"
+            limits:
+              cpu: "3000m"
+              memory: "4Gi"
           ports:
             - containerPort: 8081
             - containerPort: 8082

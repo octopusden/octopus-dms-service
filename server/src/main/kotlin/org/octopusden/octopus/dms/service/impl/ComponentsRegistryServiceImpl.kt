@@ -36,12 +36,17 @@ class ComponentsRegistryServiceImpl(
         false
     }
 
-    override fun getExternalComponent(component: String) = client.getById(component).let {
-        if (it.distribution?.external != true) {
-            throw IllegalComponentTypeException("Component '$component' is not external")
+    private fun Component.externalOrBreak(): ComponentDTO {
+        if (distribution?.external != true) {
+            throw IllegalComponentTypeException("Component '${id}' is not external")
         }
-        it.toComponentDTO()
+        return toComponentDTO()
     }
+
+    override fun getExternalComponentVersion(component: String, version: String) =
+        client.getDetailedComponent(component, version).externalOrBreak()
+
+    override fun getExternalComponent(component: String) = client.getById(component).externalOrBreak()
 
     override fun getExternalComponents(filter: ComponentRequestFilter?) =
         client.getAllComponents(solution = filter?.solution).components

@@ -758,10 +758,10 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testPatchComponentVersionForNonEEComponent(component: String, exception: Class<out DMSException>) {
+    @MethodSource("nonEEComponentsVersioned")
+    fun testPatchComponentVersionForNonEEComponent(component: String, version: String, exception: Class<out DMSException>) {
         assertThrowsExactly(exception) {
-            client.patchComponentVersion(component, ANY_VERSION, PatchComponentVersionDTO(true))
+            client.patchComponentVersion(component, version, PatchComponentVersionDTO(true))
         }
     }
 
@@ -800,7 +800,7 @@ abstract class DmsServiceApplicationBaseTest {
         )
         assertThrowsExactly(IllegalComponentTypeException::class.java) {
             client.getComponentVersionDependencies(
-                eeClientSpecificComponent, ANY_VERSION
+                eeClientSpecificComponent, eeComponentReleaseVersion0353.buildVersion
             )
         }
     }
@@ -893,13 +893,13 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonEEComponents")
-    fun testRegisterArtifactForNonEEComponent(component: String, exception: Class<out DMSException>) {
+    @MethodSource("nonEEComponentsVersioned")
+    fun testRegisterArtifactForNonEEComponent(component: String, version: String, exception: Class<out DMSException>) {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         assertThrowsExactly(exception) {
             client.registerComponentVersionArtifact(
                 component,
-                ANY_VERSION,
+                version,
                 artifact.id,
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
             )
@@ -975,6 +975,45 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("versionRangeDistributionCases")
+    fun testRegisterComponentVersionArtifactUsesVersionRangeDistribution(
+        version: String,
+        expectedException: Class<out Throwable>?
+    ) {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        if (expectedException == null) {
+            val registeredArtifact = client.registerComponentVersionArtifact(
+                eeComponentWithVersionRanges,
+                version,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            )
+            assertEquals(artifact.id, registeredArtifact.id)
+        } else {
+            assertThrowsExactly(expectedException) {
+                client.registerComponentVersionArtifact(
+                    eeComponentWithVersionRanges,
+                    version,
+                    artifact.id,
+                    RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+                )
+            }
+        }
+    }
+
+    @Test
+    fun testRegisterComponentVersionArtifactUsesDefaultDistributionWhenVersionRangesAreAbsent() {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        val registeredArtifact = client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+        )
+        assertEquals(artifact.id, registeredArtifact.id)
+    }
+
     //<editor-fold defaultstate="collapsed" desc="Test Data">
     companion object {
         data class Version(val minorVersion: String, val buildVersion: String, val releaseVersion: String)
@@ -982,6 +1021,7 @@ abstract class DmsServiceApplicationBaseTest {
         const val ANY_VERSION = "ANY_VERSION"
         const val eeComponent = "ee-component"
         const val eeClientSpecificComponent = "ee-client-specific-component"
+        const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"
 
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
@@ -1072,6 +1112,14 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of("ei-component", IllegalComponentTypeException::class.java),
             Arguments.of("ii-component", IllegalComponentTypeException::class.java),
             Arguments.of("no-component", NotFoundException::class.java)
+        )
+
+        @JvmStatic
+        private fun nonEEComponentsVersioned(): Stream<Arguments> = Stream.of(
+            Arguments.of("ie-component", "1.0.1", IllegalComponentTypeException::class.java),
+            Arguments.of("ei-component", "1.0.2", IllegalComponentTypeException::class.java),
+            Arguments.of("ii-component", "1.0.3", IllegalComponentTypeException::class.java),
+            Arguments.of("no-component", "1.0.4", NotFoundException::class.java)
         )
 
         @JvmStatic
@@ -1198,6 +1246,25 @@ abstract class DmsServiceApplicationBaseTest {
         private fun testGetComponentVersionDependencies(): Stream<Arguments> = Stream.of(
             Arguments.of(eeComponentReleaseVersion0354),
             Arguments.of(eeComponentHotfixReleaseVersion0354)
+        )
+
+        @JvmStatic
+        private fun versionRangeDistributionCases(): Stream<Arguments> = Stream.of(
+            // external = true, explicit = false
+            Arguments.of(
+                eeComponentReleaseVersion0353.releaseVersion,
+                IllegalComponentTypeException::class.java
+            ),
+            // external = true, explicit = true
+            Arguments.of(
+                eeComponentReleaseVersion0354.releaseVersion,
+                null
+            ),
+            // external = false, explicit = true
+            Arguments.of(
+                eeComponentHotfixBuildVersion0355.releaseVersion,
+                IllegalComponentTypeException::class.java
+            )
         )
     }
     //</editor-fold>

@@ -21,6 +21,50 @@
     }
 }
 
+"ee-component-with-version-ranges" {
+    system = "CLASSIC"
+    componentDisplayName = "EE Component With Version Ranges"
+    componentOwner = "EE Component Owner"
+    releaseManager = "EE Component Release Manager"
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ee/ee-component-with-version-ranges.git"
+    solution = true
+    jira {
+        projectKey = 'EEVR'
+        lineVersionFormat = '$major02.$minor02'
+        majorVersionFormat = '$major02.$minorC.$serviceC'
+        releaseVersionFormat = '$major02.$minor02.$service02.$fix02'
+        buildVersionFormat = '$major02.$minor02.$service02.$fix02-$build'
+        displayName = 'EE Component With Version Ranges'
+    }
+    distribution {
+        external = true
+        explicit = false
+        docker = "test/test-component"
+    }
+    "[03.53,03.54)" {
+        distribution {
+            external = true
+            explicit = false
+            docker = "test/test-component"
+        }
+    }
+    "[03.54,03.55)" {
+        distribution {
+            external = true
+            explicit = true
+            docker = "test/test-component"
+        }
+    }
+    "[03.55,03.56)" {
+        distribution {
+            external = false
+            explicit = true
+            docker = "test/test-component"
+        }
+    }
+}
+
 "ee-client-specific-component" {
     system = "CLASSIC"
     componentDisplayName = "EE Client Specific Component"
