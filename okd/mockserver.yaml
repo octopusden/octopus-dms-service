@@ -18,10 +18,10 @@ objects:
           resources:
             requests:
               cpu: "550m"
-              memory: "300Mi"
+              memory: "512Mi"
             limits:
-              cpu: "800m"
-              memory: "400Mi"
+              cpu: "1000m"
+              memory: "1Gi"
           ports:
             - containerPort: 1080
               protocol: TCP
