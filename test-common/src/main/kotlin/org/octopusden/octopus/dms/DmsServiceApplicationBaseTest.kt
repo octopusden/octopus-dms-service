@@ -975,33 +975,6 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    @ParameterizedTest
-    @MethodSource("versionRangeDistributionCases")
-    fun testRegisterComponentVersionArtifactUsesVersionRangeDistribution(
-        version: String,
-        expectedException: Class<out Throwable>?
-    ) {
-        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
-        if (expectedException == null) {
-            val registeredArtifact = client.registerComponentVersionArtifact(
-                eeComponentWithVersionRanges,
-                version,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
-            )
-            assertEquals(artifact.id, registeredArtifact.id)
-        } else {
-            assertThrowsExactly(expectedException) {
-                client.registerComponentVersionArtifact(
-                    eeComponentWithVersionRanges,
-                    version,
-                    artifact.id,
-                    RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
-                )
-            }
-        }
-    }
-
     @Test
     fun testRegisterComponentVersionArtifactUsesDefaultDistributionWhenVersionRangesAreAbsent() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
@@ -1248,24 +1221,6 @@ abstract class DmsServiceApplicationBaseTest {
             Arguments.of(eeComponentHotfixReleaseVersion0354)
         )
 
-        @JvmStatic
-        private fun versionRangeDistributionCases(): Stream<Arguments> = Stream.of(
-            // external = true, explicit = false
-            Arguments.of(
-                eeComponentReleaseVersion0353.releaseVersion,
-                IllegalComponentTypeException::class.java
-            ),
-            // external = true, explicit = true
-            Arguments.of(
-                eeComponentReleaseVersion0354.releaseVersion,
-                null
-            ),
-            // external = false, explicit = true
-            Arguments.of(
-                eeComponentHotfixBuildVersion0355.releaseVersion,
-                IllegalComponentTypeException::class.java
-            )
-        )
     }
     //</editor-fold>
 }

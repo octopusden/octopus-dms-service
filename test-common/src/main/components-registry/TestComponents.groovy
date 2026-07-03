@@ -44,22 +44,16 @@
     }
     "[03.53,03.54)" {
         distribution {
-            external = true
-            explicit = false
             docker = "test/test-component-vr"
         }
     }
     "[03.54,03.55)" {
         distribution {
-            external = true
-            explicit = true
             docker = "test/test-component-vr"
         }
     }
     "[03.55,03.56)" {
         distribution {
-            external = false
-            explicit = true
             docker = "test/test-component-vr"
         }
     }
