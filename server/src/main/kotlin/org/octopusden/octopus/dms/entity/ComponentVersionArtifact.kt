@@ -1,6 +1,5 @@
 package org.octopusden.octopus.dms.entity
 
-import java.util.regex.Pattern
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 import jakarta.persistence.Entity
@@ -17,10 +16,11 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactFullDTO
+import java.util.regex.Pattern
 
 @Entity
 @Table(name = "component_version_artifact")
-class ComponentVersionArtifact (
+class ComponentVersionArtifact(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
@@ -28,14 +28,13 @@ class ComponentVersionArtifact (
     val componentVersion: ComponentVersion,
     @ManyToOne
     val artifact: Artifact,
-    val type: ArtifactType
-
+    val type: ArtifactType,
 ) {
     val displayName get() = when (artifact.repositoryType) {
         RepositoryType.MAVEN -> {
             artifact as MavenArtifact
             artifact.artifactId + (if (artifact.version == componentVersion.version) "" else "-${artifact.version}") +
-                    (artifact.classifier?.let { c -> "-$c." } ?: ".") + artifact.packaging
+                (artifact.classifier?.let { c -> "-$c." } ?: ".") + artifact.packaging
         }
 
         RepositoryType.DEBIAN -> {
@@ -52,8 +51,8 @@ class ComponentVersionArtifact (
         }
     }
 
-    fun toShortDTO(dockerRegistry: String): ArtifactShortDTO {
-        return when (this.artifact.repositoryType) {
+    fun toShortDTO(dockerRegistry: String): ArtifactShortDTO =
+        when (this.artifact.repositoryType) {
             RepositoryType.DOCKER -> {
                 this.artifact as DockerArtifact
                 ArtifactShortDTO(
@@ -62,7 +61,7 @@ class ComponentVersionArtifact (
                     this.type,
                     this.displayName,
                     this.artifact.imageIdentifier(dockerRegistry),
-                    this.artifact.sha256
+                    this.artifact.sha256,
                 )
             }
 
@@ -72,13 +71,12 @@ class ComponentVersionArtifact (
                 this.type,
                 this.displayName,
                 this.artifact.fileName,
-                this.artifact.sha256
+                this.artifact.sha256,
             )
         }
-    }
 
-    fun toFullDTO(dockerRegistry: String): ArtifactFullDTO {
-        return when (this.artifact.repositoryType) {
+    fun toFullDTO(dockerRegistry: String): ArtifactFullDTO =
+        when (this.artifact.repositoryType) {
             RepositoryType.MAVEN -> {
                 this.artifact as MavenArtifact
                 MavenArtifactFullDTO(
@@ -87,7 +85,7 @@ class ComponentVersionArtifact (
                     this.displayName,
                     this.artifact.fileName,
                     this.artifact.sha256,
-                    this.artifact.gav
+                    this.artifact.gav,
                 )
             }
 
@@ -97,7 +95,7 @@ class ComponentVersionArtifact (
                 this.displayName,
                 this.artifact.fileName,
                 this.artifact.sha256,
-                this.artifact.path
+                this.artifact.path,
             )
 
             RepositoryType.RPM -> RpmArtifactFullDTO(
@@ -106,7 +104,7 @@ class ComponentVersionArtifact (
                 this.displayName,
                 this.artifact.fileName,
                 this.artifact.sha256,
-                this.artifact.path
+                this.artifact.path,
             )
 
             RepositoryType.DOCKER -> {
@@ -118,22 +116,18 @@ class ComponentVersionArtifact (
                     this.artifact.imageIdentifier(dockerRegistry),
                     this.artifact.sha256,
                     this.artifact.image,
-                    this.artifact.tag
+                    this.artifact.tag,
                 )
             }
         }
-    }
 
-    override fun toString(): String {
-        return "ComponentVersionArtifact(id=$id, componentVersion='$componentVersion', type=$type, artifact=$artifact)"
-    }
+    override fun toString(): String =
+        "ComponentVersionArtifact(id=$id, componentVersion='$componentVersion', type=$type, artifact=$artifact)"
 }
 
 @Converter(autoApply = true)
-class ArtifactTypeConverter: AttributeConverter<ArtifactType, String> {
-    override fun convertToDatabaseColumn(attribute: ArtifactType?): String? {
-        return attribute?.type
-    }
+class ArtifactTypeConverter : AttributeConverter<ArtifactType, String> {
+    override fun convertToDatabaseColumn(attribute: ArtifactType?): String? = attribute?.type
 
     override fun convertToEntityAttribute(dbData: String?): ArtifactType? {
         if (dbData == null) {

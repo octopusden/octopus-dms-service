@@ -1,7 +1,16 @@
 package org.octopusden.octopus.dms
 
+import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
@@ -12,15 +21,6 @@ import org.octopusden.octopus.dms.client.impl.DmsServiceClientParametersProvider
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit.MINUTES
-import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.Assertions.assertArrayEquals
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 import java.util.stream.Stream
 
 class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
@@ -43,32 +43,36 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     override val client = ClassicDmsServiceClient(
         object : DmsServiceClientParametersProvider {
             override fun getApiUrl() = dmsServiceUrl
+
             override fun getBearerToken() = null
-            override fun getBasicCredentials() =
-                "${System.getProperty("dms-service.user")}:${System.getProperty("dms-service.password")}"
-        }
+
+            override fun getBasicCredentials() = "${System.getProperty("dms-service.user")}:${System.getProperty("dms-service.password")}"
+        },
     )
 
     @ParameterizedTest
     @MethodSource("gradleVersions")
-    fun testGradleDmsClient(gradleVersion: String, shouldSucceed: Boolean) {
+    fun testGradleDmsClient(
+        gradleVersion: String,
+        shouldSucceed: Boolean,
+    ) {
         val reports = listOf(
             "REPORT0354" to MavenArtifactCoordinatesDTO(
                 GavDTO(
                     "test.gradle.dms.client",
                     "report",
                     eeComponentReleaseVersion0354.releaseVersion,
-                    "txt"
-                )
+                    "txt",
+                ),
             ),
             "REPORT0353" to MavenArtifactCoordinatesDTO(
                 GavDTO(
                     "test.gradle.dms.client",
                     "report",
                     eeComponentReleaseVersion0353.releaseVersion,
-                    "txt"
-                )
-            )
+                    "txt",
+                ),
+            ),
         )
         reports.forEach { report ->
             report.first.byteInputStream(UTF_8).use {
@@ -76,7 +80,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     eeComponent,
                     report.second.gav.version,
                     client.uploadArtifact(report.second, it, "report").id,
-                    RegisterArtifactDTO(ArtifactType.REPORT)
+                    RegisterArtifactDTO(ArtifactType.REPORT),
                 )
             }
         }
@@ -88,7 +92,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         projectDir.deleteRecursively()
         sourceProjectDir.copyRecursively(projectDir, overwrite = true)
 
-        val runner = GradleRunner.create()
+        val runner = GradleRunner
+            .create()
             .withProjectDir(projectDir)
             .withGradleVersion(gradleVersion)
             .withTestKitDir(buildDir.resolve("tmp").resolve("testkit-$gradleVersion").absoluteFile)
@@ -102,7 +107,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "-Pcomponent.version=${eeComponentReleaseVersion0354.releaseVersion}",
                 "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                 "exportArtifactsTask",
-                "--info"
+                "--info",
             )
 
         val result = if (shouldSucceed) {
@@ -114,7 +119,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         if (!shouldSucceed) {
             assertTrue(
                 result.output.contains("Failed to create Jar file") && result.output.contains("jackson-core"),
-                "Build should have failed due to Gradle version incompatibility (Jackson jar creation issue), but failed with: ${result.output.take(500)}"
+                "Build should have failed due to Gradle version incompatibility (Jackson jar creation issue), but failed with: ${result.output.take(
+                    500,
+                )}",
             )
         }
 
@@ -128,9 +135,15 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         if (shouldSucceed) {
             reports.forEach {
                 it.first.byteInputStream(UTF_8).use { expected ->
-                    targetDir.resolve(it.second.gav.toPath().substringAfterLast('/')).inputStream().use { actual ->
-                        assertArrayEquals(expected.readBytes(), actual.readBytes())
-                    }
+                    targetDir
+                        .resolve(
+                            it.second.gav
+                                .toPath()
+                                .substringAfterLast('/'),
+                        ).inputStream()
+                        .use { actual ->
+                            assertArrayEquals(expected.readBytes(), actual.readBytes())
+                        }
                 }
             }
         }
@@ -144,13 +157,14 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
                 client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName).id,
-                RegisterArtifactDTO(ArtifactType.NOTES)
+                RegisterArtifactDTO(ArtifactType.NOTES),
             )
         }
         val buildDir = File("").resolve("build")
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-plugin")
         val targetDir = projectDir.resolve("export")
-        val result = GradleRunner.create()
+        val result = GradleRunner
+            .create()
             .withProjectDir(projectDir)
             .withArguments(
                 "-Pdms-service.version=${System.getProperty("dms-service.version")}",
@@ -164,7 +178,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "-Partifact.classifier=${releaseNotesCoordinates.gav.classifier}",
                 "-Ptarget-dir=${targetDir.toPath().toAbsolutePath()}",
                 "downloadReleaseNotes",
-                "--info"
+                "--info",
             ).build()
         with(buildDir.resolve("logs").resolve("test-gradle-dms-plugin.log")) {
             this.parentFile.mkdirs()
@@ -181,74 +195,151 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsDifferentRepos() {
-        with(runMavenDmsPlugin("different-repos.log", "validate-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=${DEV_ARTIFACTS_COORDINATES},${RELEASE_ARTIFACTS_COORDINATES}",
-            "-Dartifacts.coordinates.version=1.0",
-            "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
-            "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
-            "-DenabledFileValidators=license,copyright",
-            "-Dtype=distribution"
-        ))) {
+        with(
+            runMavenDmsPlugin(
+                "different-repos.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=${DEV_ARTIFACTS_COORDINATES},${RELEASE_ARTIFACTS_COORDINATES}",
+                    "-Dartifacts.coordinates.version=1.0",
+                    "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+                    "-DenabledFileValidators=license,copyright",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(1, this.first)
             assertContains(this.second, "[ERROR] Artifact '${devMavenDistributionCoordinates.toPath()}' validation errors:")
-            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found")
-            assertContains(this.second, "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found")
+            assertContains(
+                this.second,
+                "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast(
+                    '/',
+                )}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found",
+            )
+            assertContains(
+                this.second,
+                "${devMavenDistributionCoordinates.gav.toPath().substringAfterLast(
+                    '/',
+                )}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found",
+            )
             assertContains(this.second, "[ERROR] Artifact '${releaseMavenDistributionCoordinates.toPath()}' validation errors:")
-            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found")
-            assertContains(this.second, "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast('/')}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found")
-            assertContains(this.second, "[INFO] Validated artifact '${devDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Validated artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Validated artifact '${devRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast(
+                    '/',
+                )}: required file rule 'license' failed: no file matching '((.*[/\\\\])|^)licenses[/\\\\]THIRD-PARTY.txt$' found",
+            )
+            assertContains(
+                this.second,
+                "${releaseMavenDistributionCoordinates.gav.toPath().substringAfterLast(
+                    '/',
+                )}: required file rule 'copyright' failed: no file matching '((.*[/\\\\])|^)COPYRIGHT$' found",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${devDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${devRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
     }
 
     @Test
     fun testMavenDmsPluginValidateArtifactsInvalidDistribution() {
-        with(runMavenDmsPlugin("invalid-distribution.log", "validate-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution",
-            "-Dtype=distribution"
-        ))) {
+        with(
+            runMavenDmsPlugin(
+                "invalid-distribution.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=file:///${File(
+                        "",
+                    ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(1, this.first)
-            assertContains(this.second, "[ERROR] Artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}.zip' validation errors:")
-            assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
-            assertContains(this.second, "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'")
+            assertContains(
+                this.second,
+                "[ERROR] Artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}.zip' validation errors:",
+            )
+            assertContains(
+                this.second,
+                "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/lib/forbidden.jar/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'",
+            )
+            assertContains(
+                this.second,
+                "distribution-${eeComponentReleaseVersion0354.buildVersion}.zip/forbidden.xml: line 1, token '<providerName>unallowed</providerName>' matches regexp '.*unallowed.*'",
+            )
         }
     }
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
-        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File(
+            "",
+        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
-        with(runMavenDmsPlugin("exclude-file.log", "validate-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=$coordArgs",
-            "-DexcludeFiles=forbidden.xml",
-            "-Dtype=distribution"
-        ))) {
+        with(
+            runMavenDmsPlugin(
+                "exclude-file.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$coordArgs",
+                    "-DexcludeFiles=forbidden.xml",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(0, this.first)
-            assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
     }
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
-        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File(
+            "",
+        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
-        with(runMavenDmsPlugin("wl-ignore.log", "validate-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=$coordArgs",
-            "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
-            "-Dtype=distribution"
-        ))) {
+        with(
+            runMavenDmsPlugin(
+                "wl-ignore.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$coordArgs",
+                    "-DwlIgnore=${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.wlignore.json",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(0, this.first)
-            assertContains(this.second, "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
     }
 
@@ -256,7 +347,9 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     fun testMavenDmsPluginUploadArtifactsDifferentRepos() {
         with(
             runMavenDmsPlugin(
-                "different-repos.log", "upload-artifacts", listOf(
+                "different-repos.log",
+                "upload-artifacts",
+                listOf(
                     "-Dcomponent=$eeComponent",
                     "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
                     "-Dartifacts.coordinates=${RELEASE_ARTIFACTS_COORDINATES}",
@@ -264,27 +357,39 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.deb=$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$RELEASE_RPM_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES",
-                    "-Dtype=distribution"
-                )
-            )
+                    "-Dtype=distribution",
+                ),
+            ),
         ) {
             assertEquals(0, this.first, this.second.joinToString("\n"))
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseMavenDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${releaseDockerDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseMavenDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseDebianDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseDockerDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
         assertEquals(
             releaseMavenDistributionCoordinates.gav,
-            (client.findArtifact(releaseMavenDistributionCoordinates) as MavenArtifactDTO).gav
+            (client.findArtifact(releaseMavenDistributionCoordinates) as MavenArtifactDTO).gav,
         )
         assertEquals(
             releaseDebianDistributionCoordinates.deb,
-            (client.findArtifact(releaseDebianDistributionCoordinates) as DebianArtifactDTO).deb
+            (client.findArtifact(releaseDebianDistributionCoordinates) as DebianArtifactDTO).deb,
         )
         assertEquals(
             releaseRpmDistributionCoordinates.rpm,
-            (client.findArtifact(releaseRpmDistributionCoordinates) as RpmArtifactDTO).rpm
+            (client.findArtifact(releaseRpmDistributionCoordinates) as RpmArtifactDTO).rpm,
         )
         val dockerArtifact = client.findArtifact(releaseDockerDistributionCoordinates) as DockerArtifactDTO
         assertEquals(releaseDockerDistributionCoordinates.image, dockerArtifact.image)
@@ -293,79 +398,116 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginUploadArtifactsFiles() {
-        val resourcesDir = File("").resolve("src").resolve("ft").resolve("resources").resolve("test-maven-dms-plugin").absoluteFile
+        val resourcesDir = File("")
+            .resolve("src")
+            .resolve("ft")
+            .resolve("resources")
+            .resolve("test-maven-dms-plugin")
+            .absoluteFile
         val distribution1 = resourcesDir.resolve(".wlignore.json")
-        val distribution1Coordinates = MavenArtifactCoordinatesDTO(GavDTO(
-            "corp.domain.dms.$eeComponent.distribution",
-            "distribution1",
-            eeComponentReleaseVersion0354.buildVersion,
-            "json"
-        ))
+        val distribution1Coordinates = MavenArtifactCoordinatesDTO(
+            GavDTO(
+                "corp.domain.dms.$eeComponent.distribution",
+                "distribution1",
+                eeComponentReleaseVersion0354.buildVersion,
+                "json",
+            ),
+        )
         val distribution2 = resourcesDir.resolve("ee-component-03.54.30.64-1.zip")
-        val distribution2Coordinates = MavenArtifactCoordinatesDTO(GavDTO(
-            "corp.domain.dms.$eeComponent.distribution",
-            "distribution2",
-            eeComponentReleaseVersion0354.buildVersion,
-            "zip"
-        ))
-        with(runMavenDmsPlugin("files.log", "upload-artifacts", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dartifacts.coordinates=${distribution1.toPath().toUri()}?artifactId=distribution1,${distribution2.toPath().toUri()}?artifactId=distribution2",
-            "-Dtype=distribution"
-        ))) {
+        val distribution2Coordinates = MavenArtifactCoordinatesDTO(
+            GavDTO(
+                "corp.domain.dms.$eeComponent.distribution",
+                "distribution2",
+                eeComponentReleaseVersion0354.buildVersion,
+                "zip",
+            ),
+        )
+        with(
+            runMavenDmsPlugin(
+                "files.log",
+                "upload-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=${distribution1.toPath().toUri()}?artifactId=distribution1,${distribution2.toPath().toUri()}?artifactId=distribution2",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(0, this.first)
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${distribution1Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${distribution2Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${distribution1Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${distribution2Coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
-        client.downloadComponentVersionArtifact(
-            eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
-            client.findArtifact(distribution1Coordinates).id
-        ).use { response ->
-            distribution1.inputStream().use {
-                assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+        client
+            .downloadComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                client.findArtifact(distribution1Coordinates).id,
+            ).use { response ->
+                distribution1.inputStream().use {
+                    assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+                }
             }
-        }
-        client.downloadComponentVersionArtifact(
-            eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
-            client.findArtifact(distribution2Coordinates).id
-        ).use { response ->
-            distribution2.inputStream().use {
-                assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+        client
+            .downloadComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                client.findArtifact(distribution2Coordinates).id,
+            ).use { response ->
+                distribution2.inputStream().use {
+                    assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+                }
             }
-        }
     }
 
     @Test
     fun testMavenDmsPluginUpload() {
-        val file = File("").resolve("src").resolve("ft").resolve("resources").resolve("test-maven-dms-plugin").resolve("ee-component-03.54.30.64-1.zip")
-        val coordinates = MavenArtifactCoordinatesDTO(GavDTO(
-            "corp.domain.dms.$eeComponent.distribution",
-            "test",
-            eeComponentReleaseVersion0354.buildVersion,
-            "zip"
-        ))
-        with(runMavenDmsPlugin("file.log", "upload", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-            "-Dname=test",
-            "-Dfile=${file.absolutePath}",
-            "-Dtype=distribution"
-        ))) {
+        val file = File(
+            "",
+        ).resolve("src").resolve("ft").resolve("resources").resolve("test-maven-dms-plugin").resolve("ee-component-03.54.30.64-1.zip")
+        val coordinates = MavenArtifactCoordinatesDTO(
+            GavDTO(
+                "corp.domain.dms.$eeComponent.distribution",
+                "test",
+                eeComponentReleaseVersion0354.buildVersion,
+                "zip",
+            ),
+        )
+        with(
+            runMavenDmsPlugin(
+                "file.log",
+                "upload",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dname=test",
+                    "-Dfile=${file.absolutePath}",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
             assertEquals(0, this.first)
-            assertContains(this.second, "[INFO] Uploaded distribution artifact '${coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'")
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${coordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
-        client.downloadComponentVersionArtifact(
-            eeComponent,
-            eeComponentReleaseVersion0354.releaseVersion,
-            client.findArtifact(coordinates).id
-        ).use { response ->
-            file.inputStream().use {
-                assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+        client
+            .downloadComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                client.findArtifact(coordinates).id,
+            ).use { response ->
+                file.inputStream().use {
+                    assertArrayEquals(it.readBytes(), response.body().asInputStream().readBytes())
+                }
             }
-        }
     }
 
     @Test
@@ -374,12 +516,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             eeComponent,
             eeComponentReleaseVersion0353.buildVersion,
             client.addArtifact(releaseMavenDistributionCoordinates).id,
-            RegisterArtifactDTO(ArtifactType.DISTRIBUTION)
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
         )
-        with(runMavenDmsPlugin("file.log", "publish", listOf(
-            "-Dcomponent=$eeComponent",
-            "-Dversion=${eeComponentReleaseVersion0353.buildVersion}"
-        ))) {
+        with(
+            runMavenDmsPlugin(
+                "file.log",
+                "publish",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0353.buildVersion}",
+                ),
+            ),
+        ) {
             assertEquals(0, this.first)
             assertContains(this.second, "[INFO] Published component '$eeComponent' version '${eeComponentReleaseVersion0353.buildVersion}'")
         }
@@ -388,26 +536,34 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     private fun runMavenDmsPlugin(
         outputFileName: String,
         goal: String,
-        parameters: List<String>
+        parameters: List<String>,
     ): Pair<Int, List<String>> {
-        val outputFile = File("").resolve("build").resolve("logs")
-            .resolve("test-maven-dms-plugin-$goal").resolve(outputFileName)
+        val outputFile = File("")
+            .resolve("build")
+            .resolve("logs")
+            .resolve("test-maven-dms-plugin-$goal")
+            .resolve(outputFileName)
             .also { it.parentFile.mkdirs() }
-        val process = ProcessBuilder(listOf(mvn,
-            "org.octopusden.octopus.dms:maven-dms-plugin:${System.getProperty("dms-service.version")}:$goal",
-            "-e",
-            "-Ddms.url=$dmsServiceUrl",
-            "-Ddms.username=${System.getProperty("dms-service.user")}",
-            "-Ddms.password=${System.getProperty("dms-service.password")}"
-        ) + parameters)
-            .redirectErrorStream(true)
+        val process = ProcessBuilder(
+            listOf(
+                mvn,
+                "org.octopusden.octopus.dms:maven-dms-plugin:${System.getProperty("dms-service.version")}:$goal",
+                "-e",
+                "-Ddms.url=$dmsServiceUrl",
+                "-Ddms.username=${System.getProperty("dms-service.user")}",
+                "-Ddms.password=${System.getProperty("dms-service.password")}",
+            ) + parameters,
+        ).redirectErrorStream(true)
             .redirectOutput(outputFile)
             .start()
         process.waitFor(5, MINUTES)
         return process.exitValue() to outputFile.readLines(UTF_8)
     }
 
-    private fun assertContains(source: List<String>, actual: String) {
+    private fun assertContains(
+        source: List<String>,
+        actual: String,
+    ) {
         assertTrue(source.contains(actual), "Expected the source $source to contain $actual")
     }
 
@@ -416,9 +572,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         private const val mvnCommonCommand = "mvn"
 
         @JvmStatic
-        private fun gradleVersions(): Stream<Arguments> = Stream.of(
-            Arguments.of("7.6", false),
-            Arguments.of("8.6", true)
-        )
+        private fun gradleVersions(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of("7.6", false),
+                Arguments.of("8.6", true),
+            )
     }
 }

@@ -3,7 +3,7 @@ package org.octopusden.octopus.dms.client.common.dto
 import java.util.Objects
 
 class FileValidatorPropertiesDTO(
-    val rules: Set<FileValidatorRulePropertiesDTO>
+    val rules: Set<FileValidatorRulePropertiesDTO>,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

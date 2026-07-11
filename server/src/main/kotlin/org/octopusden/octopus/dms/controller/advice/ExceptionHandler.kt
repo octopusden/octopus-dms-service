@@ -14,9 +14,9 @@ import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.IllegalVersionStatusException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.exception.PackagingIsNotSpecifiedException
-import org.octopusden.octopus.dms.exception.VersionPublishedException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
+import org.octopusden.octopus.dms.exception.VersionPublishedException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
@@ -29,10 +29,16 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 
-data class ErrorResponse(val statusCode: Int, val statusMessage: String, val message: String)
+data class ErrorResponse(
+    val statusCode: Int,
+    val statusMessage: String,
+    val message: String,
+)
 
 @ControllerAdvice
-class ExceptionHandler(private val objectMapper: ObjectMapper) {
+class ExceptionHandler(
+    private val objectMapper: ObjectMapper,
+) {
     @ExceptionHandler(
         GeneralArtifactStoreException::class,
         IllegalComponentTypeException::class,
@@ -44,35 +50,50 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         DownloadResultFailureException::class,
         IllegalVersionStatusException::class,
         IllegalComponentRenamingException::class,
-        VersionPublishedException::class
+        VersionPublishedException::class,
     )
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: DMSException) =
-        createHttpResponse(request, e, HttpStatus.BAD_REQUEST)
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: DMSException,
+    ) = createHttpResponse(request, e, HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler(NotFoundException::class)
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: NotFoundException) =
-        createHttpResponse(request, e, HttpStatus.NOT_FOUND)
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: NotFoundException,
+    ) = createHttpResponse(request, e, HttpStatus.NOT_FOUND)
 
     @ExceptionHandler(
         org.octopusden.octopus.components.registry.core.exceptions.NotFoundException::class,
-        org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException::class
+        org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException::class,
     )
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: Exception) =
-        createHttpResponse(request, e, HttpStatus.NOT_FOUND, "DMS-40011")
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: Exception,
+    ) = createHttpResponse(request, e, HttpStatus.NOT_FOUND, "DMS-40011")
 
     @ExceptionHandler(AccessDeniedException::class)
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: AccessDeniedException) =
-        createHttpResponse(request, e, HttpStatus.FORBIDDEN, "")
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: AccessDeniedException,
+    ) = createHttpResponse(request, e, HttpStatus.FORBIDDEN, "")
 
     @ExceptionHandler(UnsupportedOperationException::class)
     @ResponseBody
     @Order(5)
-    fun handle(request: HttpServletRequest, response: HttpServletResponse, e: UnsupportedOperationException) =
-        createHttpResponse(request, e, HttpStatus.NOT_IMPLEMENTED, "")
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: UnsupportedOperationException,
+    ) = createHttpResponse(request, e, HttpStatus.NOT_IMPLEMENTED, "")
 
     @ExceptionHandler(Throwable::class)
     @ResponseBody
@@ -82,7 +103,7 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         val httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
         return ResponseEntity(
             ErrorResponse(httpStatus.value(), httpStatus.reasonPhrase, e.message ?: "Unexpected exception"),
-            httpStatus
+            httpStatus,
         )
     }
 
@@ -90,39 +111,35 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
         request: HttpServletRequest,
         e: Exception,
         httpStatus: HttpStatus,
-        code: String
-    ): ResponseEntity<*> {
-        return createHttpResponse(request.getHeader(HttpHeaders.ACCEPT), createResponse(code, e), httpStatus)
-    }
+        code: String,
+    ): ResponseEntity<*> = createHttpResponse(request.getHeader(HttpHeaders.ACCEPT), createResponse(code, e), httpStatus)
 
     private fun createHttpResponse(
         request: HttpServletRequest,
         e: DMSException,
-        httpStatus: HttpStatus
-    ): ResponseEntity<*> {
-        return createHttpResponse(request.getHeader(HttpHeaders.ACCEPT), createResponse(e), httpStatus)
-    }
+        httpStatus: HttpStatus,
+    ): ResponseEntity<*> = createHttpResponse(request.getHeader(HttpHeaders.ACCEPT), createResponse(e), httpStatus)
 
     private fun createHttpResponse(
         acceptHeader: String?,
         errorResponse: ApplicationErrorResponse,
-        httpStatus: HttpStatus
-    ): ResponseEntity<*> {
-        return when {
+        httpStatus: HttpStatus,
+    ): ResponseEntity<*> =
+        when {
             JSON_ACCEPT_HEADER_MEDIA_TYPES.any { acceptHeader?.contains(it) ?: true } -> {
                 ResponseEntity(errorResponse, httpStatus)
             }
 
             else -> ResponseEntity(objectMapper.writeValueAsString(errorResponse), httpStatus)
         }
-    }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(ExceptionHandler::class.java)
         private val JSON_ACCEPT_HEADER_MEDIA_TYPES = listOf(MediaType.APPLICATION_JSON_VALUE, "*/*")
+
         private fun createResponse(
             code: String,
-            exception: Exception
+            exception: Exception,
         ): ApplicationErrorResponse {
             logger.error(exception.message, exception)
             return ApplicationErrorResponse(code, exception::class.java.name, exception.message ?: "")
@@ -133,7 +150,7 @@ class ExceptionHandler(private val objectMapper: ObjectMapper) {
             return ApplicationErrorResponse(
                 exception.code,
                 exception::class.java.name,
-                exception.message ?: ""
+                exception.message ?: "",
             )
         }
     }

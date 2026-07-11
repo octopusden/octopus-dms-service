@@ -15,7 +15,10 @@ configurations {
 
 val metarunners = artifacts.add(
     "distributions",
-    layout.buildDirectory.file("distributions/metarunners.zip").get().asFile
+    layout.buildDirectory
+        .file("distributions/metarunners.zip")
+        .get()
+        .asFile,
 ) {
     classifier = "metarunners"
     type = "zip"

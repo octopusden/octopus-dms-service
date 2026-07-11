@@ -19,54 +19,67 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
-
 @Service
 class ComponentsRegistryServiceImpl(
-    private val componentsRegistryServiceProperties: ComponentsRegistryServiceProperties
+    private val componentsRegistryServiceProperties: ComponentsRegistryServiceProperties,
 ) : ComponentsRegistryService {
     private val client = ClassicComponentsRegistryServiceClient(
         object : ClassicComponentsRegistryServiceClientUrlProvider {
             override fun getApiUrl() = componentsRegistryServiceProperties.url
-        }
+        },
     )
 
-    override fun isComponentExists(component: String) = try {
-        client.getById(component).id == component
-    } catch (_: NotFoundException) {
-        false
-    }
+    override fun isComponentExists(component: String) =
+        try {
+            client.getById(component).id == component
+        } catch (_: NotFoundException) {
+            false
+        }
 
     private fun Component.externalOrBreak(): ComponentDTO {
         if (distribution?.external != true) {
-            throw IllegalComponentTypeException("Component '${id}' is not external")
+            throw IllegalComponentTypeException("Component '$id' is not external")
         }
         return toComponentDTO()
     }
 
-    override fun getExternalComponentVersion(component: String, version: String) =
-        client.getDetailedComponent(component, version).externalOrBreak()
+    override fun getExternalComponentVersion(
+        component: String,
+        version: String,
+    ) = client.getDetailedComponent(component, version).externalOrBreak()
 
     override fun getExternalComponent(component: String) = client.getById(component).externalOrBreak()
 
     override fun getExternalComponents(filter: ComponentRequestFilter?) =
-        client.getAllComponents(solution = filter?.solution).components
+        client
+            .getAllComponents(solution = filter?.solution)
+            .components
             .filter { component ->
-                !component.archived && (component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit)} ?: false)
+                !component.archived &&
+                    (component.distribution?.let { d -> d.external && (filter?.explicit == false || d.explicit) } ?: false)
             }.map {
                 it.toComponentDTO()
             }
 
-    override fun getDetailedComponentVersion(component: String, version: String) =
-        client.getDetailedComponentVersion(component, version)
+    override fun getDetailedComponentVersion(
+        component: String,
+        version: String,
+    ) = client.getDetailedComponentVersion(component, version)
 
-    override fun getVersionNames() = with(client.getVersionNames()) {
-        VersionNames(this.serviceBranch, this.service, this.minor)
-    }
+    override fun getVersionNames() =
+        with(client.getVersionNames()) {
+            VersionNames(this.serviceBranch, this.service, this.minor)
+        }
 
-    override fun findPreviousVersion(component: String, version: String, versions: List<String>): String {
+    override fun findPreviousVersion(
+        component: String,
+        version: String,
+        versions: List<String>,
+    ): String {
         val versionNames = getVersionNames()
         val currentVersion = client.getDetailedComponentVersion(component, version)
-        return client.getDetailedComponentVersions(component, VersionRequest(versions))
+        return client
+            .getDetailedComponentVersions(component, VersionRequest(versions))
             .versions
             .toSortedMap(ReversedVersionComparator(versionNames))
             .entries
@@ -75,18 +88,22 @@ class ComponentsRegistryServiceImpl(
             ?: ""
     }
 
-    override fun findPreviousLines(component: String, version: String, versions: List<String>): List<String> {
+    override fun findPreviousLines(
+        component: String,
+        version: String,
+        versions: List<String>,
+    ): List<String> {
         val versionNames = getVersionNames()
         val numericVersionFactory = NumericVersionFactory(versionNames)
         val numericVersion = numericVersionFactory.create(version)
-        return client.getDetailedComponentVersions(component, VersionRequest(versions))
+        return client
+            .getDetailedComponentVersions(component, VersionRequest(versions))
             .versions
             .map { it.value.lineVersion.version to it.key }
             .groupBy({ (lineVersion, _) -> lineVersion }, { (_, sameLineVersion) -> sameLineVersion })
             .mapNotNull { (_, sameLineVersions) ->
                 sameLineVersions.sortedWith(ReversedVersionComparator(versionNames)).firstOrNull()
-            }
-            .filter { v -> numericVersionFactory.create(v) < numericVersion }
+            }.filter { v -> numericVersionFactory.create(v) < numericVersion }
             .sortedWith { a, b -> ReversedVersionComparator(versionNames).compare(a, b) }
             .reversed()
     }
@@ -94,42 +111,43 @@ class ComponentsRegistryServiceImpl(
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)
 
-        private fun Component.toComponentDTO() = ComponentDTO(
-            id,
-            name ?: id,
-            solution == true,
-            distribution?.explicit == true,
-            clientCode,
-            parentComponent,
-            SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList()),
-            labels
-        )
+        private fun Component.toComponentDTO() =
+            ComponentDTO(
+                id,
+                name ?: id,
+                solution == true,
+                distribution?.explicit == true,
+                clientCode,
+                parentComponent,
+                SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList()),
+                labels,
+            )
 
         private fun matches(
             component: String,
             versionNames: VersionNames,
             currentVersion: DetailedComponentVersion,
-            versionToBeCheck: DetailedComponentVersion
+            versionToBeCheck: DetailedComponentVersion,
         ): Boolean {
             val minorOfCurrentVersion = currentVersion.lineVersion
             val minorOfVersionToBeCheck = versionToBeCheck.lineVersion
-            return (minorOfCurrentVersion == minorOfVersionToBeCheck
-                    && ReversedVersionComparator(versionNames).compare(
-                currentVersion.releaseVersion.version,
-                versionToBeCheck.releaseVersion.version
-            ) < 0
-                    )
-                .also {
-                    log.debug(
-                        "Comparing {} versions {}(minor={}) and {}(minor={}) with result {}",
-                        component,
+            return (
+                minorOfCurrentVersion == minorOfVersionToBeCheck &&
+                    ReversedVersionComparator(versionNames).compare(
                         currentVersion.releaseVersion.version,
-                        minorOfCurrentVersion,
                         versionToBeCheck.releaseVersion.version,
-                        minorOfVersionToBeCheck.version,
-                        it
-                    )
-                }
+                    ) < 0
+            ).also {
+                log.debug(
+                    "Comparing {} versions {}(minor={}) and {}(minor={}) with result {}",
+                    component,
+                    currentVersion.releaseVersion.version,
+                    minorOfCurrentVersion,
+                    versionToBeCheck.releaseVersion.version,
+                    minorOfVersionToBeCheck.version,
+                    it,
+                )
+            }
         }
     }
 }

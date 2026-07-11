@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/ft/kotlin/org/octopusden/octopus/dms/DmsServiceApplicationFunctionalTest.kt">
+        <error line="122" column="141" source="standard:max-line-length" />
+        <error line="296" column="141" source="standard:max-line-length" />
+        <error line="323" column="141" source="standard:max-line-length" />
+        <error line="571" column="27" source="standard:property-naming" />
+        <error line="572" column="27" source="standard:property-naming" />
+    </file>
+</baseline>

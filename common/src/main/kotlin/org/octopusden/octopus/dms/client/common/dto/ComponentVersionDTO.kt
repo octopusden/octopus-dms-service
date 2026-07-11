@@ -6,19 +6,19 @@ import java.util.Objects
 @Schema(
     description = "Component version info",
     example = "{\n" +
-            "  \"component\": \"Some_Component\",\n" +
-            "  \"version\": \"1.2.3\",\n" +
-            "  \"published\": true,\n" +
-            "  \"status\": \"RELEASE\",\n" +
-            "  \"hotfix\": false\n" +
-            "}"
+        "  \"component\": \"Some_Component\",\n" +
+        "  \"version\": \"1.2.3\",\n" +
+        "  \"published\": true,\n" +
+        "  \"status\": \"RELEASE\",\n" +
+        "  \"hotfix\": false\n" +
+        "}",
 )
 open class ComponentVersionDTO(
     val component: String,
     val version: String,
     val published: Boolean,
     val status: ComponentVersionStatus,
-    val hotfix: Boolean
+    val hotfix: Boolean,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -37,5 +37,6 @@ open class ComponentVersionDTO(
 
     override fun hashCode() = Objects.hash(component, version, published, status, hotfix)
 
-    override fun toString() = "ComponentVersionDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix)"
+    override fun toString() =
+        "ComponentVersionDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix)"
 }

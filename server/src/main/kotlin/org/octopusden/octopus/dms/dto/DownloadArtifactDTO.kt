@@ -4,5 +4,5 @@ import java.io.InputStream
 
 class DownloadArtifactDTO(
     val fileName: String,
-    val file: InputStream
+    val file: InputStream,
 )

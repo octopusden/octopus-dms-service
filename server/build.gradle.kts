@@ -64,20 +64,23 @@ tasks {
 }
 
 fun String.getExt() = project.ext[this] as String
-fun String.getPort() = when (this) {
-    "artifactory" -> 8081
-    "comp-reg" -> 4567
-    "mockserver" -> 1080
-    "rm" -> 8083
-    "dms-postgres" -> 5432
-    "artifactory-postgres" -> 5432
-    else -> throw Exception("Unknown service '$this'")
-}
+
+fun String.getPort() =
+    when (this) {
+        "artifactory" -> 8081
+        "comp-reg" -> 4567
+        "mockserver" -> 1080
+        "rm" -> 8083
+        "dms-postgres" -> 5432
+        "artifactory-postgres" -> 5432
+        else -> throw Exception("Unknown service '$this'")
+    }
+
 fun getOkdInternalHost(serviceName: String) = "${ocTemplate.getPod(serviceName)}-service:${serviceName.getPort()}"
 
 val commonOkdParameters = mapOf(
     "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
-    "DOCKER_REGISTRY" to "dockerRegistry".getExt()
+    "DOCKER_REGISTRY" to "dockerRegistry".getExt(),
 )
 
 docker {
@@ -88,44 +91,60 @@ docker {
     }
 }
 
-ocTemplate{
+ocTemplate {
     workDir.set(layout.buildDirectory.dir("okd"))
     clusterDomain.set("okdClusterDomain".getExt())
     namespace.set("okdProject".getExt())
     prefix.set("dms-ut")
 
-    "okdWebConsoleUrl".getExt().takeIf { it.isNotBlank() }?.let{
+    "okdWebConsoleUrl".getExt().takeIf { it.isNotBlank() }?.let {
         webConsoleUrl.set(it)
     }
 
     service("mockserver") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/mockserver.yaml"))
-        parameters.set(commonOkdParameters + mapOf(
-            "MOCK_SERVER_VERSION" to properties["mockserver.version"] as String
-        ))
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "MOCK_SERVER_VERSION" to properties["mockserver.version"] as String,
+            ),
+        )
     }
 
     service("comp-reg") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/components-registry.yaml"))
-        val componentsRegistryWorkDir = layout.projectDirectory.dir("../test-common/src/main/components-registry").asFile.absolutePath
-        parameters.set(commonOkdParameters + mapOf(
-            "COMPONENTS_REGISTRY_SERVICE_VERSION" to properties["octopus-components-registry-service.version"] as String,
-            "AGGREGATOR_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/Aggregator.groovy").readText(),
-            "DEFAULTS_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/Defaults.groovy").readText(),
-            "TEST_COMPONENTS_GROOVY_CONTENT" to file("${componentsRegistryWorkDir}/TestComponents.groovy").readText(),
-            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("../test-common/src/main/config/components-registry-service.yaml").asFile.readText()
-        ))
+        val componentsRegistryWorkDir = layout.projectDirectory
+            .dir("../test-common/src/main/components-registry")
+            .asFile.absolutePath
+        parameters.set(
+            commonOkdParameters + mapOf(
+                "COMPONENTS_REGISTRY_SERVICE_VERSION" to properties["octopus-components-registry-service.version"] as String,
+                "AGGREGATOR_GROOVY_CONTENT" to file("$componentsRegistryWorkDir/Aggregator.groovy").readText(),
+                "DEFAULTS_GROOVY_CONTENT" to file("$componentsRegistryWorkDir/Defaults.groovy").readText(),
+                "TEST_COMPONENTS_GROOVY_CONTENT" to file("$componentsRegistryWorkDir/TestComponents.groovy").readText(),
+                "APPLICATION_DEV_CONTENT" to
+                    layout.projectDirectory
+                        .dir("../test-common/src/main/config/components-registry-service.yaml")
+                        .asFile
+                        .readText(),
+            ),
+        )
     }
 
     service("rm") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/release-management.yaml"))
-        parameters.set(mapOf(
-            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
-            "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
-            "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
-            "APPLICATION_DEV_CONTENT" to layout.projectDirectory.dir("../test-common/src/main/config/release-management-service.yaml").asFile.readText(),
-            "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver")
-        ))
+        parameters.set(
+            mapOf(
+                "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
+                "RELEASE_MANAGEMENT_SERVICE_VERSION" to properties["octopus-release-management-service.version"] as String,
+                "OCTOPUS_GITHUB_DOCKER_REGISTRY" to "octopusGithubDockerRegistry".getExt(),
+                "APPLICATION_DEV_CONTENT" to
+                    layout.projectDirectory
+                        .dir("../test-common/src/main/config/release-management-service.yaml")
+                        .asFile
+                        .readText(),
+                "TEST_MOCK_SERVER_HOST" to getOkdInternalHost("mockserver"),
+            ),
+        )
     }
 
     service("dms-postgres") {
@@ -142,7 +161,7 @@ ocTemplate{
                 "CPU_LIMIT" to "100m",
                 "MEMORY_REQUEST" to "64Mi",
                 "MEMORY_LIMIT" to "128Mi",
-            )
+            ),
         )
     }
 
@@ -160,21 +179,23 @@ ocTemplate{
                 "CPU_LIMIT" to "50m",
                 "MEMORY_REQUEST" to "128Mi",
                 "MEMORY_LIMIT" to "200Mi",
-            )
+            ),
         )
         dependsOn.set(listOf("dms-postgres"))
     }
 
     service("artifactory") {
         templateFile.set(rootProject.layout.projectDirectory.file("okd/artifactory.yaml"))
-        parameters.set(mapOf(
-            "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
-            "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
-            "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
-            "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
-            "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
-            "POSTGRES_HOST" to getOkdInternalHost("artifactory-postgres")
-        ))
+        parameters.set(
+            mapOf(
+                "ACTIVE_DEADLINE_SECONDS" to "okdActiveDeadlineSeconds".getExt(),
+                "ARTIFACTORY_IMAGE_TAG" to project.properties["artifactory.image-tag"] as String,
+                "POSTGRES_DB" to project.properties["artifactory-postgres.db"] as String,
+                "POSTGRES_USER" to project.properties["artifactory-postgres.user"] as String,
+                "POSTGRES_PASSWORD" to project.properties["artifactory-postgres.password"] as String,
+                "POSTGRES_HOST" to getOkdInternalHost("artifactory-postgres"),
+            ),
+        )
         dependsOn.set(listOf("artifactory-postgres"))
     }
 }
@@ -187,10 +208,12 @@ val copyArtifactoryDump = tasks.register<Exec>("copyArtifactoryDump") {
         // oc treats text before colon as pod name, strip Windows drive letter
         .substringAfter(":")
     commandLine(
-        "oc", "cp",
+        "oc",
+        "cp",
         "$localFile/.",
-        "-n", "okdProject".getExt(),
-        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/etc/artifactory/import"
+        "-n",
+        "okdProject".getExt(),
+        "${ocTemplate.getPod("artifactory")}:/opt/jfrog/artifactory/var/etc/artifactory/import",
     )
     dependsOn("ocCreate")
 }
@@ -210,7 +233,7 @@ tasks.named<ImportArtifactoryDump>("importArtifactoryDump") {
 
 tasks.register("waitPostgresExternalIP") {
     dependsOn("ocCreate")
-    doLast{
+    doLast {
         val ns = "okdProject".getExt()
         val deploymentPrefix = "${ocTemplate.prefix.get()}-${project.version}".lowercase().replace(Regex("[^-a-z0-9]"), "-")
         val svc = "$deploymentPrefix-dms-postgres-service"
@@ -219,7 +242,10 @@ tasks.register("waitPostgresExternalIP") {
         while (System.currentTimeMillis() < deadline) {
             println("Wait external IP for $svc ...")
             val proc = ProcessBuilder("oc", "-n", ns, "get", "svc", svc, "-o", "jsonpath={.status.loadBalancer.ingress[0].ip}").start()
-            val result = proc.inputStream.bufferedReader().readText().trim()
+            val result = proc.inputStream
+                .bufferedReader()
+                .readText()
+                .trim()
             proc.waitFor()
             if (result.isNotBlank() && result != "<pending>") {
                 println("$svc is ready: $result")
@@ -243,10 +269,12 @@ tasks.withType<Test> {
     doFirst {
         systemProperties["test.postgres-host"] = "postgresExternalIp".getExt()
     }
-    environment.putAll(mapOf(
-        "AUTH_SERVER_URL" to "authServerUrl".getExt(),
-        "AUTH_SERVER_REALM" to "authServerRealm".getExt()
-    ))
+    environment.putAll(
+        mapOf(
+            "AUTH_SERVER_URL" to "authServerUrl".getExt(),
+            "AUTH_SERVER_REALM" to "authServerRealm".getExt(),
+        ),
+    )
 }
 
 tasks.named("dockerBuildImage") {
@@ -257,7 +285,7 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     args(
         "--spring.cloud.config.enabled=false",
         "--spring.profiles.active=dev",
-        "--spring.config.additional-location=dev/"
+        "--spring.config.additional-location=dev/",
     )
     sourceResources(sourceSets.main.get())
 }
@@ -291,9 +319,13 @@ dependencies {
     implementation("org.springframework.retry:spring-retry")
 
     implementation("org.octopusden.octopus-cloud-commons:octopus-security-common:${project.properties["octopus-cloud-commons.version"]}")
-    implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
+    implementation(
+        "org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}",
+    )
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
-    implementation("org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}")
+    implementation(
+        "org.octopusden.octopus.release-management-service:client:${rootProject.properties["octopus-release-management-service.version"]}",
+    )
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")

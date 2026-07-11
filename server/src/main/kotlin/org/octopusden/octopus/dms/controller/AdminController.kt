@@ -1,8 +1,8 @@
 package org.octopusden.octopus.dms.controller
 
-import org.octopusden.octopus.dms.service.AdminService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.octopusden.octopus.dms.service.AdminService
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -17,31 +17,31 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Admin Controller")
 @PreAuthorize("@permissionEvaluator.hasPermission('DELETE_DATA')")
 class AdminController(
-    private val adminService: AdminService
+    private val adminService: AdminService,
 ) {
     @Operation(summary = "Delete Invalid Components")
     @DeleteMapping("invalid-components")
     fun deleteInvalidComponents(
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.deleteInvalidComponents(dryRun)
 
     @Operation(summary = "Delete Invalid Components Versions")
     @DeleteMapping("invalid-components-versions")
     fun deleteInvalidComponentsVersions(
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.deleteInvalidComponentsVersions(dryRun)
 
     @Operation(summary = "Delete Invalid Artifacts")
     @DeleteMapping("invalid-artifacts")
     fun deleteInvalidArtifacts(
         @RequestParam("update-sha256", defaultValue = "true", required = false) updateSha256: Boolean,
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.deleteInvalidArtifacts(updateSha256, dryRun)
 
     @Operation(summary = "Delete Orphaned Artifacts")
     @DeleteMapping("orphaned-artifacts")
     fun deleteOrphanedArtifacts(
-        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.deleteOrphanedArtifacts(dryRun)
 
     @Operation(summary = "Rename a component")
@@ -51,5 +51,4 @@ class AdminController(
         @PathVariable(name = "new-component-name") newComponentName: String,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.renameComponent(componentName, newComponentName, dryRun)
-
 }

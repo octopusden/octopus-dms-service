@@ -7,8 +7,8 @@ class ContentValidatorPropertiesDTO(
     val parallelism: Int,
     val exclude: List<String>,
     val forbiddenTokens: List<String>,
-    val forbiddenPatterns: List<Regex>
-) { //NOTE: cannot use data class, Regex equals method is invalid
+    val forbiddenPatterns: List<Regex>,
+) { // NOTE: cannot use data class, Regex equals method is invalid
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

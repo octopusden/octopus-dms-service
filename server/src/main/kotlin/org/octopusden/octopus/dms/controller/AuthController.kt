@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("auth")
 @Tag(name = "Auth Controller")
-class AuthController(private val securityService: SecurityService) {
+class AuthController(
+    private val securityService: SecurityService,
+) {
     @GetMapping("me")
     fun getUserInfo(): User {
         val user = securityService.getCurrentUser()

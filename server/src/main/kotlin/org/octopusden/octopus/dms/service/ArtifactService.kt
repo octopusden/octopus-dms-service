@@ -8,9 +8,21 @@ import org.springframework.web.multipart.MultipartFile
 
 interface ArtifactService {
     fun repositories(repositoryType: RepositoryType): List<String>
+
     fun get(id: Long): ArtifactDTO
+
     fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO
+
     fun download(id: Long): DownloadArtifactDTO
-    fun add(failOnAlreadyExists: Boolean, artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO
-    fun upload(failOnAlreadyExists: Boolean, artifactCoordinates: ArtifactCoordinatesDTO, file: MultipartFile): ArtifactDTO
+
+    fun add(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+    ): ArtifactDTO
+
+    fun upload(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        file: MultipartFile,
+    ): ArtifactDTO
 }

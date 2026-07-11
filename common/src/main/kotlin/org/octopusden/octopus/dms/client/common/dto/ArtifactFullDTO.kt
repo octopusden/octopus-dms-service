@@ -11,13 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "repositoryType",
-    visible = true
+    visible = true,
 )
 @JsonSubTypes(
     JsonSubTypes.Type(MavenArtifactFullDTO::class, name = "MAVEN"),
     JsonSubTypes.Type(DebianArtifactFullDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactFullDTO::class, name = "RPM"),
-    JsonSubTypes.Type(DockerArtifactFullDTO::class, name = "DOCKER")
+    JsonSubTypes.Type(DockerArtifactFullDTO::class, name = "DOCKER"),
 )
 @Schema(
     description = "Full artifact info",
@@ -26,8 +26,8 @@ import io.swagger.v3.oas.annotations.media.Schema
         DiscriminatorMapping("MAVEN", schema = MavenArtifactFullDTO::class),
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactFullDTO::class),
         DiscriminatorMapping("RPM", schema = RpmArtifactFullDTO::class),
-        DiscriminatorMapping("DOCKER", schema = DockerArtifactFullDTO::class)
-    ]
+        DiscriminatorMapping("DOCKER", schema = DockerArtifactFullDTO::class),
+    ],
 )
 abstract class ArtifactFullDTO(
     id: Long,
@@ -35,7 +35,7 @@ abstract class ArtifactFullDTO(
     type: ArtifactType,
     displayName: String,
     fileName: String,
-    sha256: String
-): ArtifactShortDTO(id, repositoryType, type, displayName, fileName, sha256) {
+    sha256: String,
+) : ArtifactShortDTO(id, repositoryType, type, displayName, fileName, sha256) {
     fun toShortDTO() = ArtifactShortDTO(id, repositoryType, type, displayName, fileName, sha256)
 }

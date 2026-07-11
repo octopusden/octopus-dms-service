@@ -4,8 +4,8 @@ import java.util.Objects
 
 class NameValidatorPropertiesDTO(
     val enabled: Boolean,
-    val allowedPattern: Regex
-) { //NOTE: cannot use data class, Regex equals method is invalid
+    val allowedPattern: Regex,
+) { // NOTE: cannot use data class, Regex equals method is invalid
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

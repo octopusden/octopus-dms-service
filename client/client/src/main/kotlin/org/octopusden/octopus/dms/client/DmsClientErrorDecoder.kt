@@ -1,15 +1,20 @@
 package org.octopusden.octopus.dms.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
-import org.octopusden.octopus.dms.exception.DMSException
 import feign.Response
 import feign.codec.ErrorDecoder
 import org.apache.http.HttpHeaders
 import org.apache.http.entity.ContentType
+import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
+import org.octopusden.octopus.dms.exception.DMSException
 
-class DmsClientErrorDecoder(private val objectMapper: ObjectMapper) : ErrorDecoder.Default() {
-    override fun decode(methodKey: String?, response: Response?): Exception =
+class DmsClientErrorDecoder(
+    private val objectMapper: ObjectMapper,
+) : ErrorDecoder.Default() {
+    override fun decode(
+        methodKey: String?,
+        response: Response?,
+    ): Exception =
         response?.let {
             val responseBody = it.body()?.asInputStream()?.use { inputStream ->
                 String(inputStream.readBytes())

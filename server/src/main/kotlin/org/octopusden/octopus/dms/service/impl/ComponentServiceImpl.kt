@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentController
+class ComponentServiceImpl( // TODO: move "start operation" logging to ComponentController
     private val componentsRegistryService: ComponentsRegistryService,
     private val releaseManagementService: ReleaseManagementService,
     private val storageService: StorageService,
@@ -54,7 +54,7 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    @Value("\${dms-service.docker-registry}") private val dockerRegistry: String
+    @Value("\${dms-service.docker-registry}") private val dockerRegistry: String,
 ) : ComponentService {
     /* Implementation notes:
      *
@@ -80,7 +80,9 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
 
     @Transactional(readOnly = true)
     override fun getComponentVersionsWithInfo(
-        componentName: String, minorVersions: List<String>, includeRc: Boolean
+        componentName: String,
+        minorVersions: List<String>,
+        includeRc: Boolean,
     ): List<ComponentVersionWithInfoDTO> {
         log.info("Get versions of component '$componentName'")
         val componentVersions = getComponentVersions(componentName, minorVersions, includeRc)
@@ -90,7 +92,8 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
 
     @Transactional(readOnly = true)
     override fun getComponentVersionDependencies(
-        componentName: String, version: String
+        componentName: String,
+        version: String,
     ): List<ComponentVersionWithInfoDTO> {
         log.info("Get dependencies of version '$version' of component '$componentName'")
         if (!getExternalExplicitComponentVersion(componentName, version).solution) {
@@ -99,17 +102,21 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         val release = releaseManagementService.getRelease(componentName, version, true)
         val numericVersionFactory = NumericVersionFactory(componentsRegistryService.getVersionNames())
         return release.dependencies.filter { it.status != ComponentVersionStatus.BUILD }.mapNotNull { dependency ->
-            componentVersionRepository.findByComponentNameAndVersion(
-                dependency.component, dependency.version
-            )?.let {
-                ComponentVersionWithInfoDTO(it.toDTO(dependency), numericVersionFactory.create(it.version))
-            }
+            componentVersionRepository
+                .findByComponentNameAndVersion(
+                    dependency.component,
+                    dependency.version,
+                )?.let {
+                    ComponentVersionWithInfoDTO(it.toDTO(dependency), numericVersionFactory.create(it.version))
+                }
         }
     }
 
     @Transactional(readOnly = false)
     override fun patchComponentVersion(
-        componentName: String, version: String, patchComponentVersionDTO: PatchComponentVersionDTO
+        componentName: String,
+        version: String,
+        patchComponentVersionDTO: PatchComponentVersionDTO,
     ): ComponentVersionDTO {
         log.info("${if (patchComponentVersionDTO.published) "Publish" else "Revoke"} version '$version' of component '$componentName'")
         val component = getExternalExplicitComponentVersion(componentName, version)
@@ -124,92 +131,126 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             }
             val dependencies = mutableListOf<DependencyArtifactsDTO>()
             if (component.solution) {
-                //TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
+                // TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
                 //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
                 val unpublishedDependencies = mutableListOf<BuildDTO>()
                 // TODO: add a cache for component information.
                 release.dependencies.forEach { dependencyBuild ->
-                    if (componentsRegistryService.getExternalComponentVersion(
-                            dependencyBuild.component,
-                            dependencyBuild.version
-                        ).explicit
+                    if (componentsRegistryService
+                            .getExternalComponentVersion(
+                                dependencyBuild.component,
+                                dependencyBuild.version,
+                            ).explicit
                     ) {
                         val dependencyComponentVersion = componentVersionRepository.findByComponentNameAndVersion(
-                            dependencyBuild.component, dependencyBuild.version
+                            dependencyBuild.component,
+                            dependencyBuild.version,
                         )
                         if (dependencyComponentVersion?.published != true) {
                             unpublishedDependencies.add(dependencyBuild)
                         } else {
-                            dependencies.add(DependencyArtifactsDTO(
-                                dependencyComponentVersion.toDTO(dependencyBuild),
-                                componentVersionArtifactRepository.findByComponentVersion(
-                                    dependencyComponentVersion
-                                ).map { it.toFullDTO(dockerRegistry) }
-                            ))
+                            dependencies.add(
+                                DependencyArtifactsDTO(
+                                    dependencyComponentVersion.toDTO(dependencyBuild),
+                                    componentVersionArtifactRepository
+                                        .findByComponentVersion(
+                                            dependencyComponentVersion,
+                                        ).map { it.toFullDTO(dockerRegistry) },
+                                ),
+                            )
                         }
                     }
                 }
                 if (patchComponentVersionDTO.published && unpublishedDependencies.isNotEmpty()) {
-                    throw VersionPublishedException("Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies")
+                    throw VersionPublishedException(
+                        "Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies",
+                    )
                 }
             } else if (!patchComponentVersionDTO.published) {
-                release.parents.filter {
-                    componentsRegistryService.getExternalComponent(it.component).solution &&
-                            componentVersionRepository.findByComponentNameAndVersion(
-                                it.component,
-                                it.version
-                            )?.published == true
-                }.takeIf { it.isNotEmpty() }?.let {
-                    throw VersionPublishedException("Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it")
-                }
+                release.parents
+                    .filter {
+                        componentsRegistryService.getExternalComponent(it.component).solution &&
+                            componentVersionRepository
+                                .findByComponentNameAndVersion(
+                                    it.component,
+                                    it.version,
+                                )?.published == true
+                    }.takeIf { it.isNotEmpty() }
+                    ?.let {
+                        throw VersionPublishedException(
+                            "Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it",
+                        )
+                    }
             }
             applicationEventPublisher.publishEvent(
-                if (patchComponentVersionDTO.published) PublishComponentVersionEvent(
-                    componentVersion.toFullDTO(component, release), artifacts, dependencies
-                ) else RevokeComponentVersionEvent(
-                    componentVersion.toFullDTO(component, release), artifacts, dependencies
-                )
+                if (patchComponentVersionDTO.published) {
+                    PublishComponentVersionEvent(
+                        componentVersion.toFullDTO(component, release),
+                        artifacts,
+                        dependencies,
+                    )
+                } else {
+                    RevokeComponentVersionEvent(
+                        componentVersion.toFullDTO(component, release),
+                        artifacts,
+                        dependencies,
+                    )
+                },
             )
-            componentVersionRepository.save(componentVersion.apply {
-                published = patchComponentVersionDTO.published
-            }).toDTO(release)
+            componentVersionRepository
+                .save(
+                    componentVersion.apply {
+                        published = patchComponentVersionDTO.published
+                    },
+                ).toDTO(release)
         }
     }
 
     @Transactional(readOnly = true)
     override fun getPreviousLinesLatestVersions(
-        componentName: String, version: String, includeRc: Boolean
+        componentName: String,
+        version: String,
+        includeRc: Boolean,
     ): List<String> {
         log.info("Get previous versions for version '$version' of component '$componentName'" + if (includeRc) " including RC" else "")
         val componentVersions = getComponentVersions(componentName, emptyList(), includeRc)
         return componentsRegistryService.findPreviousLines(
             componentName,
             releaseManagementService.getRelease(componentName, version, true).version,
-            componentVersions.map { it.version }
+            componentVersions.map { it.version },
         )
     }
 
     @Transactional(readOnly = true)
     override fun getComponentVersionArtifacts(
-        componentName: String, version: String, type: ArtifactType?
+        componentName: String,
+        version: String,
+        type: ArtifactType?,
     ): ArtifactsDTO {
         log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
         val component = getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, true)
         val componentVersion = componentVersionRepository.findByComponentNameAndVersion(component.id, release.version)
-        val componentVersionArtifacts = if (componentVersion != null)
-            if (type != null) componentVersionArtifactRepository.findByComponentVersionAndType(componentVersion, type)
-            else componentVersionArtifactRepository.findByComponentVersion(componentVersion)
-        else emptyList()
+        val componentVersionArtifacts = if (componentVersion != null) {
+            if (type != null) {
+                componentVersionArtifactRepository.findByComponentVersionAndType(componentVersion, type)
+            } else {
+                componentVersionArtifactRepository.findByComponentVersion(componentVersion)
+            }
+        } else {
+            emptyList()
+        }
         return ArtifactsDTO(
             componentVersion?.toFullDTO(component, release) ?: release.toComponentVersionFullDTO(component),
-            componentVersionArtifacts.map { it.toShortDTO(dockerRegistry) }
+            componentVersionArtifacts.map { it.toShortDTO(dockerRegistry) },
         )
     }
 
     @Transactional(readOnly = true)
     override fun getComponentVersionArtifact(
-        componentName: String, version: String, artifactId: Long
+        componentName: String,
+        version: String,
+        artifactId: Long,
     ): ArtifactFullDTO {
         log.info("Get artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         return getComponentVersionArtifactEntity(componentName, version, artifactId).toFullDTO(dockerRegistry)
@@ -217,7 +258,9 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
 
     @Transactional(readOnly = true)
     override fun downloadComponentVersionArtifact(
-        componentName: String, version: String, artifactId: Long
+        componentName: String,
+        version: String,
+        artifactId: Long,
     ): DownloadArtifactDTO {
         log.info("Download artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         return getComponentVersionArtifactEntity(componentName, version, artifactId).artifact.let {
@@ -231,20 +274,28 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         version: String,
         artifactId: Long,
         failOnAlreadyExists: Boolean,
-        registerArtifactDTO: RegisterArtifactDTO
+        registerArtifactDTO: RegisterArtifactDTO,
     ): ArtifactFullDTO {
-        log.info("Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'")
+        log.info(
+            "Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'",
+        )
         getExternalExplicitComponentVersion(componentName, version)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
         storageService.get(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
-            if (artifact.sha256 != it) throw ArtifactChecksumChangedException("SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'")
+            if (artifact.sha256 !=
+                it
+            ) {
+                throw ArtifactChecksumChangedException(
+                    "SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'",
+                )
+            }
         }
         val release = releaseManagementService.getRelease(
             componentName,
             version,
-            registerArtifactDTO.type != ArtifactType.DISTRIBUTION
+            registerArtifactDTO.type != ArtifactType.DISTRIBUTION,
         )
         componentRepository.lock(componentName.hashCode())
         val component = componentRepository.findByName(componentName)
@@ -253,15 +304,17 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             ?: componentVersionRepository.save(
                 ComponentVersion(
                     component = component,
-                    minorVersion = componentsRegistryService.getDetailedComponentVersion(
-                        componentName,
-                        release.version
-                    ).minorVersion.version,
-                    version = release.version
-                )
+                    minorVersion = componentsRegistryService
+                        .getDetailedComponentVersion(
+                            componentName,
+                            release.version,
+                        ).minorVersion.version,
+                    version = release.version,
+                ),
             )
         val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
-            componentVersion, artifact
+            componentVersion,
+            artifact,
         )
         return if (componentVersionArtifact != null) {
             with("Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'") {
@@ -271,43 +324,52 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
             componentVersionArtifact.toFullDTO(dockerRegistry)
         } else {
             if (componentVersion.published) {
-                throw VersionPublishedException("Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version. The version must first be unpublished")
-            }
-            componentVersionArtifactRepository.save(
-                ComponentVersionArtifact(
-                    componentVersion = componentVersion,
-                    artifact = artifact,
-                    type = registerArtifactDTO.type
-                )
-            ).toFullDTO(dockerRegistry).also {
-                applicationEventPublisher.publishEvent(
-                    RegisterComponentVersionArtifactEvent(componentName, release.version, it)
+                throw VersionPublishedException(
+                    "Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version. The version must first be unpublished",
                 )
             }
+            componentVersionArtifactRepository
+                .save(
+                    ComponentVersionArtifact(
+                        componentVersion = componentVersion,
+                        artifact = artifact,
+                        type = registerArtifactDTO.type,
+                    ),
+                ).toFullDTO(dockerRegistry)
+                .also {
+                    applicationEventPublisher.publishEvent(
+                        RegisterComponentVersionArtifactEvent(componentName, release.version, it),
+                    )
+                }
         }
     }
 
     @Transactional(readOnly = false)
     override fun deleteComponentVersionArtifact(
-        componentName: String, version: String, artifactId: Long, dryRun: Boolean
+        componentName: String,
+        version: String,
+        artifactId: Long,
+        dryRun: Boolean,
     ) {
         log.info("Delete artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         val buildVersion = releaseManagementService.findRelease(componentName, version, true)?.version ?: version
         componentRepository.lock(componentName.hashCode())
         componentVersionRepository.findByComponentNameAndVersion(componentName, buildVersion)?.let { componentVersion ->
             if (componentVersion.published) {
-                throw VersionPublishedException("Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. The version must first be unpublished")
+                throw VersionPublishedException(
+                    "Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. The version must first be unpublished",
+                )
             }
             componentVersionArtifactRepository.findByComponentVersionAndArtifactId(componentVersion, artifactId)?.let {
                 if (!dryRun) {
                     applicationEventPublisher.publishEvent(
-                        DeleteComponentVersionArtifactEvent(componentName, buildVersion, it.toFullDTO(dockerRegistry))
+                        DeleteComponentVersionArtifactEvent(componentName, buildVersion, it.toFullDTO(dockerRegistry)),
                     )
                     componentVersionArtifactRepository.delete(it)
                     if (componentVersionArtifactRepository.findByComponentVersion(componentVersion).isEmpty()) {
                         componentVersionRepository.delete(componentVersion)
                     }
-                    //NOTE: Component is displayed in UI even if it has no ComponentVersions - no need to check and clean it
+                    // NOTE: Component is displayed in UI even if it has no ComponentVersions - no need to check and clean it
                     log.info("$it deleted")
                 }
             }
@@ -324,11 +386,15 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
     private fun getExternalExplicitComponent(componentName: String) =
         componentsRegistryService.getExternalComponent(componentName).explicitOrBreak()
 
-    private fun getExternalExplicitComponentVersion(componentName: String, version: String) =
-        componentsRegistryService.getExternalComponentVersion(componentName, version).explicitOrBreak()
+    private fun getExternalExplicitComponentVersion(
+        componentName: String,
+        version: String,
+    ) = componentsRegistryService.getExternalComponentVersion(componentName, version).explicitOrBreak()
 
     private fun getComponentVersions(
-        componentName: String, minorVersions: List<String>, includeRc: Boolean
+        componentName: String,
+        minorVersions: List<String>,
+        includeRc: Boolean,
     ): List<ComponentVersionDTO> {
         getExternalExplicitComponent(componentName)
         val componentVersions = if (minorVersions.isEmpty()) {
@@ -339,9 +405,12 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
         return if (componentVersions.isEmpty()) {
             emptyList()
         } else {
-            val releases = releaseManagementService.findReleases(
-                componentName, componentVersions.map { it.version }, includeRc
-            ).associateBy { it.version }
+            val releases = releaseManagementService
+                .findReleases(
+                    componentName,
+                    componentVersions.map { it.version },
+                    includeRc,
+                ).associateBy { it.version }
             componentVersions.mapNotNull {
                 releases[it.version]?.let { release -> it.toDTO(release) }
             }
@@ -349,26 +418,59 @@ class ComponentServiceImpl( //TODO: move "start operation" logging to ComponentC
     }
 
     private fun getComponentVersionArtifactEntity(
-        componentName: String, version: String, artifactId: Long
+        componentName: String,
+        version: String,
+        artifactId: Long,
     ): ComponentVersionArtifact {
         getExternalExplicitComponentVersion(componentName, version)
         val buildVersion = releaseManagementService.getRelease(componentName, version, true).version
         return componentVersionArtifactRepository.getByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
-            componentName, buildVersion, artifactId
+            componentName,
+            buildVersion,
+            artifactId,
         )
     }
 
-    private fun ComponentVersion.toDTO(build: BuildDTO) = ComponentVersionDTO(
-        component.name, version, published, build.status, build.hotfix
+    private fun ComponentVersion.toDTO(build: BuildDTO) =
+        ComponentVersionDTO(
+            component.name,
+            version,
+            published,
+            build.status,
+            build.hotfix,
+        )
+
+    private fun ComponentVersion.toFullDTO(
+        component: ComponentDTO,
+        build: BuildFullDTO,
+    ) = ComponentVersionFullDTO(
+        component.id,
+        version,
+        published,
+        build.status,
+        build.hotfix,
+        build.promotedAt,
+        component.name,
+        component.solution,
+        component.clientCode,
+        component.parentComponent,
+        component.labels,
     )
 
-    private fun ComponentVersion.toFullDTO(component: ComponentDTO, build: BuildFullDTO) = ComponentVersionFullDTO(
-        component.id, version, published, build.status, build.hotfix, build.promotedAt, component.name, component.solution, component.clientCode, component.parentComponent, component.labels
-    )
-
-    private fun BuildFullDTO.toComponentVersionFullDTO(component: ComponentDTO) = ComponentVersionFullDTO(
-        component.id, version, false, status, hotfix, promotedAt, component.name, component.solution, component.clientCode, component.parentComponent, component.labels
-    )
+    private fun BuildFullDTO.toComponentVersionFullDTO(component: ComponentDTO) =
+        ComponentVersionFullDTO(
+            component.id,
+            version,
+            false,
+            status,
+            hotfix,
+            promotedAt,
+            component.name,
+            component.solution,
+            component.clientCode,
+            component.parentComponent,
+            component.labels,
+        )
 
     companion object {
         private val log = LoggerFactory.getLogger(ComponentServiceImpl::class.java)

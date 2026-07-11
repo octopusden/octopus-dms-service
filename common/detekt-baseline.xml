@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ClassOrdering:ArtifactType.kt$ArtifactType$override fun toString(): String</ID>
+    <ID>MaxLineLength:ArtifactShortDTO.kt$ArtifactShortDTO$"ArtifactShortDTO(id=$id, repositoryType=$repositoryType, type=$type, displayName='$displayName', fileName='$fileName', sha256='$sha256')"</ID>
+    <ID>MaxLineLength:ComponentVersionFullDTO.kt$ComponentVersionFullDTO$"ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels)"</ID>
+    <ID>MaxLineLength:DockerArtifactFullDTO.kt$DockerArtifactFullDTO$"DockerArtifactFullDTO(id=$id, type=$type, displayName='$displayName', fileName='$fileName', sha256='$sha256, image='$image', tag='$tag')"</ID>
+  </CurrentIssues>
+</SmellBaseline>
