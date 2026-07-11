@@ -28,7 +28,10 @@ octopusQuality {
         failOnViolation.set(true)
     }
     // Functional-test module is not part of the static quality gate.
-    excludeTasks("ft", ":ft:ft")
+    // The dms-service ':test' task is an OKD/OpenShift integration suite (it wires the oc-template
+    // tasks ocProcess/ocCreate and requires a live cluster + `oc` CLI); it cannot run on the CI
+    // runner, so it is excluded from the coverage aggregate together with the functional tests.
+    excludeTasks("ft", ":ft:ft", ":dms-service:test")
 }
 
 val defaultVersion = "${
