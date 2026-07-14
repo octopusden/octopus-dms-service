@@ -236,6 +236,11 @@ val ft by tasks.creating(Test::class) {
         "dms-service.user" to "dmsServiceUser".getExt(),
         "dms-service.password" to "dmsServicePassword".getExt()
     ))
+    // Propagate use_dev_repository (Gradle init.gradle convention) to the test JVM so the
+    // Maven CLI invocations in FT can mirror it with -Pstaging at the Maven layer.
+    project.findProperty("use_dev_repository")?.let {
+        systemProperties["use_dev_repository"] = it.toString()
+    }
     group = "verification"
     description = "Runs the functional tests"
     testClassesDirs = sourceSets["ft"].output.classesDirs
