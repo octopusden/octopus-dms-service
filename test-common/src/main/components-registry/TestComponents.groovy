@@ -40,27 +40,21 @@
     distribution {
         external = true
         explicit = false
-        docker = "test/test-component"
+        docker = "test/test-component-vr"
     }
     "[03.53,03.54)" {
         distribution {
-            external = true
-            explicit = false
-            docker = "test/test-component"
+            docker = "test/test-component-vr"
         }
     }
     "[03.54,03.55)" {
         distribution {
-            external = true
-            explicit = true
-            docker = "test/test-component"
+            docker = "test/test-component-vr"
         }
     }
     "[03.55,03.56)" {
         distribution {
-            external = false
-            explicit = true
-            docker = "test/test-component"
+            docker = "test/test-component-vr"
         }
     }
 }
@@ -175,6 +169,9 @@ dependency2 {
     vcsUrl = "ssh://git@git.domain.corp/ee/dependency-2.git"
     jira {
         projectKey = 'DEPS'
+        component {
+            versionPrefix = 'dep2'
+        }
     }
     distribution {
         external = true
@@ -191,6 +188,9 @@ dependency3 {
     vcsUrl = "ssh://git@git.domain.corp/ee/dependency-3.git"
     jira {
         projectKey = 'DEPS'
+        component {
+            versionPrefix = 'dep3'
+        }
     }
     distribution {
         external = true

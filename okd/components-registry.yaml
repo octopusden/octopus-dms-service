@@ -50,7 +50,7 @@ objects:
             - name: SPRING_CLOUD_CONFIG_ENABLED
               value: "false"
             - name: SPRING_PROFILES_ACTIVE
-              value: "dev"
+              value: "dev,ft-db"
           volumeMounts:
             - name: components-registry-dir
               mountPath: /components-registry
