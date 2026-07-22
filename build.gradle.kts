@@ -10,6 +10,28 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     signing
     id("io.github.gradle-nexus.publish-plugin")
+    // Kotlin static-analysis tools — declared at root (apply false), applied per Kotlin subproject below.
+    id("io.gitlab.arturbosch.detekt") apply false
+    id("org.jlleitschuh.gradle.ktlint") apply false
+    // Octopus quality-gates convention plugin — configures detekt/ktlint and wires qualityStatic.
+    id("org.octopusden.octopus-quality")
+}
+
+octopusQuality {
+    // Repo has no coverage target wired for the gate — disable coverage verification.
+    coverage {
+        enabled.set(false)
+    }
+    // Enforce the gate: detekt/ktlint violations fail the build. Current debt is absorbed by
+    // the committed detekt-baseline.xml / ktlint-baseline.xml files.
+    kotlin {
+        failOnViolation.set(true)
+    }
+    // Functional-test module is not part of the static quality gate.
+    // The dms-service ':test' task is an OKD/OpenShift integration suite (it wires the oc-template
+    // tasks ocProcess/ocCreate and requires a live cluster + `oc` CLI); it cannot run on the CI
+    // runner, so it is excluded from the coverage aggregate together with the functional tests.
+    excludeTasks("ft", ":ft:ft", ":dms-service:test")
 }
 
 val defaultVersion = "${
@@ -54,6 +76,10 @@ subprojects {
     apply(plugin = "idea")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "signing")
+    // Kotlin static analysis — applied per subproject so the convention plugin's reactive
+    // configuration wires detekt/ktlintCheck tasks (avoids a hollow quality gate).
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     repositories {
         mavenCentral()

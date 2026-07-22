@@ -9,5 +9,7 @@ interface ComponentRepository : JpaRepository<Component, Long> {
     fun findByName(name: String): Component?
 
     @Query(nativeQuery = true, value = "SELECT 1 FROM pg_advisory_xact_lock(:hash, 0)")
-    fun lock(@Param("hash") hash: Int)
+    fun lock(
+        @Param("hash") hash: Int,
+    )
 }

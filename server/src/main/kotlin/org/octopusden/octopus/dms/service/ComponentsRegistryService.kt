@@ -7,11 +7,32 @@ import org.octopusden.releng.versions.VersionNames
 
 interface ComponentsRegistryService {
     fun isComponentExists(component: String): Boolean
-    fun getExternalComponentVersion(component: String, version: String): ComponentDTO
+
+    fun getExternalComponentVersion(
+        component: String,
+        version: String,
+    ): ComponentDTO
+
     fun getExternalComponent(component: String): ComponentDTO
+
     fun getExternalComponents(filter: ComponentRequestFilter?): List<ComponentDTO>
-    fun getDetailedComponentVersion(component: String, version: String): DetailedComponentVersion
+
+    fun getDetailedComponentVersion(
+        component: String,
+        version: String,
+    ): DetailedComponentVersion
+
     fun getVersionNames(): VersionNames
-    fun findPreviousVersion(component: String, version: String, versions: List<String>): String
-    fun findPreviousLines(component: String, version: String, versions: List<String>): List<String>
+
+    fun findPreviousVersion(
+        component: String,
+        version: String,
+        versions: List<String>,
+    ): String
+
+    fun findPreviousLines(
+        component: String,
+        version: String,
+        versions: List<String>,
+    ): List<String>
 }

@@ -1,8 +1,8 @@
 package org.octopusden.octopus.dms.dto
 
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 import java.util.Date
 import java.util.Objects
-import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
 
 class BuildFullDTO(
     component: String,
@@ -11,7 +11,7 @@ class BuildFullDTO(
     hotfix: Boolean,
     val promotedAt: Date?,
     val parents: List<BuildDTO>,
-    val dependencies: List<BuildDTO>
+    val dependencies: List<BuildDTO>,
 ) : BuildDTO(component, version, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -29,5 +29,6 @@ class BuildFullDTO(
 
     override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, parents, dependencies)
 
-    override fun toString() = "BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"
+    override fun toString() =
+        "BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"
 }

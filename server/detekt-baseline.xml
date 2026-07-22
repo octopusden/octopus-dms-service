@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ForbiddenComment:AdminServiceImpl.kt$AdminServiceImpl$// TODO:</ID>
+    <ID>ForbiddenComment:AdminServiceImpl.kt$AdminServiceImpl$// TODO: implement batch processing with transaction propagation REQUIRES_NEW etc.</ID>
+    <ID>ForbiddenComment:AdminServiceImpl.kt$AdminServiceImpl$// TODO: move functionality to ComponentService and ArtifactService?</ID>
+    <ID>ForbiddenComment:ArtifactController.kt$ArtifactController$// TODO: separate permission for download?</ID>
+    <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: add a cache for component information.</ID>
+    <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components</ID>
+    <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: move "start operation" logging to ComponentController</ID>
+    <ID>MaxLineLength:AdminServiceImpl.kt$AdminServiceImpl$*</ID>
+    <ID>MaxLineLength:BuildFullDTO.kt$BuildFullDTO$"BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"</ID>
+    <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies"</ID>
+    <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it"</ID>
+    <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. The version must first be unpublished"</ID>
+    <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Version '${release.version}' of component '$componentName' is published. Unable to register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for the component version. The version must first be unpublished"</ID>
+    <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$/* Implementation notes: * * Use non-limited waiting pessimistic transaction advisory locks by component (see `componentRepository.lock`) because of: * - "on-demand" nature of Component and ComponentVersion entities * - "administrative only" and "safe" delete operation * - low concurrency (the main case is race condition on saving Component and ComponentVersion entities during parallel registration of artifacts) */</ID>
+    <ID>SwallowedException:AdminServiceImpl.kt$AdminServiceImpl$e: Exception</ID>
+    <ID>SwallowedException:DmsServiceApplicationUnitTest.kt$DmsServiceApplicationUnitTest.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AdminServiceImpl.kt$AdminServiceImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PermissionEvaluator.kt$PermissionEvaluator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StorageServiceImpl.kt$StorageServiceImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WebhookEventListener.kt$WebhookEventListener$e: Exception</ID>
+    <ID>TooManyFunctions:ComponentController.kt$ComponentController</ID>
+    <ID>TooManyFunctions:ComponentService.kt$ComponentService</ID>
+    <ID>TooManyFunctions:ComponentServiceImpl.kt$ComponentServiceImpl : ComponentService</ID>
+    <ID>UnusedParameter:ExceptionHandler.kt$ExceptionHandler$response: HttpServletResponse</ID>
+  </CurrentIssues>
+</SmellBaseline>

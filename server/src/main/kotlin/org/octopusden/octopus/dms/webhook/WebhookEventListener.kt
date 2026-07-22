@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 @ConditionalOnProperty(prefix = "dms-service.webhook", name = ["enabled"], havingValue = "true", matchIfMissing = true)
 @Component
 class WebhookEventListener(
-    val webhookFeignClient: WebhookFeignClient
+    val webhookFeignClient: WebhookFeignClient,
 ) {
     @TransactionalEventListener
     fun onEvent(event: Event) {

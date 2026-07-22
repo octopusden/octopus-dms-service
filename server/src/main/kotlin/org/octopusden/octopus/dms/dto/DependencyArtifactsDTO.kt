@@ -5,5 +5,5 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 
 data class DependencyArtifactsDTO(
     val componentVersion: ComponentVersionDTO,
-    val artifacts: List<ArtifactFullDTO>
+    val artifacts: List<ArtifactFullDTO>,
 )

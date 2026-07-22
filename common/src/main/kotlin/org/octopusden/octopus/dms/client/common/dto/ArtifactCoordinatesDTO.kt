@@ -11,13 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "repositoryType",
-    visible = true
+    visible = true,
 )
 @JsonSubTypes(
     JsonSubTypes.Type(MavenArtifactCoordinatesDTO::class, name = "MAVEN"),
     JsonSubTypes.Type(DebianArtifactCoordinatesDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactCoordinatesDTO::class, name = "RPM"),
-    JsonSubTypes.Type(DockerArtifactCoordinatesDTO::class, name = "DOCKER")
+    JsonSubTypes.Type(DockerArtifactCoordinatesDTO::class, name = "DOCKER"),
 )
 @Schema(
     description = "Artifact coordinates",
@@ -26,11 +26,11 @@ import io.swagger.v3.oas.annotations.media.Schema
         DiscriminatorMapping("MAVEN", schema = MavenArtifactCoordinatesDTO::class),
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactCoordinatesDTO::class),
         DiscriminatorMapping("RPM", schema = RpmArtifactCoordinatesDTO::class),
-        DiscriminatorMapping("DOCKER", schema = DockerArtifactCoordinatesDTO::class)
-    ]
+        DiscriminatorMapping("DOCKER", schema = DockerArtifactCoordinatesDTO::class),
+    ],
 )
 abstract class ArtifactCoordinatesDTO(
-    val repositoryType: RepositoryType
+    val repositoryType: RepositoryType,
 ) {
     abstract fun toPath(): String
 }

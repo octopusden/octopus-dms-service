@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Import
 @EnableConfigurationProperties(SecurityProperties::class)
 class WebSecurityConfig(
     authServerClient: AuthServerClient,
-    securityProperties: SecurityProperties
+    securityProperties: SecurityProperties,
 ) : CloudCommonWebSecurityConfig(
-    authServerClient = authServerClient,
-    securityProperties = securityProperties,
-)
+        authServerClient = authServerClient,
+        securityProperties = securityProperties,
+    )

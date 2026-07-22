@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LargeClass:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest</ID>
+    <ID>MaxLineLength:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$val RELEASE_DOCKER_ARTIFACTS_COORDINATES = "${releaseDockerDistributionCoordinates.image}:${releaseDockerDistributionCoordinates.tag}"</ID>
+    <ID>TooGenericExceptionThrown:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest$throw Exception("System property 'test.artifactory-host' must be defined")</ID>
+    <ID>TooGenericExceptionThrown:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest$throw Exception("System property 'test.postgres-host' must be defined")</ID>
+    <ID>TooManyFunctions:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest</ID>
+    <ID>TooManyFunctions:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest$Companion</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun artifactsReleaseVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun distributionArtifactRCVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun invalidArtifacts(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun nonEEComponents(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun nonEEComponentsVersioned(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun reportArtifactBuildVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun stagingArtifactsReleaseVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetComponentMinorVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetComponentVersionDependencies(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetComponentVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetPreviousLinesLatestVersions(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testPatchComponentVersion(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testRegisterUploadedArtifact(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun versionRangeDistributionCases(): Stream&lt;Arguments&gt;</ID>
+  </CurrentIssues>
+</SmellBaseline>

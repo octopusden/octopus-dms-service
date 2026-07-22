@@ -7,5 +7,5 @@ import org.octopusden.octopus.dms.dto.DependencyArtifactsDTO
 data class PublishComponentVersionEvent(
     val componentVersion: ComponentVersionFullDTO,
     val artifacts: List<ArtifactFullDTO>,
-    val dependencies: List<DependencyArtifactsDTO>
+    val dependencies: List<DependencyArtifactsDTO>,
 ) : Event(EventType.PUBLISH_COMPONENT_VERSION)

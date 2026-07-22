@@ -4,7 +4,7 @@ import java.util.Objects
 
 class FileValidatorRulePropertiesDTO(
     val id: String,
-    val pattern: Regex
+    val pattern: Regex,
 ) {
     private fun normalizedPattern(): Pair<String, Set<RegexOption>> = pattern.pattern to pattern.options
 
