@@ -30,7 +30,7 @@ objects:
           image: ${DOCKER_REGISTRY}/octopusden/components-registry-service:${COMPONENTS_REGISTRY_SERVICE_VERSION}
           resources:
             requests:
-              cpu: "200m"
+              cpu: "50m"
               memory: "450Mi"
             limits:
               cpu: "400m"
