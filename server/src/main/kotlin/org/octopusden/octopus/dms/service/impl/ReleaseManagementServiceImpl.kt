@@ -51,7 +51,8 @@ class ReleaseManagementServiceImpl(
             build.hotfix,
             build.statusHistory[build.status],
             build.parents.map { it.toBuildDTO() },
-            build.dependencies.map { it.toBuildDTO() }
+            build.dependencies.map { it.toBuildDTO() },
+            build.limitations
         ) else throw IllegalVersionStatusException(
             "Build for version '$version' of component '$component' has status ${build.status}. Allowed statuses are $allowedStatuses"
         )
