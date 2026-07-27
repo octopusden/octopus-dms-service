@@ -17,7 +17,8 @@ import java.util.Objects
             "  \"solution\": false,\n" +
             "  \"clientCode\": \"CLIENT_CODE\",\n" +
             "  \"parentComponent\": \"ee-component\",\n" +
-            "  \"labels\": [\"production\", \"critical\"]\n" +
+            "  \"labels\": [\"production\", \"critical\"],\n" +
+            "  \"limitations\": \"Upgrade from 1.2.2 is not supported, reinstall required.\"\n" +
             "}"
 )
 class ComponentVersionFullDTO(
@@ -31,7 +32,9 @@ class ComponentVersionFullDTO(
     val solution: Boolean,
     val clientCode: String?,
     val parentComponent: String?,
-    val labels: Set<String> = emptySet()
+    val labels: Set<String> = emptySet(),
+    @Schema(description = "Release limitations, as provided when the version was released", nullable = true)
+    val limitations: String? = null
 ) : ComponentVersionDTO(component, version, published, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -46,12 +49,13 @@ class ComponentVersionFullDTO(
         if (clientCode != other.clientCode) return false
         if (parentComponent != other.parentComponent) return false
         if (labels != other.labels) return false
+        if (limitations != other.limitations) return false
 
         return true
     }
 
-    override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent, labels)
+    override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent, labels, limitations)
     override fun toString(): String {
-        return "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels)"
+        return "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels, limitations=$limitations)"
     }
 }
