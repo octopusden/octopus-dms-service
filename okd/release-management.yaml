@@ -24,7 +24,7 @@ objects:
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/release-management-service:${RELEASE_MANAGEMENT_SERVICE_VERSION}
           resources:
             requests:
-              cpu: "200m"
+              cpu: "50m"
               memory: "350Mi"
             limits:
               cpu: "400m"

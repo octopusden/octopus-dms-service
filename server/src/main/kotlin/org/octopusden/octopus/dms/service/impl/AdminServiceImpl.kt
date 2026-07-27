@@ -18,14 +18,14 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = false)
-class AdminServiceImpl( //TODO: move functionality to ComponentService and ArtifactService?
+class AdminServiceImpl( // TODO: move functionality to ComponentService and ArtifactService?
     private val componentsRegistryService: ComponentsRegistryService,
     private val releaseManagementService: ReleaseManagementService,
     private val storageService: StorageService,
     private val componentRepository: ComponentRepository,
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
-    private val artifactRepository: ArtifactRepository
+    private val artifactRepository: ArtifactRepository,
 ) : AdminService {
     /**
      * Remove all implicit/internal components.
@@ -36,9 +36,11 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param dryRun - if true, do not delete versions
      */
     override fun deleteInvalidComponents(dryRun: Boolean) {
-        val validComponents = componentsRegistryService.getExternalComponents(
-            ComponentRequestFilter()
-        ).map { it.name }.toSet()
+        val validComponents = componentsRegistryService
+            .getExternalComponents(
+                ComponentRequestFilter(),
+            ).map { it.name }
+            .toSet()
         val invalidComponents = componentRepository.findAll().filter { !validComponents.contains(it.name) }
         log.info("Delete invalid components $invalidComponents")
         if (!dryRun) {
@@ -56,16 +58,22 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param dryRun - if true, do not delete versions
      */
     override fun deleteInvalidComponentsVersions(dryRun: Boolean) {
-        val invalidComponentsVersions = componentVersionRepository.findAll().groupBy {
-            it.component.name
-        }.flatMap { (componentName, versions) ->
-            val validComponentVersions = releaseManagementService.findReleases(
-                componentName, versions.map { it.version }, includeRc = true
-            ).map { it.version }.toSet()
-            componentVersionRepository.findByComponentName(componentName).filter {
-                !validComponentVersions.contains(it.version)
+        val invalidComponentsVersions = componentVersionRepository
+            .findAll()
+            .groupBy {
+                it.component.name
+            }.flatMap { (componentName, versions) ->
+                val validComponentVersions = releaseManagementService
+                    .findReleases(
+                        componentName,
+                        versions.map { it.version },
+                        includeRc = true,
+                    ).map { it.version }
+                    .toSet()
+                componentVersionRepository.findByComponentName(componentName).filter {
+                    !validComponentVersions.contains(it.version)
+                }
             }
-        }
         log.info("Delete invalid components versions $invalidComponentsVersions")
         if (!dryRun) {
             componentVersionRepository.deleteAll(invalidComponentsVersions)
@@ -83,8 +91,11 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param updateSha256 - if true, update sha256 for artifacts (in other case, consider all artifacts with irrelevant sha256 as unobtainable)
      * @param dryRun - if true, do not update/delete artifacts
      */
-    override fun deleteInvalidArtifacts(updateSha256: Boolean, dryRun: Boolean) = artifactRepository.findAll().forEach {
-        //TODO: implement batch processing with transaction propagation REQUIRES_NEW etc.
+    override fun deleteInvalidArtifacts(
+        updateSha256: Boolean,
+        dryRun: Boolean,
+    ) = artifactRepository.findAll().forEach {
+        // TODO: implement batch processing with transaction propagation REQUIRES_NEW etc.
         val sha256 = try {
             storageService.find(it.repositoryType, true, it.path)?.checksums?.sha256
         } catch (e: Exception) {
@@ -115,7 +126,7 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param dryRun - if true, do not delete artifacts
      */
     override fun deleteOrphanedArtifacts(dryRun: Boolean) {
-        //TODO:
+        // TODO:
         // - add lock preventing from addition/uploading new artifacts during housekeeping
         // - add artifact.createdAt column and use for filtering to prevent removing of newly added artifacts
         // - remove "on delete cascade" from component_version_artifact.artifact_Id column
@@ -140,7 +151,11 @@ class AdminServiceImpl( //TODO: move functionality to ComponentService and Artif
      * @param dryRun - if true, do not update component name
      */
     @Transactional(readOnly = false)
-    override fun renameComponent(name: String, newName: String, dryRun: Boolean) {
+    override fun renameComponent(
+        name: String,
+        newName: String,
+        dryRun: Boolean,
+    ) {
         log.info("Update component name from '$name' to '$newName'")
 
         if (componentsRegistryService.isComponentExists(name)) {

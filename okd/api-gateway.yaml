@@ -24,7 +24,7 @@ objects:
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/api-gateway:${API_GATEWAY_VERSION}
           resources:
             requests:
-              cpu: "250m"
+              cpu: "50m"
               memory: "450Mi"
             limits:
               cpu: "500m"

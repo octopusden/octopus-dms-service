@@ -73,7 +73,7 @@ objects:
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
           resources:
             requests:
-              cpu: "250m"
+              cpu: "50m"
               memory: "3Gi"
             limits:
               cpu: "3000m"

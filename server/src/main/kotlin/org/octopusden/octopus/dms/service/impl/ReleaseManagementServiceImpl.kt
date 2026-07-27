@@ -16,49 +16,70 @@ import org.springframework.stereotype.Service
 
 @Service
 class ReleaseManagementServiceImpl(
-    private val releaseManagementServiceProperties: ReleaseManagementServiceProperties
+    private val releaseManagementServiceProperties: ReleaseManagementServiceProperties,
 ) : ReleaseManagementService {
     private val client = ClassicReleaseManagementServiceClient(
         object : ReleaseManagementServiceClientParametersProvider {
             override fun getApiUrl() = releaseManagementServiceProperties.url
+
             override fun getTimeRetryInMillis() = releaseManagementServiceProperties.retry
+
             override fun getConnectTimeoutInMillis() = releaseManagementServiceProperties.connectTimeout
+
             override fun getReadTimeoutInMillis() = releaseManagementServiceProperties.readTimeout
-        }
+        },
     )
 
-    override fun isComponentExists(component: String) = try {
-        client.getComponent(component).id == component
-    } catch (_: NotFoundException) {
-        false
-    }
+    override fun isComponentExists(component: String) =
+        try {
+            client.getComponent(component).id == component
+        } catch (_: NotFoundException) {
+            false
+        }
 
-    override fun findReleases(component: String, buildVersions: List<String>, includeRc: Boolean): List<BuildDTO> {
+    override fun findReleases(
+        component: String,
+        buildVersions: List<String>,
+        includeRc: Boolean,
+    ): List<BuildDTO> {
         val allowedStatuses = getAllowedStatuses(includeRc)
         return buildVersions.chunked(20).flatMap {
-            client.getBuilds(component, BuildFilterDTO(statuses = allowedStatuses, versions = it.toSet()))
+            client
+                .getBuilds(component, BuildFilterDTO(statuses = allowedStatuses, versions = it.toSet()))
                 .map { build -> build.toBuildDTO() }
         }
     }
 
-    override fun getRelease(component: String, version: String, includeRc: Boolean): BuildFullDTO {
+    override fun getRelease(
+        component: String,
+        version: String,
+        includeRc: Boolean,
+    ): BuildFullDTO {
         val allowedStatuses = getAllowedStatuses(includeRc)
         val build = client.getBuild(component, version)
-        return if (allowedStatuses.contains(build.status)) BuildFullDTO(
-            build.component,
-            build.version,
-            ComponentVersionStatus.valueOf(build.status.name),
-            build.hotfix,
-            build.statusHistory[build.status],
-            build.parents.map { it.toBuildDTO() },
-            build.dependencies.map { it.toBuildDTO() },
-            build.limitations
-        ) else throw IllegalVersionStatusException(
-            "Build for version '$version' of component '$component' has status ${build.status}. Allowed statuses are $allowedStatuses"
-        )
+        return if (allowedStatuses.contains(build.status)) {
+            BuildFullDTO(
+                build.component,
+                build.version,
+                ComponentVersionStatus.valueOf(build.status.name),
+                build.hotfix,
+                build.statusHistory[build.status],
+                build.parents.map { it.toBuildDTO() },
+                build.dependencies.map { it.toBuildDTO() },
+                build.limitations,
+            )
+        } else {
+            throw IllegalVersionStatusException(
+                "Build for version '$version' of component '$component' has status ${build.status}. Allowed statuses are $allowedStatuses",
+            )
+        }
     }
 
-    override fun findRelease(component: String, version: String, includeRc: Boolean) = try {
+    override fun findRelease(
+        component: String,
+        version: String,
+        includeRc: Boolean,
+    ) = try {
         getRelease(component, version, includeRc)
     } catch (_: Exception) {
         null

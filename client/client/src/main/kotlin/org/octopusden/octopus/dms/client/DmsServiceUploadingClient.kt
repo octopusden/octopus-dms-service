@@ -9,6 +9,6 @@ interface DmsServiceUploadingClient : DmsServiceFeignClient {
         artifactCoordinates: MavenArtifactCoordinatesDTO,
         file: InputStream,
         fileName: String? = null,
-        failOnAlreadyExists: Boolean? = null
+        failOnAlreadyExists: Boolean? = null,
     ): MavenArtifactDTO
 }

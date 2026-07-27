@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:DmsServiceFeignClient.kt$DmsServiceFeignClient$"POST rest/api/3/components/{component-name}/versions/{version}/artifacts/{artifact-id}?fail-on-already-exists={fail-on-already-exists}"</ID>
+    <ID>TooGenericExceptionThrown:ClassicDmsServiceClient.kt$ClassicDmsServiceClient$throw RuntimeException(responseBody)</ID>
+    <ID>TooManyFunctions:ClassicDmsServiceClient.kt$ClassicDmsServiceClient : DmsServiceUploadingClient</ID>
+    <ID>TooManyFunctions:DmsServiceFeignClient.kt$DmsServiceFeignClient</ID>
+  </CurrentIssues>
+</SmellBaseline>

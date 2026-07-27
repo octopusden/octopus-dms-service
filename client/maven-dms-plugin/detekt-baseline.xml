@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:ArtifactValidator.kt$ArtifactValidator$private fun validateFile( path: String, file: BufferedInputStream, ): List&lt;String&gt;</ID>
+    <ID>SwallowedException:ArtifactValidator.kt$ArtifactValidator.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ArtifactValidator.kt$ArtifactValidator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ArtifactValidator.kt$ArtifactValidator.Companion$e: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -43,11 +43,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.util.LinkedMultiValueMap
 import java.io.InputStream
 
-
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-    classes = [DmsServiceApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+    classes = [DmsServiceApplication::class],
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 @ActiveProfiles("ut")
 @WithMockUser(authorities = ["ROLE_DMS_USER_DEV"])
@@ -59,185 +59,273 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         override fun getComponents(filter: ComponentRequestFilter): ComponentsDTO {
             val params = LinkedMultiValueMap<String, String>()
             params.setAll(objectMapper.convertValue(filter, object : TypeReference<Map<String, String>>() {}))
-            return mockMvc.perform(
-                MockMvcRequestBuilders.get("/rest/api/3/components")
-                    .queryParams(params)
-                    .accept(MediaType.APPLICATION_JSON)
-            ).andReturn().response.toObject(object : TypeReference<ComponentsDTO>() {})
+            return mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/components")
+                        .queryParams(params)
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ComponentsDTO>() {})
         }
 
-        override fun getComponentMinorVersions(componentName: String) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/minor-versions")
-                .accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<List<String>>() {})
+        override fun getComponentMinorVersions(componentName: String) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/components/$componentName/minor-versions")
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<List<String>>() {})
 
         override fun getComponentVersions(
             componentName: String,
             minorVersion: String,
-            includeRc: Boolean?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions?filter-by-minor=$minorVersion")
-                .also {
-                    if (includeRc != null) it.param("include-rc", includeRc.toString())
-                }.accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<ComponentVersionsDTO>() {})
+            includeRc: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions?filter-by-minor=$minorVersion")
+                    .also {
+                        if (includeRc != null) it.param("include-rc", includeRc.toString())
+                    }.accept(MediaType.APPLICATION_JSON),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ComponentVersionsDTO>() {})
 
-        override fun getComponentVersionDependencies(componentName: String, version: String) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/dependencies")
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<List<ComponentVersionDTO>>() {})
+        override fun getComponentVersionDependencies(
+            componentName: String,
+            version: String,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions/$version/dependencies")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<List<ComponentVersionDTO>>() {})
 
         override fun patchComponentVersion(
             componentName: String,
             version: String,
-            patchComponentVersionDTO: PatchComponentVersionDTO
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.patch("/rest/api/3/components/$componentName/versions/$version")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(patchComponentVersionDTO))
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<ComponentVersionDTO>() {})
+            patchComponentVersionDTO: PatchComponentVersionDTO,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .patch("/rest/api/3/components/$componentName/versions/$version")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(patchComponentVersionDTO))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ComponentVersionDTO>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,
             version: String,
-            includeRc: Boolean?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/previous-lines-latest-versions")
-                .also {
-                    if (includeRc != null) it.param("include-rc", includeRc.toString())
-                }.accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<VersionsDTO>() {})
+            includeRc: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions/$version/previous-lines-latest-versions")
+                    .also {
+                        if (includeRc != null) it.param("include-rc", includeRc.toString())
+                    }.accept(MediaType.APPLICATION_JSON),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<VersionsDTO>() {})
 
         override fun getComponentVersionArtifacts(
             componentName: String,
             version: String,
-            type: ArtifactType?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/artifacts").also {
-                if (type != null) it.param("type", type.toString())
-            }.accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<ArtifactsDTO>() {})
+            type: ArtifactType?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions/$version/artifacts")
+                    .also {
+                        if (type != null) it.param("type", type.toString())
+                    }.accept(MediaType.APPLICATION_JSON),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactsDTO>() {})
 
         override fun getComponentVersionArtifact(
             componentName: String,
             version: String,
-            artifactId: Long
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId")
-                .accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<ArtifactFullDTO>() {})
+            artifactId: Long,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId")
+                    .accept(MediaType.APPLICATION_JSON),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
 
         override fun downloadComponentVersionArtifact(
             componentName: String,
             version: String,
-            artifactId: Long
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId/download")
-                .accept(MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.TEXT_HTML_VALUE, MediaType.TEXT_PLAIN_VALUE)
-        ).andReturn().response.toResponse()
+            artifactId: Long,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId/download")
+                    .accept(MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.TEXT_HTML_VALUE, MediaType.TEXT_PLAIN_VALUE),
+            ).andReturn()
+            .response
+            .toResponse()
 
         override fun registerComponentVersionArtifact(
             componentName: String,
             version: String,
             artifactId: Long,
             registerArtifactDTO: RegisterArtifactDTO,
-            failOnAlreadyExists: Boolean?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.post("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId")
-                .also {
-                    if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
-                }
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(registerArtifactDTO))
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<ArtifactFullDTO>() {})
+            failOnAlreadyExists: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId")
+                    .also {
+                        if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    }.contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(registerArtifactDTO))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
 
-        override fun deleteComponentVersionArtifact(componentName: String, version: String, artifactId: Long) =
-            mockMvc.perform(
-                MockMvcRequestBuilders.delete("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId?dry-run=false")
-                    .with(SecurityMockMvcRequestPostProcessors.csrf())
-            ).andReturn().response.processError()
+        override fun deleteComponentVersionArtifact(
+            componentName: String,
+            version: String,
+            artifactId: Long,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .delete("/rest/api/3/components/$componentName/versions/$version/artifacts/$artifactId?dry-run=false")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .processError()
 
-        override fun renameComponent(componentName: String, newComponentName: String) = mockMvc.perform(
-            MockMvcRequestBuilders.post("/rest/api/3/admin/rename-component/$componentName/$newComponentName")
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.processError()
+        override fun renameComponent(
+            componentName: String,
+            newComponentName: String,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/admin/rename-component/$componentName/$newComponentName")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .processError()
 
-        override fun getConfiguration() = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/configuration")
-                .accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<PropertiesDTO>() {})
+        override fun getConfiguration() =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/configuration")
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<PropertiesDTO>() {})
 
-        override fun getRepositories(repositoryType: RepositoryType) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/artifacts/repositories")
-                .param("repository-type", repositoryType.name)
-                .accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<List<String>>() {})
+        override fun getRepositories(repositoryType: RepositoryType) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/artifacts/repositories")
+                        .param("repository-type", repositoryType.name)
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<List<String>>() {})
 
-        override fun getArtifact(id: Long) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/artifacts/$id")
-                .accept(MediaType.APPLICATION_JSON)
-        ).andReturn().response.toObject(object : TypeReference<ArtifactDTO>() {})
+        override fun getArtifact(id: Long) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/artifacts/$id")
+                        .accept(MediaType.APPLICATION_JSON),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ArtifactDTO>() {})
 
-        override fun findArtifact(artifactCoordinates: ArtifactCoordinatesDTO) = mockMvc.perform(
-            MockMvcRequestBuilders.post("/rest/api/3/artifacts/find")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(artifactCoordinates))
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<ArtifactDTO>() {})
+        override fun findArtifact(artifactCoordinates: ArtifactCoordinatesDTO) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/artifacts/find")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(artifactCoordinates))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ArtifactDTO>() {})
 
-        override fun downloadArtifact(id: Long) = mockMvc.perform(
-            MockMvcRequestBuilders.get("/rest/api/3/artifacts/$id/download")
-                .accept(MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.TEXT_HTML_VALUE, MediaType.TEXT_PLAIN_VALUE)
-        ).andReturn().response.toResponse()
+        override fun downloadArtifact(id: Long) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/rest/api/3/artifacts/$id/download")
+                        .accept(MediaType.APPLICATION_OCTET_STREAM_VALUE, MediaType.TEXT_HTML_VALUE, MediaType.TEXT_PLAIN_VALUE),
+                ).andReturn()
+                .response
+                .toResponse()
 
         override fun addArtifact(
             artifactCoordinates: ArtifactCoordinatesDTO,
-            failOnAlreadyExists: Boolean?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.post("/rest/api/3/artifacts/add").also {
-                if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
-            }
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(artifactCoordinates))
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<ArtifactDTO>() {})
+            failOnAlreadyExists: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/artifacts/add")
+                    .also {
+                        if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    }.contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(artifactCoordinates))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactDTO>() {})
 
         override fun uploadArtifact(
             artifactCoordinates: MavenArtifactCoordinatesDTO,
             file: InputStream,
             fileName: String?,
-            failOnAlreadyExists: Boolean?
-        ) = mockMvc.perform(
-            MockMvcRequestBuilders.multipart("/rest/api/3/artifacts/upload").also {
-                if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
-            }
-                .file(
-                    MockMultipartFile(
-                        "artifact",
-                        "",
-                        ContentType.APPLICATION_JSON.mimeType,
-                        objectMapper.writeValueAsString(artifactCoordinates).toByteArray()
-                    )
-                )
-                .file(
-                    MockMultipartFile(
-                        "file",
-                        fileName ?: "",
-                        ContentType.DEFAULT_BINARY.mimeType,
-                        file
-                    )
-                )
-                .accept(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.csrf())
-        ).andReturn().response.toObject(object : TypeReference<MavenArtifactDTO>() {})
-
+            failOnAlreadyExists: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/rest/api/3/artifacts/upload")
+                    .also {
+                        if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    }.file(
+                        MockMultipartFile(
+                            "artifact",
+                            "",
+                            ContentType.APPLICATION_JSON.mimeType,
+                            objectMapper.writeValueAsString(artifactCoordinates).toByteArray(),
+                        ),
+                    ).file(
+                        MockMultipartFile(
+                            "file",
+                            fileName ?: "",
+                            ContentType.DEFAULT_BINARY.mimeType,
+                            file,
+                        ),
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<MavenArtifactDTO>() {})
 
         private fun MockHttpServletResponse.processError() {
             if (this.status / 100 != 2) {
@@ -256,13 +344,13 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             return objectMapper.readValue(this.contentAsByteArray, typeReference)
         }
 
-        private fun MockHttpServletResponse.toResponse(): Response {
-            return Response.builder()
+        private fun MockHttpServletResponse.toResponse(): Response =
+            Response
+                .builder()
                 .request(Mockito.mock(Request::class.java))
                 .status(this.status)
                 .body(this.contentAsByteArray)
                 .build()
-        }
     }
 
     @Test
@@ -280,20 +368,22 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             componentName = eeComponent,
             version = eeComponentReleaseVersion0354.releaseVersion,
             artifactId = uploaded.id,
-            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.COMPLIANCE_ARTIFACTS)
+            registerArtifactDTO = RegisterArtifactDTO(ArtifactType.COMPLIANCE_ARTIFACTS),
         )
 
         val restricted = SecurityMockMvcRequestPostProcessors
             .user("restricted")
             .authorities(SimpleGrantedAuthority("ROLE_DMS_USER_NO_COMPLIANCE"))
 
-        mockMvc.perform(
-            MockMvcRequestBuilders.get(
-                "/rest/api/3/components/$eeComponent/versions/${eeComponentReleaseVersion0354.releaseVersion}/artifacts"
-            ).param(
-                "type",
-                ArtifactType.COMPLIANCE_ARTIFACTS.value()
-            ).with(restricted)
-        ).andExpect(status().isForbidden)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get(
+                        "/rest/api/3/components/$eeComponent/versions/${eeComponentReleaseVersion0354.releaseVersion}/artifacts",
+                    ).param(
+                        "type",
+                        ArtifactType.COMPLIANCE_ARTIFACTS.value(),
+                    ).with(restricted),
+            ).andExpect(status().isForbidden)
     }
 }

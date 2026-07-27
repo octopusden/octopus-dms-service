@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "storage")
 data class StorageProperties(
     val mavenGroupPrefix: String,
-    val artifactory: ArtifactoryProperties
+    val artifactory: ArtifactoryProperties,
 ) {
     data class ArtifactoryProperties(
         val host: String,
@@ -17,6 +17,6 @@ data class StorageProperties(
         val stagingRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
         val releaseRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
         val coldRepositories: Map<RepositoryType, Set<String>> = emptyMap(),
-        val trustAllCerts: Boolean = false
+        val trustAllCerts: Boolean = false,
     )
 }

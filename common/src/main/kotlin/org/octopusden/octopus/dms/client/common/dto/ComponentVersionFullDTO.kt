@@ -7,19 +7,19 @@ import java.util.Objects
 @Schema(
     description = "Full component version info",
     example = "{\n" +
-            "  \"component\": \"ee-client-specific-component\",\n" +
-            "  \"version\": \"1.2.3\",\n" +
-            "  \"published\": true,\n" +
-            "  \"status\": \"RELEASE\",\n" +
-            "  \"hotfix\": false,\n" +
-            "  \"promotedAt\": \"2022-01-01T12:00:00.000+00:00\",\n" +
-            "  \"displayName\": \"EE Client Specific Component\",\n" +
-            "  \"solution\": false,\n" +
-            "  \"clientCode\": \"CLIENT_CODE\",\n" +
-            "  \"parentComponent\": \"ee-component\",\n" +
-            "  \"labels\": [\"production\", \"critical\"],\n" +
-            "  \"limitations\": \"Upgrade from 1.2.2 is not supported, reinstall required.\"\n" +
-            "}"
+        "  \"component\": \"ee-client-specific-component\",\n" +
+        "  \"version\": \"1.2.3\",\n" +
+        "  \"published\": true,\n" +
+        "  \"status\": \"RELEASE\",\n" +
+        "  \"hotfix\": false,\n" +
+        "  \"promotedAt\": \"2022-01-01T12:00:00.000+00:00\",\n" +
+        "  \"displayName\": \"EE Client Specific Component\",\n" +
+        "  \"solution\": false,\n" +
+        "  \"clientCode\": \"CLIENT_CODE\",\n" +
+        "  \"parentComponent\": \"ee-component\",\n" +
+        "  \"labels\": [\"production\", \"critical\"],\n" +
+        "  \"limitations\": \"Upgrade from 1.2.2 is not supported, reinstall required.\"\n" +
+        "}",
 )
 class ComponentVersionFullDTO(
     component: String,
@@ -34,7 +34,7 @@ class ComponentVersionFullDTO(
     val parentComponent: String?,
     val labels: Set<String> = emptySet(),
     @Schema(description = "Release limitations, as provided when the version was released", nullable = true)
-    val limitations: String? = null
+    val limitations: String? = null,
 ) : ComponentVersionDTO(component, version, published, status, hotfix) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -54,8 +54,9 @@ class ComponentVersionFullDTO(
         return true
     }
 
-    override fun hashCode() = Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent, labels, limitations)
-    override fun toString(): String {
-        return "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels, limitations=$limitations)"
-    }
+    override fun hashCode() =
+        Objects.hash(super.hashCode(), promotedAt, displayName, solution, clientCode, parentComponent, labels, limitations)
+
+    override fun toString(): String =
+        "ComponentVersionFullDTO(component='$component', version='$version', published=$published, status=$status, hotfix=$hotfix, promotedAt=$promotedAt, displayName='$displayName', solution=$solution, clientCode=$clientCode, parentComponent=$parentComponent, labels=$labels, limitations=$limitations)"
 }

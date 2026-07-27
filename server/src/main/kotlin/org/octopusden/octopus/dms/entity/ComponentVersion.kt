@@ -17,9 +17,8 @@ class ComponentVersion(
     val component: Component,
     var minorVersion: String,
     val version: String,
-    var published: Boolean = false
+    var published: Boolean = false,
 ) {
-    override fun toString(): String {
-        return "ComponentVersion(id=$id, component=$component, minorVersion=$minorVersion, version=$version, published=$published)"
-    }
+    override fun toString(): String =
+        "ComponentVersion(id=$id, component=$component, minorVersion=$minorVersion, version=$version, published=$published)"
 }

@@ -7,5 +7,5 @@ data class ReleaseManagementServiceProperties(
     val url: String,
     val retry: Int = 30000,
     val connectTimeout: Int = 30000,
-    val readTimeout: Int = 30000
+    val readTimeout: Int = 30000,
 )

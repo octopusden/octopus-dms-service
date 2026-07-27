@@ -5,19 +5,27 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 
-class WebhookConfig(private val webhookProperties: WebhookProperties) {
+class WebhookConfig(
+    private val webhookProperties: WebhookProperties,
+) {
     @ConfigurationProperties("dms-service.webhook")
     @ConditionalOnProperty(
-        prefix = "dms-service.webhook", name = ["enabled"], havingValue = "true", matchIfMissing = true
+        prefix = "dms-service.webhook",
+        name = ["enabled"],
+        havingValue = "true",
+        matchIfMissing = true,
     )
     data class WebhookProperties(
         val url: String,
         val user: String? = null,
-        val password: String? = null
+        val password: String? = null,
     )
 
     @Bean
     fun basicAuthRequestInterceptor() =
-        if (webhookProperties.user.isNullOrBlank() || webhookProperties.password.isNullOrBlank()) null
-        else BasicAuthRequestInterceptor(webhookProperties.user, webhookProperties.password)
+        if (webhookProperties.user.isNullOrBlank() || webhookProperties.password.isNullOrBlank()) {
+            null
+        } else {
+            BasicAuthRequestInterceptor(webhookProperties.user, webhookProperties.password)
+        }
 }

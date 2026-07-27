@@ -1,7 +1,7 @@
 package org.octopusden.octopus.dms.configuration
 
-import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
+import org.octopusden.octopus.dms.exception.UnknownArtifactTypeException
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.format.FormatterRegistry
@@ -27,12 +27,11 @@ class WebConfig : WebMvcConfigurer {
 
     override fun addFormatters(registry: FormatterRegistry) {
         registry.addConverter(object : Converter<String, ArtifactType> {
-            override fun convert(source: String): ArtifactType {
-                return ArtifactType.findByType(source)
+            override fun convert(source: String): ArtifactType =
+                ArtifactType.findByType(source)
                     ?: throw UnknownArtifactTypeException(
-                        "Unable detect type $source. Available types is ${ArtifactType.values().map { it.type }}"
+                        "Unable detect type $source. Available types is ${ArtifactType.values().map { it.type }}",
                     )
-            }
         })
     }
 }

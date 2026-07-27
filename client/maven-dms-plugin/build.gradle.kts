@@ -1,6 +1,6 @@
-import java.nio.charset.StandardCharsets
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.nio.charset.StandardCharsets
 
 plugins {
     `maven-publish`
@@ -17,7 +17,10 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-val pomFile = layout.buildDirectory.file("pom.xml").get().asFile
+val pomFile = layout.buildDirectory
+    .file("pom.xml")
+    .get()
+    .asFile
 
 publishing {
     publications {
@@ -48,10 +51,21 @@ publishing {
             pom.withXml {
                 asNode().also {
                     it.appendNode("build").also { build ->
-                        build.appendNode("directory", layout.buildDirectory.get().asFile.canonicalPath)
-                        build.appendNode("outputDirectory", layout.buildDirectory.file("classes/java/main").get().asFile.canonicalPath)
+                        build.appendNode(
+                            "directory",
+                            layout.buildDirectory
+                                .get()
+                                .asFile.canonicalPath,
+                        )
+                        build.appendNode(
+                            "outputDirectory",
+                            layout.buildDirectory
+                                .file("classes/java/main")
+                                .get()
+                                .asFile.canonicalPath,
+                        )
                     }
-                    it.appendNode("repositories").appendNode("repository").also {repository ->
+                    it.appendNode("repositories").appendNode("repository").also { repository ->
                         repository.appendNode("id", "gradle-libs")
                         repository.appendNode("url", "https://repo.gradle.org/gradle/libs-releases")
                     }
@@ -86,7 +100,11 @@ tasks.register<Exec>("generatePluginDescriptor") {
     // the internal dev-virtual repo. Needed when this project depends on a CRS
     // branch snapshot (e.g. 2.0.84-3110).
     val mavenArgs = listOfNotNull(
-        cmd, "-f", pomFile.canonicalPath, "-e", "-B",
+        cmd,
+        "-f",
+        pomFile.canonicalPath,
+        "-e",
+        "-B",
         "-Pstaging".takeIf { project.hasProperty("use_dev_repository") },
         "org.apache.maven.plugins:maven-plugin-plugin:3.5:descriptor",
     )
@@ -102,7 +120,9 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:${project.properties["spring-boot-legacy.version"]}"))
     implementation("org.springframework:spring-core")
 
-    implementation("org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}") {
+    implementation(
+        "org.octopusden.octopus.infrastructure:component-resolver-core:${project.properties["octopus-components-registry-service.version"]}",
+    ) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
     }
 

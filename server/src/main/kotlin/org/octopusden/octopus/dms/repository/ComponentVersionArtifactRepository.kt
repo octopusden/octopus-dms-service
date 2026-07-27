@@ -13,26 +13,35 @@ interface ComponentVersionArtifactRepository : JpaRepository<ComponentVersionArt
     fun findByComponentVersion(componentVersion: ComponentVersion): List<ComponentVersionArtifact>
 
     fun findByComponentVersionAndType(
-        componentVersion: ComponentVersion, type: ArtifactType
+        componentVersion: ComponentVersion,
+        type: ArtifactType,
     ): List<ComponentVersionArtifact>
 
     fun findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
-        componentVersionComponentName: String, componentVersionVersion: String, artifactId: Long
+        componentVersionComponentName: String,
+        componentVersionVersion: String,
+        artifactId: Long,
     ): ComponentVersionArtifact?
 
     fun findByComponentVersionAndArtifactId(
-        componentVersion: ComponentVersion, artifactId: Long
+        componentVersion: ComponentVersion,
+        artifactId: Long,
     ): ComponentVersionArtifact?
 
     fun findByComponentVersionAndArtifact(
-        componentVersion: ComponentVersion, artifact: Artifact
+        componentVersion: ComponentVersion,
+        artifact: Artifact,
     ): ComponentVersionArtifact?
 }
 
 fun ComponentVersionArtifactRepository.getByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
-    componentVersionComponentName: String, componentVersionVersion: String, artifactId: Long
+    componentVersionComponentName: String,
+    componentVersionVersion: String,
+    artifactId: Long,
 ) = findByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
-    componentVersionComponentName, componentVersionVersion, artifactId
+    componentVersionComponentName,
+    componentVersionVersion,
+    artifactId,
 ) ?: throw NotFoundException(
-    "Artifact with ID '$artifactId' is not found for version '$componentVersionVersion' of component '$componentVersionComponentName'"
+    "Artifact with ID '$artifactId' is not found for version '$componentVersionVersion' of component '$componentVersionComponentName'",
 )

@@ -12,13 +12,13 @@ import java.util.Objects
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "repositoryType",
-    visible = true
+    visible = true,
 )
 @JsonSubTypes(
     JsonSubTypes.Type(MavenArtifactDTO::class, name = "MAVEN"),
     JsonSubTypes.Type(DebianArtifactDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactDTO::class, name = "RPM"),
-    JsonSubTypes.Type(DockerArtifactDTO::class, name = "DOCKER")
+    JsonSubTypes.Type(DockerArtifactDTO::class, name = "DOCKER"),
 )
 @Schema(
     description = "Artifact info",
@@ -27,14 +27,14 @@ import java.util.Objects
         DiscriminatorMapping("MAVEN", schema = MavenArtifactDTO::class),
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactDTO::class),
         DiscriminatorMapping("RPM", schema = RpmArtifactDTO::class),
-        DiscriminatorMapping("DOCKER", schema = DockerArtifactDTO::class)
-    ]
+        DiscriminatorMapping("DOCKER", schema = DockerArtifactDTO::class),
+    ],
 )
 abstract class ArtifactDTO(
     val id: Long,
     val repositoryType: RepositoryType,
     val uploaded: Boolean,
-    val sha256: String
+    val sha256: String,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

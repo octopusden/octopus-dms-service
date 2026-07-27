@@ -1,11 +1,5 @@
 package org.octopusden.octopus.dms.entity
 
-import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.GavDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
-import org.octopusden.octopus.dms.client.common.dto.RepositoryType
-import org.octopusden.octopus.dms.client.common.dto.RpmArtifactDTO
 import jakarta.persistence.DiscriminatorColumn
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
@@ -15,7 +9,13 @@ import jakarta.persistence.Id
 import jakarta.persistence.Inheritance
 import jakarta.persistence.InheritanceType
 import jakarta.persistence.Table
+import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.GavDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
+import org.octopusden.octopus.dms.client.common.dto.RpmArtifactDTO
 
 @Entity
 @Table(name = "artifact")
@@ -27,7 +27,7 @@ abstract class Artifact(
     val id: Long = 0,
     val uploaded: Boolean,
     val path: String,
-    var sha256: String
+    var sha256: String,
 ) {
     val fileName get() = path.substringAfterLast("/")
 
@@ -35,9 +35,7 @@ abstract class Artifact(
 
     abstract fun toDTO(): ArtifactDTO
 
-    override fun toString(): String {
-        return "Artifact(id=$id, repositoryType=$repositoryType, uploaded=$uploaded, path=$path, sha256=$sha256)"
-    }
+    override fun toString(): String = "Artifact(id=$id, repositoryType=$repositoryType, uploaded=$uploaded, path=$path, sha256=$sha256)"
 }
 
 @Entity
@@ -49,10 +47,10 @@ class DockerArtifact(
     val image: String,
     val tag: String,
 ) : Artifact(
-    uploaded = uploaded,
-    path = path,
-    sha256 = sha256
-) {
+        uploaded = uploaded,
+        path = path,
+        sha256 = sha256,
+    ) {
     override val repositoryType get() = RepositoryType.DOCKER
 
     override fun toDTO() = DockerArtifactDTO(id, uploaded, sha256, image, tag)
@@ -70,12 +68,12 @@ class MavenArtifact(
     val artifactId: String,
     val version: String,
     val packaging: String,
-    val classifier: String?
+    val classifier: String?,
 ) : Artifact(
-    uploaded = uploaded,
-    path = path,
-    sha256 = sha256
-) {
+        uploaded = uploaded,
+        path = path,
+        sha256 = sha256,
+    ) {
     override val repositoryType get() = RepositoryType.MAVEN
 
     val gav get() = GavDTO(groupId, artifactId, version, packaging, classifier)
@@ -88,12 +86,12 @@ class MavenArtifact(
 class DebianArtifact(
     uploaded: Boolean,
     path: String,
-    sha256: String
+    sha256: String,
 ) : Artifact(
-    path = path,
-    uploaded = uploaded,
-    sha256 = sha256
-) {
+        path = path,
+        uploaded = uploaded,
+        sha256 = sha256,
+    ) {
     override val repositoryType get() = RepositoryType.DEBIAN
 
     override fun toDTO() = DebianArtifactDTO(id, uploaded, sha256, path)
@@ -104,12 +102,12 @@ class DebianArtifact(
 class RpmArtifact(
     uploaded: Boolean,
     path: String,
-    sha256: String
+    sha256: String,
 ) : Artifact(
-    path = path,
-    uploaded = uploaded,
-    sha256 = sha256
-) {
+        path = path,
+        uploaded = uploaded,
+        sha256 = sha256,
+    ) {
     override val repositoryType get() = RepositoryType.RPM
 
     override fun toDTO() = RpmArtifactDTO(id, uploaded, sha256, path)

@@ -1,9 +1,22 @@
 package org.octopusden.octopus.dms.client.validation
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.ar.ArArchiveInputStream
+import org.apache.commons.compress.archivers.cpio.CpioArchiveInputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
+import org.apache.maven.plugin.logging.Log
+import org.octopusden.octopus.components.automation.task.Properties
 import org.octopusden.octopus.dms.client.common.dto.ContentValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.FileValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.NameValidatorPropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO
+import org.octopusden.octopus.tools.wl.validation.validator.CopyrightValidator
+import org.redline_rpm.ReadableChannelWrapper
+import org.redline_rpm.Scanner
+import org.redline_rpm.Util
+import org.springframework.util.AntPathMatcher
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.nio.channels.Channels
@@ -13,35 +26,25 @@ import java.util.zip.ZipFile
 import kotlin.io.path.createTempFile
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.commons.compress.archivers.ar.ArArchiveInputStream
-import org.apache.commons.compress.archivers.cpio.CpioArchiveInputStream
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
-import org.apache.maven.plugin.logging.Log
-import org.octopusden.octopus.components.automation.task.Properties
-import org.octopusden.octopus.tools.wl.validation.validator.CopyrightValidator
-import org.redline_rpm.ReadableChannelWrapper
-import org.redline_rpm.Scanner
-import org.redline_rpm.Util
-import org.springframework.util.AntPathMatcher
 
 class ArtifactValidator private constructor(
     validationProperties: ValidationPropertiesDTO,
-    private val log: Log
+    private val log: Log,
 ) {
     private class FileValidator(
-        val fileValidatorProperties: FileValidatorPropertiesDTO
+        val fileValidatorProperties: FileValidatorPropertiesDTO,
     ) {
-        fun validate(path: String, file: Path): List<String> {
+        fun validate(
+            path: String,
+            file: Path,
+        ): List<String> {
             if (fileValidatorProperties.rules.isEmpty()) return emptyList()
             return fileValidatorProperties.rules.flatMap {
                 validateFile(
                     path = path,
                     file = file,
                     pattern = it.pattern,
-                    errorMessage = "required file rule '${it.id}' failed: no file matching '${it.pattern.pattern}' found"
+                    errorMessage = "required file rule '${it.id}' failed: no file matching '${it.pattern.pattern}' found",
                 )
             }
         }
@@ -50,10 +53,11 @@ class ArtifactValidator private constructor(
             path: String,
             file: Path,
             pattern: Regex,
-            errorMessage: String
+            errorMessage: String,
         ) = if (file.inputStream().use { detectFileType(BufferedInputStream(it)) } == FileType.ZIP &&
             !ZipFile(file.toFile()).use { zip ->
-                zip.stream()
+                zip
+                    .stream()
                     .filter { entry -> !entry.isDirectory && pattern.matches(entry.name) }
                     .map { entry -> entry.name }
                     .findAny()
@@ -67,7 +71,7 @@ class ArtifactValidator private constructor(
     }
 
     private class NameValidator(
-        val nameValidatorProperties: NameValidatorPropertiesDTO
+        val nameValidatorProperties: NameValidatorPropertiesDTO,
     ) {
         fun validate(path: String): List<String> {
             if (nameValidatorProperties.enabled) {
@@ -83,135 +87,152 @@ class ArtifactValidator private constructor(
     }
 
     private class ContentValidator(
-        val contentValidatorProperties: ContentValidatorPropertiesDTO
+        val contentValidatorProperties: ContentValidatorPropertiesDTO,
     ) {
         val copyrightValidator = CopyrightValidator(
             properties = Properties(
                 contains = contentValidatorProperties.forbiddenTokens,
                 patterns = contentValidatorProperties.forbiddenPatterns,
-                exceptions = emptyList(), //IMPORTANT: not used by CopyrightValidator at the moment
-                restricted = ""           //IMPORTANT: not used by CopyrightValidator at the moment
+                exceptions = emptyList(), // IMPORTANT: not used by CopyrightValidator at the moment
+                restricted = "", // IMPORTANT: not used by CopyrightValidator at the moment
             ),
-            threadCount = contentValidatorProperties.parallelism
+            threadCount = contentValidatorProperties.parallelism,
         )
         val pathMatcher = AntPathMatcher()
         val exclude = contentValidatorProperties.exclude.map { "**/$it/**" }.asSequence()
         val tempFile = createTempFile().apply { this.toFile().deleteOnExit() }
 
-        fun validate(path: String, file: InputStream, log: Log) =
-            if (contentValidatorProperties.enabled) {
-                if (exclude.any { pathMatcher.match(it, path) }) {
-                    log.debug("File $path is skipped by content validator")
-                    emptyList()
-                } else {
-                    tempFile.outputStream().use { file.copyTo(it) }
-                    //IMPORTANT: CopyrightValidator.validate() seems to produce memory leak
-                    //IMPORTANT: CopyrightValidator.validate() closes input stream therefore usage of temporary file is required
-                    //IMPORTANT: explicitly close resource in case CopyrightValidator.validate() changes its behaviour in new version
-                    tempFile.inputStream().use {
-                        copyrightValidator.validate(it).map {
-                            "$path: line ${it.line}, token '${it.problemToken}' matches regexp '${it.brokenRegex}'"
-                        }
+        fun validate(
+            path: String,
+            file: InputStream,
+            log: Log,
+        ) = if (contentValidatorProperties.enabled) {
+            if (exclude.any { pathMatcher.match(it, path) }) {
+                log.debug("File $path is skipped by content validator")
+                emptyList()
+            } else {
+                tempFile.outputStream().use { file.copyTo(it) }
+                // IMPORTANT: CopyrightValidator.validate() seems to produce memory leak
+                // IMPORTANT: CopyrightValidator.validate() closes input stream therefore usage of temporary file is required
+                // IMPORTANT: explicitly close resource in case CopyrightValidator.validate() changes its behaviour in new version
+                tempFile.inputStream().use {
+                    copyrightValidator.validate(it).map {
+                        "$path: line ${it.line}, token '${it.problemToken}' matches regexp '${it.brokenRegex}'"
                     }
                 }
-            } else {
-                emptyList()
             }
-
+        } else {
+            emptyList()
+        }
     }
 
     private val fileValidator = FileValidator(validationProperties.fileValidation)
     private val nameValidator = NameValidator(validationProperties.nameValidation)
     private val contentValidator = ContentValidator(validationProperties.contentValidation)
 
-    private fun validateFile(path: String, file: BufferedInputStream): List<String> {
+    private fun validateFile(
+        path: String,
+        file: BufferedInputStream,
+    ): List<String> {
         val type = detectFileType(file)
         log.debug("Validate $type file $path")
         try {
             return nameValidator.validate(path) +
-                    when (type) {
-                        FileType.PLAIN -> contentValidator.validate(path, file, log)
-                        FileType.ZIP -> {
-                            val zipFile = ZipArchiveInputStream(file)
-                            val errors = ArrayList<String>()
-                            var entry = zipFile.nextZipEntry
-                            while (entry != null) {
-                                val entryPath = "$path/${entry.name}"
-                                if (entry.isDirectory || entry.isUnixSymlink) {
-                                    log.debug("Validate $entryPath")
-                                    errors.addAll(nameValidator.validate(entryPath))
-                                } else {
-                                    errors.addAll(validateFile(entryPath, BufferedInputStream(zipFile, BUFFER_SIZE)))
-                                }
-                                entry = zipFile.nextZipEntry
+                when (type) {
+                    FileType.PLAIN -> contentValidator.validate(path, file, log)
+                    FileType.ZIP -> {
+                        val zipFile = ZipArchiveInputStream(file)
+                        val errors = ArrayList<String>()
+                        var entry = zipFile.nextZipEntry
+                        while (entry != null) {
+                            val entryPath = "$path/${entry.name}"
+                            if (entry.isDirectory || entry.isUnixSymlink) {
+                                log.debug("Validate $entryPath")
+                                errors.addAll(nameValidator.validate(entryPath))
+                            } else {
+                                errors.addAll(validateFile(entryPath, BufferedInputStream(zipFile, BUFFER_SIZE)))
                             }
-                            errors
+                            entry = zipFile.nextZipEntry
                         }
-
-                        FileType.AR -> {
-                            val arFile = ArArchiveInputStream(file)
-                            val errors = ArrayList<String>()
-                            var entry = arFile.nextArEntry
-                            while (entry != null) {
-                                val entryPath = "$path/${entry.name}"
-                                errors.addAll(validateFile(entryPath, BufferedInputStream(arFile, BUFFER_SIZE)))
-                                entry = arFile.nextArEntry
-                            }
-                            errors
-                        }
-
-                        FileType.TAR, FileType.TARGZ, FileType.TARXZ -> {
-                            val tarFile =
-                                if (type == FileType.TARXZ) TarArchiveInputStream(XZCompressorInputStream(file))
-                                else if (type == FileType.TARGZ) TarArchiveInputStream(GZIPInputStream(file))
-                                else TarArchiveInputStream(file)
-                            val errors = ArrayList<String>()
-                            var entry = tarFile.nextTarEntry
-                            while (entry != null) {
-                                val entryPath = "$path/${entry.name}"
-                                if (entry.isFile) {
-                                    errors.addAll(validateFile(entryPath, BufferedInputStream(tarFile, BUFFER_SIZE)))
-                                } else {
-                                    log.debug("Validate $entryPath")
-                                    errors.addAll(nameValidator.validate(entryPath))
-                                }
-                                entry = tarFile.nextTarEntry
-                            }
-                            errors
-
-                        }
-
-                        FileType.RPM -> Scanner().run(ReadableChannelWrapper(Channels.newChannel(file))).header.run {
-                            val errors = ArrayList<String>()
-                            val payload = CpioArchiveInputStream(Util.openPayloadStream(this, file))
-                            var entry = payload.nextCPIOEntry
-                            while (entry != null) {
-                                val entryPath = "$path/${entry.name}"
-                                if (entry.isRegularFile) {
-                                    errors.addAll(validateFile(entryPath, BufferedInputStream(payload, BUFFER_SIZE)))
-                                } else {
-                                    log.debug("Validate $entryPath")
-                                    errors.addAll(nameValidator.validate(entryPath))
-                                }
-                                entry = payload.nextCPIOEntry
-                            }
-                            errors
-                        }
+                        errors
                     }
+
+                    FileType.AR -> {
+                        val arFile = ArArchiveInputStream(file)
+                        val errors = ArrayList<String>()
+                        var entry = arFile.nextArEntry
+                        while (entry != null) {
+                            val entryPath = "$path/${entry.name}"
+                            errors.addAll(validateFile(entryPath, BufferedInputStream(arFile, BUFFER_SIZE)))
+                            entry = arFile.nextArEntry
+                        }
+                        errors
+                    }
+
+                    FileType.TAR, FileType.TARGZ, FileType.TARXZ -> {
+                        val tarFile =
+                            if (type == FileType.TARXZ) {
+                                TarArchiveInputStream(XZCompressorInputStream(file))
+                            } else if (type == FileType.TARGZ) {
+                                TarArchiveInputStream(GZIPInputStream(file))
+                            } else {
+                                TarArchiveInputStream(file)
+                            }
+                        val errors = ArrayList<String>()
+                        var entry = tarFile.nextTarEntry
+                        while (entry != null) {
+                            val entryPath = "$path/${entry.name}"
+                            if (entry.isFile) {
+                                errors.addAll(validateFile(entryPath, BufferedInputStream(tarFile, BUFFER_SIZE)))
+                            } else {
+                                log.debug("Validate $entryPath")
+                                errors.addAll(nameValidator.validate(entryPath))
+                            }
+                            entry = tarFile.nextTarEntry
+                        }
+                        errors
+                    }
+
+                    FileType.RPM -> Scanner().run(ReadableChannelWrapper(Channels.newChannel(file))).header.run {
+                        val errors = ArrayList<String>()
+                        val payload = CpioArchiveInputStream(Util.openPayloadStream(this, file))
+                        var entry = payload.nextCPIOEntry
+                        while (entry != null) {
+                            val entryPath = "$path/${entry.name}"
+                            if (entry.isRegularFile) {
+                                errors.addAll(validateFile(entryPath, BufferedInputStream(payload, BUFFER_SIZE)))
+                            } else {
+                                log.debug("Validate $entryPath")
+                                errors.addAll(nameValidator.validate(entryPath))
+                            }
+                            entry = payload.nextCPIOEntry
+                        }
+                        errors
+                    }
+                }
         } catch (e: Exception) {
             log.warn("$path: validation exception", e)
             return listOf("$path: validation exception '${e.message}'")
         }
     }
 
-    private fun validate(name: String, file: Path) = fileValidator.validate(name, file) +
-            file.inputStream().use { validateFile(name, BufferedInputStream(it, BUFFER_SIZE)) }
+    private fun validate(
+        name: String,
+        file: Path,
+    ) = fileValidator.validate(name, file) +
+        file.inputStream().use { validateFile(name, BufferedInputStream(it, BUFFER_SIZE)) }
 
     companion object {
         private const val BUFFER_SIZE = 524288
 
         private enum class FileType {
-            PLAIN, ZIP, AR, TAR, TARGZ, TARXZ, RPM
+            PLAIN,
+            ZIP,
+            AR,
+            TAR,
+            TARGZ,
+            TARXZ,
+            RPM,
         }
 
         private val detectFunctions = sequenceOf(
@@ -249,23 +270,28 @@ class ArtifactValidator private constructor(
             },
             { _: InputStream ->
                 FileType.PLAIN
-            }
+            },
         )
 
-        private fun detectFileType(file: BufferedInputStream) = detectFunctions.firstNotNullOf {
-            try {
-                file.mark(BUFFER_SIZE)
-                it.invoke(file)
-            } catch (e: Exception) {
-                null
-            } finally {
-                file.reset()
+        private fun detectFileType(file: BufferedInputStream) =
+            detectFunctions.firstNotNullOf {
+                try {
+                    file.mark(BUFFER_SIZE)
+                    it.invoke(file)
+                } catch (e: Exception) {
+                    null
+                } finally {
+                    file.reset()
+                }
             }
-        }
 
+        // IMPORTANT: usage of a single temporary file in ContentValidator makes ArtifactValidator instance not thread safe
         @JvmStatic
-        //IMPORTANT: usage of a single temporary file in ContentValidator makes ArtifactValidator instance not thread safe
-        fun validate(log: Log, validationProperties: ValidationPropertiesDTO, name: String, file: Path) =
-            ArtifactValidator(validationProperties, log).validate(name, file)
+        fun validate(
+            log: Log,
+            validationProperties: ValidationPropertiesDTO,
+            name: String,
+            file: Path,
+        ) = ArtifactValidator(validationProperties, log).validate(name, file)
     }
 }

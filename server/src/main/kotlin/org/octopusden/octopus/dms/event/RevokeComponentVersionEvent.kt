@@ -7,5 +7,5 @@ import org.octopusden.octopus.dms.dto.DependencyArtifactsDTO
 data class RevokeComponentVersionEvent(
     val componentVersion: ComponentVersionFullDTO,
     val artifacts: List<ArtifactFullDTO>,
-    val dependencies: List<DependencyArtifactsDTO>
+    val dependencies: List<DependencyArtifactsDTO>,
 ) : Event(EventType.REVOKE_COMPONENT_VERSION)

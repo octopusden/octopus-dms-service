@@ -27,7 +27,7 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ArtifactServiceImpl(
     private val storageService: StorageService,
-    private val artifactRepository: ArtifactRepository
+    private val artifactRepository: ArtifactRepository,
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
         log.info("Get $repositoryType repositories")
@@ -37,7 +37,8 @@ class ArtifactServiceImpl(
     @Transactional(readOnly = true)
     override fun get(id: Long): ArtifactDTO {
         log.info("Get artifact with ID '$id'")
-        return artifactRepository.findById(id)
+        return artifactRepository
+            .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
             .toDTO()
     }
@@ -45,31 +46,36 @@ class ArtifactServiceImpl(
     @Transactional(readOnly = true)
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
         log.info("Find artifact with coordinates '$artifactCoordinates'")
-        return (artifactRepository.findByPath(artifactCoordinates.toPath())
-            ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
-                ).toDTO()
+        return (
+            artifactRepository.findByPath(artifactCoordinates.toPath())
+                ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
+        ).toDTO()
     }
 
     @Transactional(readOnly = true)
     override fun download(id: Long): DownloadArtifactDTO {
         log.info("Download artifact with ID '$id'")
-        val artifact = artifactRepository.findById(id)
+        val artifact = artifactRepository
+            .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
         return DownloadArtifactDTO(
             artifact.fileName,
-            storageService.download(artifact.repositoryType, true, artifact.path)
+            storageService.download(artifact.repositoryType, true, artifact.path),
         )
     }
 
     @Transactional(readOnly = false)
     override fun add(
         failOnAlreadyExists: Boolean,
-        artifactCoordinates: ArtifactCoordinatesDTO
+        artifactCoordinates: ArtifactCoordinatesDTO,
     ): ArtifactDTO {
         log.info("Add artifact with coordinates '$artifactCoordinates'")
-        val sha256 = storageService.get(
-            artifactCoordinates.repositoryType, true, artifactCoordinates.toPath()
-        ).checksums.sha256
+        val sha256 = storageService
+            .get(
+                artifactCoordinates.repositoryType,
+                true,
+                artifactCoordinates.toPath(),
+            ).checksums.sha256
         val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
             with("Artifact with coordinates '${it.path}' already added") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
@@ -84,7 +90,7 @@ class ArtifactServiceImpl(
     override fun upload(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-        file: MultipartFile
+        file: MultipartFile,
     ): ArtifactDTO {
         log.info("Upload file ${file.originalFilename} as artifact with coordinates '$artifactCoordinates'")
         val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
@@ -92,32 +98,40 @@ class ArtifactServiceImpl(
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
-            //NOTE:
+            // NOTE:
             // allowing of artifact re-uploading may be an issue if it is registered for published component version
             // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
             it.updateSha256(
-                file.inputStream.use { inputStream ->
-                    storageService.upload(it.repositoryType, it.path, inputStream)
-                }.checksums.sha256
+                file.inputStream
+                    .use { inputStream ->
+                        storageService.upload(it.repositoryType, it.path, inputStream)
+                    }.checksums.sha256,
             )
         } ?: artifactRepository.save(
             artifactCoordinates.createArtifact(
-                true, file.inputStream.use { inputStream ->
-                    storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
-                }.checksums.sha256
-            )
+                true,
+                file.inputStream
+                    .use { inputStream ->
+                        storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
+                    }.checksums.sha256,
+            ),
         )
         return artifact.toDTO()
     }
 
-    private fun Artifact.updateSha256(sha256: String) = if (this.sha256 != sha256) {
-        log.info("SHA256 checksum has changed from ${this.sha256} to $sha256 for artifact with coordinates '${this.path}'")
-        this.sha256 = sha256
-        artifactRepository.save(this)
-    } else this
+    private fun Artifact.updateSha256(sha256: String) =
+        if (this.sha256 != sha256) {
+            log.info("SHA256 checksum has changed from ${this.sha256} to $sha256 for artifact with coordinates '${this.path}'")
+            this.sha256 = sha256
+            artifactRepository.save(this)
+        } else {
+            this
+        }
 
-
-    private fun ArtifactCoordinatesDTO.createArtifact(uploaded: Boolean, sha256: String) = when (repositoryType) {
+    private fun ArtifactCoordinatesDTO.createArtifact(
+        uploaded: Boolean,
+        sha256: String,
+    ) = when (repositoryType) {
         RepositoryType.MAVEN -> {
             this as MavenArtifactCoordinatesDTO
             MavenArtifact(
@@ -128,24 +142,27 @@ class ArtifactServiceImpl(
                 artifactId = gav.artifactId,
                 version = gav.version,
                 packaging = gav.packaging,
-                classifier = gav.classifier
+                classifier = gav.classifier,
             )
         }
 
         RepositoryType.DEBIAN -> {
             this as DebianArtifactCoordinatesDTO
             DebianArtifact(
-                uploaded = uploaded, path = toPath(), sha256 = sha256
+                uploaded = uploaded,
+                path = toPath(),
+                sha256 = sha256,
             )
         }
 
         RepositoryType.RPM -> {
             this as RpmArtifactCoordinatesDTO
             RpmArtifact(
-                uploaded = uploaded, path = toPath(), sha256 = sha256
+                uploaded = uploaded,
+                path = toPath(),
+                sha256 = sha256,
             )
         }
-
 
         RepositoryType.DOCKER -> {
             this as DockerArtifactCoordinatesDTO
@@ -157,7 +174,7 @@ class ArtifactServiceImpl(
                 path = toPath(),
                 sha256 = sha256,
                 image = image,
-                tag = tag
+                tag = tag,
             )
         }
     }

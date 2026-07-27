@@ -46,7 +46,9 @@ signing {
 dependencies {
     implementation(project(":client"))
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
-    implementation("org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}")
+    implementation(
+        "org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}",
+    )
 
     implementation("org.gradle:gradle-core:1.6")
     implementation("org.gradle:gradle-tooling-api:2.6")
