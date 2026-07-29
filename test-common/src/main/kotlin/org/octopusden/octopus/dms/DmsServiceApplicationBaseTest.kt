@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertIterableEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertThrowsExactly
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -575,6 +576,30 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @Test
+    fun testGetComponentVersionArtifactsExposesReleaseLimitations() {
+        // limitations are entered at release time, stored by releng and have to survive the whole
+        // chain releng -> release-management-service -> dms-service down to the portal API
+        assertEquals(
+            RELEASE_LIMITATIONS,
+            client
+                .getComponentVersionArtifacts(
+                    eeComponent,
+                    eeComponentReleaseVersion0353.releaseVersion,
+                    ArtifactType.DISTRIBUTION,
+                ).componentVersion.limitations,
+        )
+        // ... and a release without limitations must expose null, not a failure
+        assertNull(
+            client
+                .getComponentVersionArtifacts(
+                    eeComponent,
+                    eeComponentReleaseVersion0354.releaseVersion,
+                    ArtifactType.DISTRIBUTION,
+                ).componentVersion.limitations,
+        )
+    }
+
     @ParameterizedTest
     @MethodSource
     fun testRegisterUploadedArtifact(version: Version) {
@@ -1092,6 +1117,11 @@ abstract class DmsServiceApplicationBaseTest {
         )
 
         const val ANY_VERSION = "ANY_VERSION"
+
+        // has to stay in sync with the ee-component 03.53.30.31-1 build in mockserver/builds.json
+        const val RELEASE_LIMITATIONS =
+            "Upgrade from 03.53.30.30 is not supported, reinstall required.\nSee TEST-1 for details."
+
         const val eeComponent = "ee-component"
         const val eeClientSpecificComponent = "ee-client-specific-component"
         const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"
