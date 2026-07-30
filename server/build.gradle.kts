@@ -9,49 +9,17 @@ plugins {
     id("org.jetbrains.kotlin.plugin.noarg")
     id("com.bmuschko.docker-spring-boot-application") version "9.4.0"
     id("org.octopusden.octopus.oc-template")
+    // Applied without declaring any publication: this module's deliverable is the docker image
+    // built from `bootJar`, not a Maven artifact. Keeping the plugin preserves the `publish` /
+    // `publishToMavenLocal` lifecycle tasks, so a whole-build invocation of either still
+    // resolves here — as a no-op. Declaring no publication is what keeps the module off Maven
+    // Central, and the root `verifyCentralPublicationPolicy` check enumerates publications, so
+    // a module with none simply does not appear in the set it compares.
     `maven-publish`
 }
 
 tasks.getByName<Jar>("jar") {
     enabled = false
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("bootJar") {
-            artifact(tasks.getByName("bootJar"))
-            from(components["java"])
-            pom {
-                name.set(project.name)
-                description.set("Octopus module: ${project.name}")
-                url.set("https://github.com/octopusden/octopus-dms-service.git")
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                scm {
-                    url.set("https://github.com/kzaporozhtsev/octopus-dms-service.git")
-                    connection.set("scm:git://github.com/octopusden/octopus-dms-service.git")
-                }
-                developers {
-                    developer {
-                        id.set("octopus")
-                        name.set("octopus")
-                    }
-                }
-            }
-        }
-    }
-}
-
-signing {
-    isRequired = project.ext["signingRequired"] as Boolean
-    val signingKey: String? by project
-    val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications["bootJar"])
 }
 
 springBoot {

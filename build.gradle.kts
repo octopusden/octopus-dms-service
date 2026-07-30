@@ -1,3 +1,4 @@
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.net.InetAddress
 import java.time.Duration
@@ -45,6 +46,97 @@ allprojects {
     group = "org.octopusden.octopus.dms"
     if (version == "unspecified") {
         version = defaultVersion
+    }
+}
+
+// Publications that are meant to reach Maven Central, as
+// "<project path>|<publication name>|<groupId>:<artifactId>".
+//
+// Project PATHS, not names: the client-side modules live under client/ while their project
+// paths are flat (`:client` is client/client), and only a path can express the root project
+// (':'), so a name-based check would silently ignore a publication added there.
+// The coordinate as well as the path, because a project that already publishes can grow a
+// second publication or change its artifactId without changing the set of publishing
+// projects — both put a new coordinate on Central. `:gradle-dms-plugin` legitimately has two
+// (its own, plus the plugin marker the `java-gradle-plugin` plugin adds under a different
+// groupId), which is exactly the shape a project-level check cannot express.
+// An allowlist rather than a denylist, so anything newly added defaults to unpublished.
+// This guards the set of COORDINATES; what each publication attaches is guarded at release
+// time by the shared workflow, which rejects a fat jar, an `-all` artifact, a Spring Boot jar
+// or anything over max-central-artifact-mb before it reaches Central.
+val centralPublishedPublications = setOf(
+    ":client|maven|org.octopusden.octopus.dms:client",
+    ":common|maven|org.octopusden.octopus.dms:common",
+    ":gradle-dms-client|maven|org.octopusden.octopus.dms:gradle-dms-client",
+    ":gradle-dms-plugin|pluginMaven|org.octopusden.octopus.dms:gradle-dms-plugin",
+    ":gradle-dms-plugin|gradle-dms-pluginPluginMarkerMaven|" +
+        "org.octopusden.octopus-dms:org.octopusden.octopus-dms.gradle.plugin",
+    ":maven-dms-plugin|maven|org.octopusden.octopus.dms:maven-dms-plugin",
+    ":metarunners|maven|org.octopusden.octopus.dms:metarunners",
+)
+
+fun centralPublicationPolicyProblems(): List<String> {
+    // allprojects, not subprojects: the root is a publishable project like any other.
+    // A project without maven-publish has no publishing extension at all, hence findByType.
+    val actual = allprojects
+        .filter { it.plugins.hasPlugin("maven-publish") }
+        .flatMap { candidate ->
+            candidate.extensions
+                .findByType(PublishingExtension::class.java)
+                ?.publications
+                ?.withType(MavenPublication::class.java)
+                ?.map { "${candidate.path}|${it.name}|${it.groupId}:${it.artifactId}" }
+                ?: emptyList()
+        }.toSet()
+    return if (actual == centralPublishedPublications) {
+        emptyList()
+    } else {
+        listOf(
+            "Maven Central publication set drifted.\n" +
+                "  allowlisted: ${centralPublishedPublications.sorted()}\n" +
+                "  publishing:  ${actual.sorted()}",
+        )
+    }
+}
+
+// A policy problem must fail its own gate, not configuration: a throw from
+// `gradle.projectsEvaluated` would break every invocation the moment the set drifts —
+// `dependencies`, `tasks`, IDE sync — instead of only the paths that publish.
+val verifyCentralPublicationPolicy = tasks.register("verifyCentralPublicationPolicy") {
+    group = "verification"
+    description = "Fails if the publications reaching Maven Central drift from the allowlist."
+    doLast {
+        val problems = centralPublicationPolicyProblems()
+        if (problems.isNotEmpty()) {
+            throw GradleException(problems.joinToString("\n\n"))
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    allprojects.forEach { proj ->
+        // The upload and install tasks themselves, so the gate is a dependency OF the leaf
+        // rather than a sibling of it: invoking `publishAllPublicationsToSonatypeRepository`
+        // (or a single publish*PublicationToSonatypeRepository) directly cannot skip it, and
+        // parallel execution cannot start an upload while the gate is still running.
+        proj.tasks
+            .withType(AbstractPublishToMaven::class.java)
+            .configureEach { dependsOn(verifyCentralPublicationPolicy) }
+        // Plus the aggregate entry points, which own no artifact themselves. The staging
+        // transitions are included because a resumed release can invoke them on their own.
+        // publishToSonatype and the staging tasks only exist with -Pnexus and `publish` is
+        // per-project, so match by name rather than forcing any of them into existence.
+        proj.tasks
+            .matching {
+                it.name in setOf(
+                    "publish",
+                    "publishToMavenLocal",
+                    "publishToSonatype",
+                    "closeSonatypeStagingRepository",
+                    "releaseSonatypeStagingRepository",
+                    "closeAndReleaseSonatypeStagingRepository",
+                )
+            }.configureEach { dependsOn(verifyCentralPublicationPolicy) }
     }
 }
 
