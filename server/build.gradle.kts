@@ -13,8 +13,8 @@ plugins {
     // built from `bootJar`, not a Maven artifact. Keeping the plugin preserves the `publish` /
     // `publishToMavenLocal` lifecycle tasks, so a whole-build invocation of either still
     // resolves here — as a no-op. Declaring no publication is what keeps the module off Maven
-    // Central, and the root `verifyCentralPublicationPolicy` check enumerates publications, so
-    // a module with none simply does not appear in the set it compares.
+    // Central, and the shared `octopusQuality { publication { } }` policy enumerates actual
+    // publications, so a module with none simply does not appear in the set it compares.
     `maven-publish`
 }
 
