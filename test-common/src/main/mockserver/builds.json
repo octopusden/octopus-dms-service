@@ -17,7 +17,8 @@
     "parents": [],
     "dependencies": [],
     "commits": [],
-    "statusHistory": {}
+    "statusHistory": {},
+    "limitations": "Upgrade from 03.53.30.30 is not supported, reinstall required.\nSee TEST-1 for details."
   },
   {
     "component": "ee-component",
