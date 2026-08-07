@@ -82,9 +82,6 @@ subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     repositories {
-        // release-management-service 2.0.47-672 is a pre-release build living only in
-        // Artifactory, not on Central. Build with -Puse_dev_repository=all so the shared
-        // ~/.gradle/init.gradle adds rnd-maven-dev-virtual; no repository is declared here.
         mavenCentral()
         maven {
             url = uri("https://repo.gradle.org/gradle/libs-releases")

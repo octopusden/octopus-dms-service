@@ -580,6 +580,18 @@ abstract class DmsServiceApplicationBaseTest {
     fun testGetComponentVersionArtifactsExposesReleaseLimitations() {
         // limitations are entered at release time, stored by releng and have to survive the whole
         // chain releng -> release-management-service -> dms-service down to the portal API
+
+        // Register an artifact first so ComponentVersion is persisted, exercising the ComponentVersion.toFullDTO path
+        val artifact = getResource(releaseReleaseNotesFileName).openStream().use {
+            client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)
+        }
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0353.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES),
+        )
+
         assertEquals(
             RELEASE_LIMITATIONS,
             client
@@ -589,7 +601,7 @@ abstract class DmsServiceApplicationBaseTest {
                     ArtifactType.DISTRIBUTION,
                 ).componentVersion.limitations,
         )
-        // ... and a release without limitations must expose null, not a failure
+        // ... and a release without limitations must expose null, not a failure (BuildFullDTO.toComponentVersionFullDTO path)
         assertNull(
             client
                 .getComponentVersionArtifacts(
