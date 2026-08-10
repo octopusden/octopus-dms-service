@@ -78,14 +78,30 @@ coordinates/version given to validation don't exactly match what was published �
 groupId/artifactId/version/packaging (or image/tag for Docker).
 ```
 
-**Unavailable**, new, thrown from `find()`/`storeUnavailable()`:
+**Unavailable**, new, thrown from `find()`/`storeUnavailable()`. The lead-in is shared; the closing
+sentence depends on whether the failure is one Artifactory can recover from on its own:
 ```
 Unable to check whether artifact '$path' exists in repository '$repository': $rootCause.
-Artifactory itself could not be queried (connectivity, credentials, or permission problem).
+Artifactory itself could not be queried (connectivity, timeout or DNS problem).
+```
+```
+Unable to check whether artifact '$path' exists in repository '$repository': $rootCause.
+Artifactory rejected DMS's own credentials for that repository — this is a DMS configuration
+problem, so retrying will not help.
 ```
 `$rootCause` is the caught exception's own message (falling back to its `toString()` if the
-message is null), so e.g. an `HttpResponseException` reports `"HTTP 401: ..."`-shaped text and a
+message is null), so e.g. an `HttpResponseException` reports `"HTTP 500: ..."`-shaped text and a
 connection failure reports the underlying IO error text.
+
+The second variant is selected when the caught exception is an `HttpResponseException` whose status
+is 401, 403 or 407 — Artifactory refusing DMS's credentials, or a proxy refusing them. That is a
+deployment-config problem someone has to fix; lumping it in with "could not be queried" would tell
+the reader to wait for a transient blip that is never going to clear. Every other non-404 status,
+and every plain `IOException`, keeps the first variant. Both still map to
+`ArtifactStoreUnavailableException`/`DMS-40015`/HTTP 503: nothing in the codebase branches on error
+code (`DmsClientErrorDecoder` reconstructs an exception from the code and callers act on the
+message), so a second exception type and code would add API surface no caller would read — the
+distinction belongs in the sentence a human reads, not in a new code.
 
 Both messages are deliberately generic across artifact types (Maven/Docker/RPM/DEB) — `$path`
 already carries the type-specific structure (GAV path, `image/tag`, etc.), so no per-type message
@@ -135,17 +151,23 @@ of the underlying detail.
 Changed to:
 ```java
 if (!exceptions.isEmpty()) {
-    exceptions.forEach(e -> {
-        log.error(e.getMessage() != null ? e.getMessage() : e.toString());
-        log.debug(e.getMessage(), e);
-    });
-    String summary = exceptions.stream()
-            .map(e -> e.getMessage() != null ? e.getMessage() : e.toString())
-            .collect(Collectors.joining("\n"));
-    throw new MojoFailureException(String.format("%d of %d artifact(s) failed validation:%n%s",
-            exceptions.size(), results.size(), summary));
+    List<String> messages = new ArrayList<>(exceptions.size());
+    for (Exception e : exceptions) {
+        String message = describeFailure(e);
+        messages.add(message);
+        log.error(message);
+        log.debug(message, e);
+    }
+    throw new MojoFailureException(String.format("%d of %d artifact(s) failed:%n%s",
+            exceptions.size(), results.size(), String.join("\n", messages)));
 }
 ```
+The summary says "failed", not "failed validation": `processArtifacts` is shared by
+`ValidateArtifactsMojo` and `UploadArtifactsMojo`, so a goal-specific word here would misreport
+every `upload-artifacts` failure.
+`describeFailure` unwraps the `ExecutionException` that `Future.get()` adds, then appends the root
+cause's message when the wrapper's own message doesn't already contain it — without it, an
+`ExecutionException`'s `toString()` would be the only text a caller sees.
 Each failure logs its own (already-actionable, per Decisions 1–3) message once at ERROR; the full
 stack trace is still available, but only at DEBUG (`-X`/`--debug`), for whoever needs it. The
 `MojoFailureException`'s message — the summary text a caller actually sees — is now the
@@ -160,8 +182,8 @@ lines from that real output (e.g. `testMavenDmsPluginValidateArtifactsDifferentR
 `testMavenDmsPluginValidateArtifactsArtifactNotFound`, uses the same helper: it runs the goal
 against coordinates that don't exist (so the real server-side `UnableToFindArtifactException` from
 Decision 3 fires for real), and asserts what the fix is actually about — no stack-trace lines in
-the output, the actionable message text is present, and the composed `"N of M artifact(s) failed
-validation"` summary is present — using substring checks (`.any { it.contains(...) }`) rather than
+the output, the actionable message text is present, and the composed `"N of M artifact(s) failed"`
+summary is present — using substring checks (`.any { it.contains(...) }`) rather than
 exact-line matching, since the composed message's exact rendering (repository-set order,
 coordinate `toString()`) isn't worth pinning down precisely for what this test needs to prove.
 
@@ -170,6 +192,32 @@ console rendering a caller actually sees — a more faithful check of Decision 5
 unit test with a hand-rolled fake `Log` could give, and keeps `client/maven-dms-plugin` with no
 dedicated unit-test tree, consistent with this repo's existing convention of verifying
 maven-dms-plugin behavior through the FT suite.
+
+### 7. `DMSException` carries an optional cause, so the server log keeps the real stack trace
+
+Decision 2 catches Artifactory's own `IOException` and throws a new exception in its place. Without
+a cause, the original is discarded: `ExceptionHandler`'s `logger.error(exception.message, exception)`
+would log a trace that stops inside `StorageServiceImpl`, and the only surviving trace of *where*
+the HTTP client actually failed is the one line of `cause.message` interpolated into the text. Before
+this change a non-404 propagated raw to the catch-all handler and was logged in full, so dropping the
+cause would be a real loss of server-side diagnosability.
+
+```kotlin
+abstract class DMSException(
+    message: String,
+    val code: String,
+    cause: Throwable? = null,
+) : RuntimeException(message, cause)
+```
+
+The parameter is last and defaulted, so every existing subclass and every `CODE_EXCEPTION_MAP` entry
+compiles and behaves unchanged. `ArtifactStoreUnavailableException` takes the same optional `cause`
+and `storeUnavailable()` passes the caught `IOException` into it.
+
+Nothing changes on the wire: `ApplicationErrorResponse` carries only `code`/`detail`/`message`, so a
+client still receives one sentence and reconstructs a cause-less exception from the code — which is
+the split we want. Full chain in the server log for whoever operates DMS; one actionable sentence
+for the component owner running the build.
 
 ## Risks / Trade-offs
 

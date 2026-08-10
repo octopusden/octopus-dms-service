@@ -26,7 +26,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
@@ -199,16 +198,15 @@ public class ArtifactServiceImpl implements ArtifactService {
             }
         }
         if (!exceptions.isEmpty()) {
-            exceptions.forEach(e -> {
+            List<String> messages = new ArrayList<>(exceptions.size());
+            for (Exception e : exceptions) {
                 String message = describeFailure(e);
+                messages.add(message);
                 log.error(message);
                 log.debug(message, e);
-            });
-            String summary = exceptions.stream()
-                    .map(ArtifactServiceImpl::describeFailure)
-                    .collect(Collectors.joining("\n"));
-            throw new MojoFailureException(String.format("%d of %d artifact(s) failed validation:%n%s",
-                    exceptions.size(), results.size(), summary));
+            }
+            throw new MojoFailureException(String.format("%d of %d artifact(s) failed:%n%s",
+                    exceptions.size(), results.size(), String.join("\n", messages)));
         }
     }
 

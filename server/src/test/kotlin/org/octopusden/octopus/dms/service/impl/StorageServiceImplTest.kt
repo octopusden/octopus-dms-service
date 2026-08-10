@@ -5,9 +5,13 @@ import org.jfrog.artifactory.client.Artifactory
 import org.jfrog.artifactory.client.ItemHandle
 import org.jfrog.artifactory.client.RepositoryHandle
 import org.jfrog.artifactory.client.model.File
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -60,15 +64,28 @@ class StorageServiceImplTest {
 
     @Test
     fun `get throws ArtifactStoreUnavailableException when a repository responds with a non-404 error`() {
-        val client = clientThrowing(HttpResponseException(401, "Unauthorized"))
+        val client = clientThrowing(HttpResponseException(500, "Internal Server Error"))
 
         val exception = assertThrows(ArtifactStoreUnavailableException::class.java) {
             service(client).get(RepositoryType.MAVEN, false, path)
         }
         assertTrue(exception.message!!.contains(repository))
         assertTrue(exception.message!!.contains(path))
-        assertTrue(exception.message!!.contains("401"))
+        assertTrue(exception.message!!.contains("500"))
         assertTrue(exception.message!!.contains("could not be queried"))
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [401, 403, 407])
+    fun `get reports a rejected-credentials status as a configuration problem, not a transient one`(status: Int) {
+        val client = clientThrowing(HttpResponseException(status, "Denied"))
+
+        val exception = assertThrows(ArtifactStoreUnavailableException::class.java) {
+            service(client).get(RepositoryType.MAVEN, false, path)
+        }
+        assertTrue(exception.message!!.contains("credentials"))
+        assertTrue(exception.message!!.contains("retrying will not help"))
+        assertFalse(exception.message!!.contains("could not be queried"))
     }
 
     @Test
@@ -79,6 +96,17 @@ class StorageServiceImplTest {
             service(client).get(RepositoryType.MAVEN, false, path)
         }
         assertTrue(exception.message!!.contains("Connection refused"))
+        assertTrue(exception.message!!.contains("could not be queried"))
+    }
+
+    @Test
+    fun `get keeps the underlying failure as the cause so the server log retains its stack trace`() {
+        val cause = IOException("Connection refused")
+
+        val exception = assertThrows(ArtifactStoreUnavailableException::class.java) {
+            service(clientThrowing(cause)).get(RepositoryType.MAVEN, false, path)
+        }
+        assertSame(cause, exception.cause)
     }
 
     @Test

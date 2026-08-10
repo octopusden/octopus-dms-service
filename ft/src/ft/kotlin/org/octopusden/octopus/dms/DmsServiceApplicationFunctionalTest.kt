@@ -333,7 +333,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 "Expected the not-found message to suggest checking publication/coordinates: ${this.second}",
             )
             assertTrue(
-                this.second.any { it.contains("2 of 2 artifact(s) failed validation") },
+                this.second.any { it.contains("2 of 2 artifact(s) failed") },
                 "Expected the composed failure summary in the output: ${this.second}",
             )
         }

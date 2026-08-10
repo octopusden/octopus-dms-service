@@ -98,9 +98,14 @@ class StorageServiceImpl(
         path: String,
         cause: IOException,
     ) = ArtifactStoreUnavailableException(
-        "Unable to check whether artifact '$path' exists in repository '$repository': " +
-            "${cause.message ?: cause}. Artifactory itself could not be queried (connectivity, credentials, or " +
-            "permission problem).",
+        "Unable to check whether artifact '$path' exists in repository '$repository': ${cause.message ?: cause}. " +
+            if (cause is HttpResponseException && cause.statusCode in CREDENTIAL_REJECTION_STATUSES) {
+                "Artifactory rejected DMS's own credentials for that repository — this is a DMS configuration " +
+                    "problem, so retrying will not help."
+            } else {
+                "Artifactory itself could not be queried (connectivity, timeout or DNS problem)."
+            },
+        cause,
     )
 
     override fun download(
@@ -124,4 +129,8 @@ class StorageServiceImpl(
         } catch (e: Exception) {
             Health.down(e).build()
         }
+
+    companion object {
+        private val CREDENTIAL_REJECTION_STATUSES = setOf(401, 403, 407)
+    }
 }

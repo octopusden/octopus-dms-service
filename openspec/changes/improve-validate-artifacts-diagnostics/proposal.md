@@ -35,7 +35,12 @@ Three distinct gaps combine to produce this:
   do the coordinates/version match what was published?).
 - **A distinct "couldn't check" failure.** A new `ArtifactStoreUnavailableException` (DMS-40015,
   HTTP 503) is thrown when a repository lookup itself fails (non-404 HTTP error, or a connection
-  failure) — so this stops being misread as "artifact missing" and stops being an uncoded 500.
+  failure) — so this stops being misread as "artifact missing" and stops being an uncoded 500. Its
+  message separates a failure that may clear on its own from a rejected-credentials status
+  (401/403/407), which is a DMS configuration problem retrying will never fix.
+- **The wrapped failure keeps its cause.** `DMSException` takes an optional trailing `cause`, so the
+  `IOException` being replaced still reaches the server log with its stack trace intact. Nothing
+  changes on the wire — a client still receives only the code and one actionable sentence.
 - **A clean, informative build failure.** `maven-dms-plugin`'s `ArtifactServiceImpl` no longer
   dumps a stack trace per failed artifact at ERROR level; each failure logs its message once, full
   traces move to DEBUG, and the final `MojoFailureException` message is composed from each
@@ -43,7 +48,8 @@ Three distinct gaps combine to produce this:
 
 ## Affected areas
 
-- `common` — new `ArtifactStoreUnavailableException` in `ServicesExceptions.kt`.
+- `common` — new `ArtifactStoreUnavailableException` in `ServicesExceptions.kt`, plus an optional
+  trailing `cause` on the `DMSException` base class (defaulted, so no subclass changes).
 - `server` — `StorageServiceImpl` (message content, error wrapping, constructor seam for
   testability), `ExceptionHandler` (new mapping to 503).
 - `client/maven-dms-plugin` — `ArtifactServiceImpl.processArtifacts()`'s failure aggregation.

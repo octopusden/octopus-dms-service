@@ -29,9 +29,12 @@ When checking whether an artifact exists in a repository fails for a reason othe
 confirmed 404 (a non-404 HTTP response, or any other `IOException` — connection, timeout, DNS —
 while querying that repository), the server SHALL raise `ArtifactStoreUnavailableException` (not
 `UnableToFindArtifactException`, and not an uncoded generic error), naming the repository, the
-artifact path, and the underlying failure. A failure that is not an `IOException` (e.g. a
-programming error) SHALL NOT be caught or reported as `ArtifactStoreUnavailableException` — it
-propagates unchanged, so a real bug is never mislabeled as "Artifactory unavailable".
+artifact path, and the underlying failure. Its message SHALL further distinguish a failure that may
+clear on its own from one that will not: a rejected-credentials status (HTTP 401, 403 or 407) SHALL
+be described as a DMS configuration problem that retrying will not fix, and every other cause as
+Artifactory being unqueryable. A failure that is not an `IOException` (e.g. a programming error)
+SHALL NOT be caught or reported as `ArtifactStoreUnavailableException` — it propagates unchanged, so
+a real bug is never mislabeled as "Artifactory unavailable".
 
 #### Scenario: Artifactory returns a non-404 error while checking a repository
 
@@ -47,6 +50,12 @@ propagates unchanged, so a real bug is never mislabeled as "Artifactory unavaila
 - **THEN** `ArtifactStoreUnavailableException` is thrown with the underlying error's message
   included, rather than the raw exception propagating uncaught
 
+#### Scenario: Artifactory rejects DMS's credentials while checking a repository
+
+- **WHEN** querying a configured repository for an artifact's path returns HTTP 401, 403 or 407
+- **THEN** `ArtifactStoreUnavailableException`'s message states that Artifactory rejected DMS's own
+  credentials and that retrying will not help, instead of describing Artifactory as unqueryable
+
 #### Scenario: A programming error while checking a repository is not mislabeled
 
 - **WHEN** querying a configured repository for an artifact's path fails with an error that is
@@ -61,17 +70,40 @@ propagates unchanged, so a real bug is never mislabeled as "Artifactory unavaila
   `UnableToFindArtifactException`'s HTTP 400 / `DMS-40006` and from the generic, uncoded 500 a
   previously-unhandled exception would have produced
 
+### Requirement: A wrapped store failure keeps its cause for the server log
+
+`DMSException` SHALL accept an optional `cause`, and `ArtifactStoreUnavailableException` SHALL be
+raised with the `IOException` it replaces as that cause, so the server-side log retains the full
+stack trace of where the store access actually failed. The cause SHALL NOT be exposed over the REST
+API — `ApplicationErrorResponse` continues to carry only the error code, exception name and message,
+so a client receives one actionable sentence and no trace.
+
+#### Scenario: A store failure is logged with its originating stack trace
+
+- **WHEN** `ArtifactStoreUnavailableException` is raised because a repository lookup threw an
+  `IOException`
+- **THEN** that `IOException` is the exception's `cause`, and the server's exception handler logs
+  the full chain
+
+#### Scenario: Adding a cause does not change existing exceptions or the wire format
+
+- **WHEN** any other `DMSException` subclass is raised, or any `DMSException` is reconstructed
+  client-side from an error code via `CODE_EXCEPTION_MAP`
+- **THEN** it behaves exactly as before, with a `null` cause, and the serialized
+  `ApplicationErrorResponse` is unchanged
+
 ### Requirement: The Maven plugin's failure message is composed of each artifact's own message
 
-When `maven-dms-plugin`'s `validate-artifacts` goal fails one or more artifacts, the build failure
-SHALL report each failed artifact's own message, and per-artifact stack traces SHALL NOT be logged
-above DEBUG level.
+When `maven-dms-plugin`'s `ArtifactServiceImpl.processArtifacts` fails one or more artifacts, the
+build failure SHALL report each failed artifact's own message, and per-artifact stack traces SHALL
+NOT be logged above DEBUG level. Since `processArtifacts` backs both the `validate-artifacts` and
+`upload-artifacts` goals, the summary text SHALL NOT name a specific goal.
 
-#### Scenario: Multiple artifacts fail validation in one run
+#### Scenario: Multiple artifacts fail in one run
 
 - **WHEN** N of M artifacts fail during `ArtifactServiceImpl.processArtifacts`
-- **THEN** the thrown `MojoFailureException`'s message includes a summary count and every failed
-  artifact's own message, concatenated
+- **THEN** the thrown `MojoFailureException`'s message includes a goal-agnostic summary count and
+  every failed artifact's own message, concatenated
 
 #### Scenario: Stack traces are demoted to debug
 

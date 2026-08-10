@@ -3,7 +3,8 @@ package org.octopusden.octopus.dms.exception
 abstract class DMSException(
     message: String,
     val code: String,
-) : RuntimeException(message) {
+    cause: Throwable? = null,
+) : RuntimeException(message, cause) {
     companion object {
         val CODE_EXCEPTION_MAP = mapOf(
             "DMS-40000" to { message: String -> GeneralArtifactStoreException(message) },
@@ -73,4 +74,5 @@ class VersionPublishedException(
 
 class ArtifactStoreUnavailableException(
     message: String,
-) : DMSException(message, "DMS-40015")
+    cause: Throwable? = null,
+) : DMSException(message, "DMS-40015", cause)
