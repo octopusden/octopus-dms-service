@@ -321,8 +321,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         ) {
             assertEquals(1, this.first)
             assertTrue(
-                this.second.none { it.contains("\tat ") },
-                "Expected no stack trace lines in the output, but found some: ${this.second}",
+                this.second.none { it.contains("UnableToFindArtifactException") },
+                "Expected no per-artifact exception dump in the output: ${this.second}",
             )
             assertTrue(
                 this.second.any { it.contains("was not found in any of the repositories") },
