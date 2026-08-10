@@ -29,12 +29,14 @@ When checking whether an artifact exists in a repository fails for a reason othe
 confirmed 404 (a non-404 HTTP response, or any other `IOException` — connection, timeout, DNS —
 while querying that repository), the server SHALL raise `ArtifactStoreUnavailableException` (not
 `UnableToFindArtifactException`, and not an uncoded generic error), naming the repository, the
-artifact path, and the underlying failure. Its message SHALL further distinguish a failure that may
-clear on its own from one that will not: a rejected-credentials status (HTTP 401, 403 or 407) SHALL
-be described as a DMS configuration problem that retrying will not fix, and every other cause as
-Artifactory being unqueryable. A failure that is not an `IOException` (e.g. a programming error)
-SHALL NOT be caught or reported as `ArtifactStoreUnavailableException` — it propagates unchanged, so
-a real bug is never mislabeled as "Artifactory unavailable".
+artifact path, and the underlying failure. 
+
+Its message SHALL further distinguish a failure that may clear on its own from one that will not: 
+a rejected-credentials status (HTTP 401, 403 or 407) SHALL be described as a DMS configuration problem 
+that retrying will not fix, and every other cause as Artifactory being unqueryable. 
+
+A failure that is not an `IOException` (e.g. a programming error) SHALL NOT be caught or reported as 
+`ArtifactStoreUnavailableException`— it propagates unchanged, so a real bug is never mislabeled as "Artifactory unavailable".
 
 #### Scenario: Artifactory returns a non-404 error while checking a repository
 

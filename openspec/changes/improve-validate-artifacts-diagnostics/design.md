@@ -1,10 +1,13 @@
 ## Context
 
 `StorageServiceImpl` (server) is the only place that talks to Artifactory when validating/adding
-an artifact. `get()` calls `find()`, which walks the configured repositories for a
+an artifact. 
+- `get()` calls `find()`, which walks the configured repositories for a
 `RepositoryType` (upload/staging/release/cold) and returns the first `File` info found, or `null`
-if every repository 404s. `get()` turns a `null` into `UnableToFindArtifactException`. This
-exception (like every `DMSException` subclass) crosses the server→client boundary as a JSON
+if every repository 404s. 
+- `get()` turns a `null` into `UnableToFindArtifactException`. 
+
+This exception (like every `DMSException` subclass) crosses the server→client boundary as a JSON
 `{code, message}` pair (`ApplicationErrorResponse`); the client (`DmsClientErrorDecoder`)
 reconstructs the exception from `DMSException.CODE_EXCEPTION_MAP` by `code` alone, and the
 `maven-dms-plugin` mojo layer catches it generically as an `Exception` at every call site.
@@ -51,6 +54,7 @@ non-404 HTTP response *or* an `IOException` raised while querying that one repos
 connection refused, DNS failure, etc. — `HttpResponseException` is itself an `IOException`
 subtype, so one `catch (e: IOException)` after the 404 check covers both) — throws
 `ArtifactStoreUnavailableException`, naming the repository, the path, and the root cause.
+
 Deliberately **not** `catch (e: Exception)`: that would also catch a programming error (e.g. an
 NPE) and misreport it as "Artifactory unavailable" instead of letting it surface as a bug.
 `IOException` is the narrowest type that covers every failure mode the guarded call
@@ -97,8 +101,9 @@ The second variant is selected when the caught exception is an `HttpResponseExce
 is 401, 403 or 407 — Artifactory refusing DMS's credentials, or a proxy refusing them. That is a
 deployment-config problem someone has to fix; lumping it in with "could not be queried" would tell
 the reader to wait for a transient blip that is never going to clear. Every other non-404 status,
-and every plain `IOException`, keeps the first variant. Both still map to
-`ArtifactStoreUnavailableException`/`DMS-40015`/HTTP 503: nothing in the codebase branches on error
+and every plain `IOException`, keeps the first variant. 
+
+Both still map to `ArtifactStoreUnavailableException`/`DMS-40015`/HTTP 503: nothing in the codebase branches on error
 code (`DmsClientErrorDecoder` reconstructs an exception from the code and callers act on the
 message), so a second exception type and code would add API surface no caller would read — the
 distinction belongs in the sentence a human reads, not in a new code.
