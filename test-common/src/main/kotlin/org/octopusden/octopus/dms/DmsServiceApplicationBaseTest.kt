@@ -601,7 +601,6 @@ abstract class DmsServiceApplicationBaseTest {
 
     @Test
     fun testGetComponentVersionArtifactsExposesNullReleaseLimitationsWhenAbsent() {
-
         assertNull(
             client
                 .getComponentVersionArtifacts(
