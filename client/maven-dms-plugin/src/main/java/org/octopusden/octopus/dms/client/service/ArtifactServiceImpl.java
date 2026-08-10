@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
@@ -198,9 +199,38 @@ public class ArtifactServiceImpl implements ArtifactService {
             }
         }
         if (!exceptions.isEmpty()) {
-            exceptions.forEach(log::error);
-            throw new MojoFailureException(exceptions.size() + " exception(s) occurred");
+            exceptions.forEach(e -> {
+                String message = describeFailure(e);
+                log.error(message);
+                log.debug(message, e);
+            });
+            String summary = exceptions.stream()
+                    .map(ArtifactServiceImpl::describeFailure)
+                    .collect(Collectors.joining("\n"));
+            throw new MojoFailureException(String.format("%d of %d artifact(s) failed validation:%n%s",
+                    exceptions.size(), results.size(), summary));
         }
+    }
+
+    /**
+     * A submitted artifact's failure normally arrives as an ExecutionException wrapping a
+     * RuntimeMojoExecutionException (which already names the artifact/component/version) wrapping
+     * the actual DMS exception (which carries the actionable detail, e.g. why an artifact wasn't
+     * found). Reporting only the outermost message loses that detail; reporting the full stack
+     * trace is what this change is replacing. This combines the immediate context with the root
+     * cause's message into one line.
+     */
+    private static String describeFailure(Throwable e) {
+        Throwable effective = e.getCause() != null ? e.getCause() : e;
+        String context = effective.getMessage() != null ? effective.getMessage() : effective.toString();
+        Throwable root = effective;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        if (root != effective && root.getMessage() != null && !context.contains(root.getMessage())) {
+            return context + ": " + root.getMessage();
+        }
+        return context;
     }
 
     private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, String name) throws MojoExecutionException {

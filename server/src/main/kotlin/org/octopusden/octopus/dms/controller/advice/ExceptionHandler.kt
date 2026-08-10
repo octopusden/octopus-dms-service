@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
 import org.octopusden.octopus.dms.exception.ArtifactChecksumChangedException
+import org.octopusden.octopus.dms.exception.ArtifactStoreUnavailableException
 import org.octopusden.octopus.dms.exception.DMSException
 import org.octopusden.octopus.dms.exception.DownloadResultFailureException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
@@ -66,6 +67,14 @@ class ExceptionHandler(
         response: HttpServletResponse,
         e: NotFoundException,
     ) = createHttpResponse(request, e, HttpStatus.NOT_FOUND)
+
+    @ExceptionHandler(ArtifactStoreUnavailableException::class)
+    @Order(5)
+    fun handle(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        e: ArtifactStoreUnavailableException,
+    ) = createHttpResponse(request, e, HttpStatus.SERVICE_UNAVAILABLE)
 
     @ExceptionHandler(
         org.octopusden.octopus.components.registry.core.exceptions.NotFoundException::class,

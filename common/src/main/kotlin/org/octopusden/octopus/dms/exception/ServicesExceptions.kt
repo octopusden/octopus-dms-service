@@ -18,6 +18,7 @@ abstract class DMSException(
             "DMS-40012" to { message: String -> IllegalVersionStatusException(message) },
             "DMS-40013" to { message: String -> IllegalComponentRenamingException(message) },
             "DMS-40014" to { message: String -> VersionPublishedException(message) },
+            "DMS-40015" to { message: String -> ArtifactStoreUnavailableException(message) },
         )
     }
 }
@@ -69,3 +70,7 @@ class IllegalComponentRenamingException(
 class VersionPublishedException(
     message: String,
 ) : DMSException(message, "DMS-40014")
+
+class ArtifactStoreUnavailableException(
+    message: String,
+) : DMSException(message, "DMS-40015")
