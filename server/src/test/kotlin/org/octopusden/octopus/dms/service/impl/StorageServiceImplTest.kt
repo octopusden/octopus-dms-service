@@ -68,7 +68,7 @@ class StorageServiceImplTest {
         assertTrue(exception.message!!.contains(repository))
         assertTrue(exception.message!!.contains(path))
         assertTrue(exception.message!!.contains("401"))
-        assertTrue(exception.message!!.contains("does not confirm the artifact is missing"))
+        assertTrue(exception.message!!.contains("could not be queried"))
     }
 
     @Test

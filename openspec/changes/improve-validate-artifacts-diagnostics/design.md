@@ -31,7 +31,7 @@ automated retry would want to treat differently from a 400.
 No client-side wiring is needed beyond registering the new exception in
 `DMSException.CODE_EXCEPTION_MAP`: `DmsClientErrorDecoder.decode` (`client/client/.../DmsClientErrorDecoder.kt:24-26`)
 reconstructs by `code` from the JSON body, independent of the HTTP status; and every mojo call site
-that talks to DMS (`DMSServiceImpl.java:60`, `ArtifactServiceImpl.java:196` in
+that talks to DMS (`DMSServiceImpl.java:60`, `ArtifactServiceImpl.java:197` in
 `client/maven-dms-plugin`) already catches `Exception` generically.
 
 ### 2. `StorageServiceImpl.find()` distinguishes "confirmed absent" from "couldn't check"
@@ -70,20 +70,18 @@ Both messages are built by small private helper functions on `StorageServiceImpl
 unit-tested as pure string-formatting logic without needing a live or mocked Artifactory call for
 every case.
 
-**Not-found** (replaces the message at `StorageServiceImpl.kt:82`):
+**Not-found**, replacing the previous message in `get()`/`notFound()`:
 ```
 Artifact '$path' was not found in any of the repositories $repositories. This usually means
 either it was never published to Artifactory before this validation step ran, or the
 coordinates/version given to validation don't exactly match what was published — check the
-groupId/artifactId/version/packaging (or image/tag for Docker) and the publish step that should
-have produced it.
+groupId/artifactId/version/packaging (or image/tag for Docker).
 ```
 
-**Unavailable** (new, thrown from `find()`):
+**Unavailable**, new, thrown from `find()`/`storeUnavailable()`:
 ```
 Unable to check whether artifact '$path' exists in repository '$repository': $rootCause.
-Artifactory itself could not be queried (connectivity, credentials, or permission problem) — this
-does not confirm the artifact is missing. Check Artifactory availability/credentials and retry.
+Artifactory itself could not be queried (connectivity, credentials, or permission problem).
 ```
 `$rootCause` is the caught exception's own message (falling back to its `toString()` if the
 message is null), so e.g. an `HttpResponseException` reports `"HTTP 401: ..."`-shaped text and a
@@ -129,10 +127,10 @@ if (!exceptions.isEmpty()) {
 }
 ```
 `log::error` resolves to Maven's `Log.error(Throwable)` overload, which prints the *full stack
-trace* of each collected exception — this is the actual source of the wall of noise in the
-original log (six ~35-line stack traces back to back). The final `MojoFailureException`'s message
-— `"N exception(s) occurred"` — is what TeamCity's build-status-problem line actually shows, and
-it carries none of the underlying detail.
+trace* of each collected exception — this is the source of the wall of noise a failed run
+produces (one full stack trace per failed artifact). The final `MojoFailureException`'s message —
+`"N exception(s) occurred"` — is the only summary text a caller actually sees, and it carries none
+of the underlying detail.
 
 Changed to:
 ```java
@@ -150,34 +148,28 @@ if (!exceptions.isEmpty()) {
 ```
 Each failure logs its own (already-actionable, per Decisions 1–3) message once at ERROR; the full
 stack trace is still available, but only at DEBUG (`-X`/`--debug`), for whoever needs it. The
-`MojoFailureException`'s message — the text TeamCity surfaces — is now the concatenation of every
-failed artifact's own message, not a bare count.
+`MojoFailureException`'s message — the summary text a caller actually sees — is now the
+concatenation of every failed artifact's own message, not a bare count.
 
-### 6. Verify Decision 5 through the FT suite, not a new unit test
+### 6. Decision 5 is verified through the FT suite, not a unit test
 
-`ft/src/ft/kotlin/.../DmsServiceApplicationFunctionalTest.kt` already has a `runMavenDmsPlugin`
-helper that runs the real `mvn ... validate-artifacts` goal as a subprocess and captures its full
-console output (exit code + lines), and several existing tests already assert on exact `[ERROR]`/
-`[INFO]` lines from that real output (e.g. `testMavenDmsPluginValidateArtifactsDifferentRepos`).
-This is a strictly more faithful check of Decision 5's behavior than a unit test could be: it
-exercises the real Maven `Log` implementation, the real `ExecutorService`, and the real console
-rendering that a component owner actually sees in TeamCity — instead of a hand-rolled fake `Log`
-and a `Consumer` that throws synthetic exceptions.
+`ft/src/ft/kotlin/.../DmsServiceApplicationFunctionalTest.kt` has a `runMavenDmsPlugin` helper that
+runs the real `mvn ... validate-artifacts` goal as a subprocess and captures its full console
+output (exit code + lines); several existing tests already assert on exact `[ERROR]`/`[INFO]`
+lines from that real output (e.g. `testMavenDmsPluginValidateArtifactsDifferentRepos`). A new test,
+`testMavenDmsPluginValidateArtifactsArtifactNotFound`, uses the same helper: it runs the goal
+against coordinates that don't exist (so the real server-side `UnableToFindArtifactException` from
+Decision 3 fires for real), and asserts what the fix is actually about — no stack-trace lines in
+the output, the actionable message text is present, and the composed `"N of M artifact(s) failed
+validation"` summary is present — using substring checks (`.any { it.contains(...) }`) rather than
+exact-line matching, since the composed message's exact rendering (repository-set order,
+coordinate `toString()`) isn't worth pinning down precisely for what this test needs to prove.
 
-A first attempt added a standalone `ArtifactServiceImplTest` (new `src/test` tree in
-`client/maven-dms-plugin`) using exactly that hand-rolled-fake approach. Dropped in favor of a new
-FT test, `testMavenDmsPluginValidateArtifactsArtifactNotFound`, added alongside the existing
-`validate-artifacts` tests: it runs the goal against coordinates that don't exist (so the real
-server-side `UnableToFindArtifactException` from Decision 3 fires for real), and asserts three
-things the fix is actually about — no stack-trace lines in the output, the actionable message
-text is present, and the composed `"N of M artifact(s) failed validation"` summary is present —
-using substring checks (`.any { it.contains(...) }`) rather than exact-line matching, since the
-composed message's exact rendering (repository-set order, coordinate `toString()`) isn't worth
-pinning down precisely for what this test needs to prove.
-
-This keeps `client/maven-dms-plugin` with no dedicated unit-test tree, consistent with how it was
-before this change, and matches this repo's existing convention of verifying maven-dms-plugin
-behavior through the FT suite rather than isolated unit tests.
+This exercises the real Maven `Log` implementation, the real `ExecutorService`, and the real
+console rendering a caller actually sees — a more faithful check of Decision 5's behavior than a
+unit test with a hand-rolled fake `Log` could give, and keeps `client/maven-dms-plugin` with no
+dedicated unit-test tree, consistent with this repo's existing convention of verifying
+maven-dms-plugin behavior through the FT suite.
 
 ## Risks / Trade-offs
 

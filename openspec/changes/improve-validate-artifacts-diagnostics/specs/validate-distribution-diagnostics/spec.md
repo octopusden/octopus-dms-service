@@ -2,8 +2,8 @@
 
 Defines how DMS reports artifact-lookup failures during validation/registration (`StorageServiceImpl`
 on the server, surfaced through `maven-dms-plugin`'s `validate-artifacts` goal), so that a failure
-is legible and actionable to the component owner reading a TeamCity build result, without the
-underlying system needing to know *why* an artifact is missing.
+is legible and actionable to the component owner running the build, without the underlying system
+needing to know *why* an artifact is missing.
 
 ## ADDED Requirements
 

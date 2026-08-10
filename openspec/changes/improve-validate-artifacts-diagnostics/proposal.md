@@ -1,18 +1,15 @@
 ## Why
 
-TeamCity's "Validate distribution in DMS" step (`maven-dms-plugin:validate-artifacts`) fails with
-diagnostics that are technically accurate but not actionable for the component owner. A real
-failure (OCTOPUS-2419, `vdep-tokenization` 1.1.63-652) shows the shape of the problem: 6 artifacts
-fail, and each one produces the same generic message —
+The `maven-dms-plugin:validate-artifacts` goal fails with diagnostics that are technically
+accurate but not actionable for the component owner running it. When artifacts fail validation,
+each one produces the same generic message —
 
-> `Artifact com/.../vdep-server-5.2.1/1.1.63-652/vdep-server-5.2.1-1.1.63-652.war not found in
-> repositories [dms-maven-release-local, rnd-maven-dev-local, rnd-maven-release-virtual]`
+> `Artifact <path> not found in repositories [<repo-1>, <repo-2>, ...]`
 
-— wrapped in a ~35-line Java stack trace, repeated once per failed artifact. The build itself
-then fails with `"6 exception(s) occurred"`, which is the text TeamCity surfaces as the build
-status problem. A component owner looking at the TeamCity summary sees an exception count; to
-learn *anything* about which artifacts failed or why, they have to open the full log and read
-past 300+ lines of stack traces.
+— wrapped in a full Java stack trace, repeated once per failed artifact. The build itself then
+fails with `"N exception(s) occurred"`, which is the only text a caller sees without opening the
+full log. To learn *anything* about which artifacts failed or why, the log has to be read in full
+past however many stack traces there are.
 
 Three distinct gaps combine to produce this:
 
@@ -28,9 +25,8 @@ Three distinct gaps combine to produce this:
    there," even though the fix for each is completely different.
 3. **The client discards what little signal exists.** `ArtifactServiceImpl.processArtifacts()` (in
    `client/maven-dms-plugin`) logs every collected failure via `log::error(Throwable)` — dumping a
-   full stack trace per artifact — and then fails the build with a bare
-   `"N exception(s) occurred"`, which is the string that actually reaches TeamCity's build-status-
-   problem line.
+   full stack trace per artifact — and then fails the build with a bare `"N exception(s)
+   occurred"`, which is the only summary text the caller actually sees.
 
 ## What Changes
 
@@ -43,8 +39,7 @@ Three distinct gaps combine to produce this:
 - **A clean, informative build failure.** `maven-dms-plugin`'s `ArtifactServiceImpl` no longer
   dumps a stack trace per failed artifact at ERROR level; each failure logs its message once, full
   traces move to DEBUG, and the final `MojoFailureException` message is composed from each
-  artifact's own message — so *that* text, not a bare count, is what TeamCity shows as the build
-  status problem.
+  artifact's own message — so that text, not a bare count, is the summary a caller actually sees.
 
 ## Affected areas
 
@@ -57,7 +52,7 @@ Three distinct gaps combine to produce this:
 - `ft` — a new FT test (`DmsServiceApplicationFunctionalTest.kt`) runs the real
   `validate-artifacts` Maven goal against a nonexistent artifact and asserts on the actual console
   output (no stack traces, actionable message, composed summary) — this is where the client-side
-  aggregation change (§ above) is verified, rather than a unit test with a hand-rolled fake `Log`.
+  aggregation change (§ above) is verified.
 - No change to `DmsClientErrorDecoder` — it already reconstructs exceptions by error code alone,
   independent of HTTP status, so the new exception type needs no client-side wiring beyond being
   registered in `DMSException.CODE_EXCEPTION_MAP`.
@@ -71,6 +66,5 @@ Three distinct gaps combine to produce this:
 - **RPM/DEB/Docker-specific wording.** All artifact types share `StorageServiceImpl.get()`/`find()`;
   the new message is generic enough to apply to all of them (the `path` already encodes the
   type-specific structure), so no per-type message variants are introduced.
-- **gradle-dms-plugin.** The failing build in this ticket used `maven-dms-plugin`; `gradle-dms-plugin`
-  is a separate client with its own call path and is not touched here. If the same aggregation
-  problem exists there, that is a follow-up, not part of this change.
+- **`gradle-dms-plugin`.** It is a separate client with its own call path and is not touched here.
+  If the same aggregation problem exists there, that is a follow-up, not part of this change.
