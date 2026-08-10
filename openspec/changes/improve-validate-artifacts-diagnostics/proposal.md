@@ -1,0 +1,73 @@
+## Why
+
+TeamCity's "Validate distribution in DMS" step (`maven-dms-plugin:validate-artifacts`) fails with
+diagnostics that are technically accurate but not actionable for the component owner. A real
+failure (OCTOPUS-2419, `vdep-tokenization` 1.1.63-652) shows the shape of the problem: 6 artifacts
+fail, and each one produces the same generic message —
+
+> `Artifact com/.../vdep-server-5.2.1/1.1.63-652/vdep-server-5.2.1-1.1.63-652.war not found in
+> repositories [dms-maven-release-local, rnd-maven-dev-local, rnd-maven-release-virtual]`
+
+— wrapped in a ~35-line Java stack trace, repeated once per failed artifact. The build itself
+then fails with `"6 exception(s) occurred"`, which is the text TeamCity surfaces as the build
+status problem. A component owner looking at the TeamCity summary sees an exception count; to
+learn *anything* about which artifacts failed or why, they have to open the full log and read
+past 300+ lines of stack traces.
+
+Three distinct gaps combine to produce this:
+
+1. **The root message doesn't say what to check.** `StorageServiceImpl.get()` throws
+   `UnableToFindArtifactException` with only the path and the list of repositories searched — no
+   suggestion that the artifact might never have been published, or that its coordinates/version
+   might not match what was actually published.
+2. **A different failure mode is silently misrepresented as "missing."** `StorageServiceImpl.find()`
+   treats a 404 from Artifactory as "not found" (correct), but any *other* Artifactory failure
+   while checking a repository — auth, network, 5xx — is rethrown unchanged, bypasses DMS's own
+   exception hierarchy entirely, and surfaces as an uncoded HTTP 500. There is no way for a reader
+   of the log to tell "Artifactory couldn't be reached" apart from "the artifact really isn't
+   there," even though the fix for each is completely different.
+3. **The client discards what little signal exists.** `ArtifactServiceImpl.processArtifacts()` (in
+   `client/maven-dms-plugin`) logs every collected failure via `log::error(Throwable)` — dumping a
+   full stack trace per artifact — and then fails the build with a bare
+   `"N exception(s) occurred"`, which is the string that actually reaches TeamCity's build-status-
+   problem line.
+
+## What Changes
+
+- **Actionable not-found message.** `UnableToFindArtifactException`'s message names the artifact,
+  the repositories checked, and suggests what to verify (was it published before this step ran?
+  do the coordinates/version match what was published?).
+- **A distinct "couldn't check" failure.** A new `ArtifactStoreUnavailableException` (DMS-40015,
+  HTTP 503) is thrown when a repository lookup itself fails (non-404 HTTP error, or a connection
+  failure) — so this stops being misread as "artifact missing" and stops being an uncoded 500.
+- **A clean, informative build failure.** `maven-dms-plugin`'s `ArtifactServiceImpl` no longer
+  dumps a stack trace per failed artifact at ERROR level; each failure logs its message once, full
+  traces move to DEBUG, and the final `MojoFailureException` message is composed from each
+  artifact's own message — so *that* text, not a bare count, is what TeamCity shows as the build
+  status problem.
+
+## Affected areas
+
+- `common` — new `ArtifactStoreUnavailableException` in `ServicesExceptions.kt`.
+- `server` — `StorageServiceImpl` (message content, error wrapping, constructor seam for
+  testability), `ExceptionHandler` (new mapping to 503).
+- `client/maven-dms-plugin` — `ArtifactServiceImpl.processArtifacts()`'s failure aggregation; this
+  module gains its first-ever unit tests (and test dependencies).
+- `test-common` — the existing FT assertion `testAddInvalidArtifacts` (`DmsServiceApplicationBaseTest.kt`)
+  is extended to assert on message content, not just exception type.
+- No change to `DmsClientErrorDecoder` — it already reconstructs exceptions by error code alone,
+  independent of HTTP status, so the new exception type needs no client-side wiring beyond being
+  registered in `DMSException.CODE_EXCEPTION_MAP`.
+
+## Out of scope
+
+- **Distinguishing "never published" from "wrong coordinates/version."** Both produce an identical
+  signal — 404 from every configured repository — so DMS has no data available to tell them apart.
+  This change makes the single resulting message more actionable instead of fabricating a
+  distinction the underlying system can't actually make.
+- **RPM/DEB/Docker-specific wording.** All artifact types share `StorageServiceImpl.get()`/`find()`;
+  the new message is generic enough to apply to all of them (the `path` already encodes the
+  type-specific structure), so no per-type message variants are introduced.
+- **gradle-dms-plugin.** The failing build in this ticket used `maven-dms-plugin`; `gradle-dms-plugin`
+  is a separate client with its own call path and is not touched here. If the same aggregation
+  problem exists there, that is a follow-up, not part of this change.
