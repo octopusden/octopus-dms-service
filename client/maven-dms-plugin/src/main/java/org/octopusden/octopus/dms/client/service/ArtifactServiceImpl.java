@@ -212,14 +212,6 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
     }
 
-    /**
-     * A submitted artifact's failure normally arrives as an ExecutionException wrapping a
-     * RuntimeMojoExecutionException (which already names the artifact/component/version) wrapping
-     * the actual DMS exception (which carries the actionable detail, e.g. why an artifact wasn't
-     * found). Reporting only the outermost message loses that detail; reporting the full stack
-     * trace is what this change is replacing. This combines the immediate context with the root
-     * cause's message into one line.
-     */
     private static String describeFailure(Throwable e) {
         Throwable effective = e.getCause() != null ? e.getCause() : e;
         String context = effective.getMessage() != null ? effective.getMessage() : effective.toString();

@@ -51,10 +51,13 @@ Three distinct gaps combine to produce this:
 - `common` — new `ArtifactStoreUnavailableException` in `ServicesExceptions.kt`.
 - `server` — `StorageServiceImpl` (message content, error wrapping, constructor seam for
   testability), `ExceptionHandler` (new mapping to 503).
-- `client/maven-dms-plugin` — `ArtifactServiceImpl.processArtifacts()`'s failure aggregation; this
-  module gains its first-ever unit tests (and test dependencies).
+- `client/maven-dms-plugin` — `ArtifactServiceImpl.processArtifacts()`'s failure aggregation.
 - `test-common` — the existing FT assertion `testAddInvalidArtifacts` (`DmsServiceApplicationBaseTest.kt`)
   is extended to assert on message content, not just exception type.
+- `ft` — a new FT test (`DmsServiceApplicationFunctionalTest.kt`) runs the real
+  `validate-artifacts` Maven goal against a nonexistent artifact and asserts on the actual console
+  output (no stack traces, actionable message, composed summary) — this is where the client-side
+  aggregation change (§ above) is verified, rather than a unit test with a hand-rolled fake `Log`.
 - No change to `DmsClientErrorDecoder` — it already reconstructs exceptions by error code alone,
   independent of HTTP status, so the new exception type needs no client-side wiring beyond being
   registered in `DMSException.CODE_EXCEPTION_MAP`.

@@ -80,4 +80,13 @@ class StorageServiceImplTest {
         }
         assertTrue(exception.message!!.contains("Connection refused"))
     }
+
+    @Test
+    fun `get does not mask a programming error as ArtifactStoreUnavailableException`() {
+        val client = clientThrowing(NullPointerException("boom"))
+
+        assertThrows(NullPointerException::class.java) {
+            service(client).get(RepositoryType.MAVEN, false, path)
+        }
+    }
 }

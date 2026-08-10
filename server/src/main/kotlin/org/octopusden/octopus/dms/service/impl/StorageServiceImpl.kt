@@ -13,6 +13,7 @@ import org.octopusden.octopus.dms.service.StorageService
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.stereotype.Service
+import java.io.IOException
 import java.io.InputStream
 
 @Service
@@ -71,7 +72,7 @@ class StorageServiceImpl(
                 ).info<File>()
         } catch (e: HttpResponseException) {
             if (e.statusCode == 404) null else throw storeUnavailable(repository, path, e)
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             throw storeUnavailable(repository, path, e)
         }
     }
@@ -89,18 +90,17 @@ class StorageServiceImpl(
         "Artifact '$path' was not found in any of the repositories $repositories. This usually means either it " +
             "was never published to Artifactory before this validation step ran, or the coordinates/version " +
             "given to validation don't exactly match what was published — check the groupId/artifactId/version/" +
-            "packaging (or image/tag for Docker) and the publish step that should have produced it.",
+            "packaging (or image/tag for Docker).",
     )
 
     private fun storeUnavailable(
         repository: String,
         path: String,
-        cause: Exception,
+        cause: IOException,
     ) = ArtifactStoreUnavailableException(
         "Unable to check whether artifact '$path' exists in repository '$repository': " +
             "${cause.message ?: cause}. Artifactory itself could not be queried (connectivity, credentials, or " +
-            "permission problem) — this does not confirm the artifact is missing. Check Artifactory " +
-            "availability/credentials and retry.",
+            "permission problem).",
     )
 
     override fun download(

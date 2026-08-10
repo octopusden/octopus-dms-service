@@ -26,9 +26,12 @@ coordinates/version match what was actually published.
 ### Requirement: A repository-lookup failure is distinguished from a confirmed-missing artifact
 
 When checking whether an artifact exists in a repository fails for a reason other than a
-confirmed 404 (a non-404 HTTP response, or any other failure querying that repository), the server
-SHALL raise `ArtifactStoreUnavailableException` (not `UnableToFindArtifactException`, and not an
-uncoded generic error), naming the repository, the artifact path, and the underlying failure.
+confirmed 404 (a non-404 HTTP response, or any other `IOException` — connection, timeout, DNS —
+while querying that repository), the server SHALL raise `ArtifactStoreUnavailableException` (not
+`UnableToFindArtifactException`, and not an uncoded generic error), naming the repository, the
+artifact path, and the underlying failure. A failure that is not an `IOException` (e.g. a
+programming error) SHALL NOT be caught or reported as `ArtifactStoreUnavailableException` — it
+propagates unchanged, so a real bug is never mislabeled as "Artifactory unavailable".
 
 #### Scenario: Artifactory returns a non-404 error while checking a repository
 
@@ -39,10 +42,17 @@ uncoded generic error), naming the repository, the artifact path, and the underl
 
 #### Scenario: A connection failure occurs while checking a repository
 
-- **WHEN** querying a configured repository for an artifact's path fails with a connection or
-  other non-HTTP-response error
+- **WHEN** querying a configured repository for an artifact's path fails with a connection,
+  timeout, or other `IOException`
 - **THEN** `ArtifactStoreUnavailableException` is thrown with the underlying error's message
   included, rather than the raw exception propagating uncaught
+
+#### Scenario: A programming error while checking a repository is not mislabeled
+
+- **WHEN** querying a configured repository for an artifact's path fails with an error that is
+  not an `IOException` (e.g. a `NullPointerException`)
+- **THEN** that error propagates unchanged — it is neither wrapped as
+  `ArtifactStoreUnavailableException` nor otherwise reported as an Artifactory-availability problem
 
 #### Scenario: The failure maps to a distinguishable HTTP status and error code
 

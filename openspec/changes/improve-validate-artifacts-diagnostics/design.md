@@ -47,11 +47,15 @@ connection failure) isn't caught at all — both fall through to the generic `Th
 `ExceptionHandler.kt` as an uncoded HTTP 500.
 
 Changed to: 404 stays `null` (genuinely absent from that repository); every other failure —
-non-404 HTTP response *or* any other exception raised while querying that one repository — throws
-`ArtifactStoreUnavailableException`, naming the repository, the path, and the root cause. The
-catch is broadened from `HttpResponseException` to `Exception` because the guarded call
-(`client.repository(it).file(...).info<File>()`) does exactly one thing — query one repository —
-so a broad catch there is scoped, not a blanket suppression.
+non-404 HTTP response *or* an `IOException` raised while querying that one repository (timeout,
+connection refused, DNS failure, etc. — `HttpResponseException` is itself an `IOException`
+subtype, so one `catch (e: IOException)` after the 404 check covers both) — throws
+`ArtifactStoreUnavailableException`, naming the repository, the path, and the root cause.
+Deliberately **not** `catch (e: Exception)`: that would also catch a programming error (e.g. an
+NPE) and misreport it as "Artifactory unavailable" instead of letting it surface as a bug.
+`IOException` is the narrowest type that covers every failure mode the guarded call
+(`client.repository(it).file(...).info<File>()`) can realistically produce from a real network
+call, without also catching unrelated `RuntimeException`s.
 
 This intentionally does **not** try to distinguish "this one repository is unavailable" from "try
 the next repository anyway" — same as today's behavior for a non-404 (`else throw e`), a failure
@@ -149,27 +153,34 @@ stack trace is still available, but only at DEBUG (`-X`/`--debug`), for whoever 
 `MojoFailureException`'s message — the text TeamCity surfaces — is now the concatenation of every
 failed artifact's own message, not a bare count.
 
-### 6. First tests in `client/maven-dms-plugin`
+### 6. Verify Decision 5 through the FT suite, not a new unit test
 
-This module (`client/maven-dms-plugin/build.gradle.kts`) has no `src/test` directory and no test
-dependencies declared today (confirmed: no other module in this repo needed to add them from
-scratch except by following the existing `test-common`/`ft` pattern). `useJUnitPlatform()` is
-already applied repo-wide (`build.gradle.kts:132`, in the `subprojects` block), so only the
-library dependencies are missing. Add, mirroring `test-common/build.gradle.kts:5-7`:
-```kotlin
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
-}
-```
+`ft/src/ft/kotlin/.../DmsServiceApplicationFunctionalTest.kt` already has a `runMavenDmsPlugin`
+helper that runs the real `mvn ... validate-artifacts` goal as a subprocess and captures its full
+console output (exit code + lines), and several existing tests already assert on exact `[ERROR]`/
+`[INFO]` lines from that real output (e.g. `testMavenDmsPluginValidateArtifactsDifferentRepos`).
+This is a strictly more faithful check of Decision 5's behavior than a unit test could be: it
+exercises the real Maven `Log` implementation, the real `ExecutorService`, and the real console
+rendering that a component owner actually sees in TeamCity — instead of a hand-rolled fake `Log`
+and a `Consumer` that throws synthetic exceptions.
+
+A first attempt added a standalone `ArtifactServiceImplTest` (new `src/test` tree in
+`client/maven-dms-plugin`) using exactly that hand-rolled-fake approach. Dropped in favor of a new
+FT test, `testMavenDmsPluginValidateArtifactsArtifactNotFound`, added alongside the existing
+`validate-artifacts` tests: it runs the goal against coordinates that don't exist (so the real
+server-side `UnableToFindArtifactException` from Decision 3 fires for real), and asserts three
+things the fix is actually about — no stack-trace lines in the output, the actionable message
+text is present, and the composed `"N of M artifact(s) failed validation"` summary is present —
+using substring checks (`.any { it.contains(...) }`) rather than exact-line matching, since the
+composed message's exact rendering (repository-set order, coordinate `toString()`) isn't worth
+pinning down precisely for what this test needs to prove.
+
+This keeps `client/maven-dms-plugin` with no dedicated unit-test tree, consistent with how it was
+before this change, and matches this repo's existing convention of verifying maven-dms-plugin
+behavior through the FT suite rather than isolated unit tests.
 
 ## Risks / Trade-offs
 
-- **Broadening `find()`'s catch to `Exception`** could, in principle, swallow a programming error
-  (e.g. an NPE) into a misleading "Artifactory unavailable" message instead of surfacing it as a
-  bug. Accepted: the guarded call is a single, narrow Artifactory client invocation with no other
-  logic inside the try block, so there's nothing else that call is realistically expected to throw.
 - **The default-parameter constructor seam** (Decision 4) is a small, deliberate widening of
   `StorageServiceImpl`'s public constructor surface purely for testability. It doesn't change
   production wiring or add a new Spring bean.

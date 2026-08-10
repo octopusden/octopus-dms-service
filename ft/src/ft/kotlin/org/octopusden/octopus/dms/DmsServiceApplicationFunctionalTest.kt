@@ -305,6 +305,41 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     @Test
+    fun testMavenDmsPluginValidateArtifactsArtifactNotFound() {
+        with(
+            runMavenDmsPlugin(
+                "artifact-not-found.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=test.add.invalid:distribution:zip",
+                    "-Dartifacts.coordinates.deb=pool/t/test-add-distribution/test-add-distribution-invalid_1.0-1_amd64.deb",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(1, this.first)
+            assertTrue(
+                this.second.none { it.contains("\tat ") },
+                "Expected no stack trace lines in the output, but found some: ${this.second}",
+            )
+            assertTrue(
+                this.second.any { it.contains("was not found in any of the repositories") },
+                "Expected an actionable not-found message in the output: ${this.second}",
+            )
+            assertTrue(
+                this.second.any { it.contains("never published to Artifactory") },
+                "Expected the not-found message to suggest checking publication/coordinates: ${this.second}",
+            )
+            assertTrue(
+                this.second.any { it.contains("2 of 2 artifact(s) failed validation") },
+                "Expected the composed failure summary in the output: ${this.second}",
+            )
+        }
+    }
+
+    @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
         val coordValue = "file:///${File(
             "",
