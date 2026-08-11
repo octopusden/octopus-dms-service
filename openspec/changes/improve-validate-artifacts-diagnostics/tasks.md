@@ -17,6 +17,8 @@
 - [x] 2.1 Add `Artifactory` as a constructor parameter, defaulted to today's builder expression, so a
   mock can be substituted in tests.
 - [x] 2.2 Extract the not-found message into a private function; update its text per design.md §3.
+  - Caller-neutral wording: `get()` also serves `download()` and `registerArtifact`'s checksum
+    re-check, so the message names neither a validation step nor validation-supplied coordinates.
 - [x] 2.3 Add `catch (e: IOException)` to `find()`, after the existing `HttpResponseException` (404)
   branch.
   - Covers connection/timeout/DNS too, since `HttpResponseException` is itself an `IOException`.
@@ -28,23 +30,28 @@
     will not fix.
   - Anything else → Artifactory being unqueryable.
   - Pass the caught `IOException` as the exception's cause (1.3).
-- [x] 2.5 Write unit tests (new `StorageServiceImplTest`, server module) before/alongside 2.1–2.4:
-  - Not-found message contains the artifact path, the repositories checked, and the "verify
-    published / check coordinates" guidance.
-  - A non-404 `HttpResponseException` produces `ArtifactStoreUnavailableException` with the
-    repository and root-cause text.
-  - A 401/403/407 `HttpResponseException` produces the credentials wording, not the unqueryable
-    wording — parameterized over the three statuses.
-  - A plain `IOException` (connection failure) also produces `ArtifactStoreUnavailableException`,
-    not an uncaught propagation.
-  - That `IOException` is retained as the thrown exception's `cause`.
-  - A confirmed 404 from every repository still throws `UnableToFindArtifactException` — regression
-    guard keeping the two failure modes distinct.
-  - A non-`IOException` programming error (`NullPointerException`) propagates unchanged — regression
-    guard proving it isn't mislabeled as "Artifactory unavailable".
+- [x] 2.5 Write unit tests (new `StorageServiceImplTest`, server module) before/alongside 2.1–2.4.
+  Properties configure one repository of every kind (upload/staging/release/cold) so the walk itself
+  is exercised, and the `Artifactory` mock pins an outcome per repository so order can be asserted:
+  - **Walk** — a hit in the first repository returns without querying the later ones; a 404 in an
+    earlier repository falls through to a later hit; `includeStaging = false` skips staging; a Docker
+    lookup queries `$path/manifest.json`.
+  - **Not found** — every repository 404s: `find()` returns `null`, `get()` throws
+    `UnableToFindArtifactException` (code `DMS-40006`) naming the path, *every* repository checked,
+    and the "verify published / check coordinates" guidance.
+  - **Caller-neutral message** — the not-found message contains no mention of validation (2.2).
+  - **Abort, don't fall through** — a non-404 status throws `ArtifactStoreUnavailableException`
+    (code `DMS-40015`) with the repository, path and root-cause text, and the next repository is
+    never queried.
+  - **Credentials vs. transient** — 401/403/407 produce the credentials wording, not the unqueryable
+    wording; parameterized over the three statuses.
+  - **Connection failure** — a plain `IOException` also produces `ArtifactStoreUnavailableException`
+    rather than propagating raw, and is retained as the thrown exception's `cause`.
+  - **Programming error** — a `NullPointerException` propagates unchanged; regression guard proving
+    it isn't mislabeled as "Artifactory unavailable".
 - [x] 2.6 Confirm `:common:test` and the new server test pass.
   - `:common:test` has no source.
-  - `StorageServiceImplTest` — 8/8 green.
+  - `StorageServiceImplTest` — 15/15 green.
   - It can't run under the real `:dms-service:test` task locally, which is gated on the module's
     OKD-provisioned Artifactory/Postgres. Verified by bypassing that gate, since the test itself
     touches none of that infra.
@@ -66,11 +73,14 @@
   the "verify published / check coordinates" text — not just the exception type.
 - [x] 4.2 Add `testMavenDmsPluginValidateArtifactsArtifactNotFound` to
   `ft/src/ft/kotlin/.../DmsServiceApplicationFunctionalTest.kt`, alongside the existing
-  `validate-artifacts` tests. Run the goal against coordinates that don't exist and assert:
+  `validate-artifacts` tests. Run the goal against one Maven and one Debian coordinate that don't
+  exist, and assert:
   - The DMS exception's class name is absent from the output — no per-artifact throwable dump.
     Deliberately not a `"\tat "` check: `runMavenDmsPlugin` passes `-e`, so Maven prints one stack
     trace for its own exception pair regardless (design.md §6).
-  - The actionable not-found text is present.
+  - Each artifact's identifier appears on the same line as the actionable not-found text, via
+    `assertActionableNotFound`. Asserting the message once anywhere in the output would pass while
+    one artifact stayed generic.
   - The `"N of M artifact(s) failed"` summary is present.
 
 ## 5. Outstanding

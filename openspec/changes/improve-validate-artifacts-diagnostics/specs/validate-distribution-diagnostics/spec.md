@@ -12,16 +12,32 @@ needing to know *why* an artifact is missing.
 When an artifact is not found in any of the repositories configured for its type (every
 configured repository responds 404), the server SHALL raise `UnableToFindArtifactException` with a
 message that includes the artifact's path, the full list of repositories checked, and a
-suggestion to verify the artifact was published before this step ran and that its
-coordinates/version match what was actually published.
+suggestion to verify the artifact was published and that the requested coordinates/version match
+what was actually published.
+
+That message SHALL be worded neutrally with respect to which caller invoked `get()`. `get()` serves
+validation, `download()` and the checksum re-check in `registerArtifact`, so it SHALL NOT attribute
+the request to a validation step or to validation-supplied coordinates.
 
 #### Scenario: Every configured repository responds 404
 
 - **WHEN** `StorageServiceImpl.get()` is called for an artifact and every repository configured
   for its `RepositoryType` returns HTTP 404 for that path
 - **THEN** `UnableToFindArtifactException` is thrown with a message naming the artifact's path,
-  the repositories checked, and guidance to verify the artifact was published and that its
-  coordinates/version are correct
+  every repository checked, and guidance to verify the artifact was published and that the
+  requested coordinates/version are correct
+
+#### Scenario: A repository responding 404 does not end the lookup
+
+- **WHEN** an earlier configured repository returns HTTP 404 for the path and a later one holds the
+  artifact
+- **THEN** `find()` returns the later repository's result, and `get()` does not throw
+
+#### Scenario: The not-found message does not name the calling operation
+
+- **WHEN** `UnableToFindArtifactException` is raised for any `get()` caller
+- **THEN** its message does not describe the request as validation or as carrying
+  validation-supplied coordinates
 
 ### Requirement: A repository-lookup failure is distinguished from a confirmed-missing artifact
 
@@ -105,7 +121,8 @@ NOT be logged above DEBUG level. Since `processArtifacts` backs both the `valida
 
 - **WHEN** N of M artifacts fail during `ArtifactServiceImpl.processArtifacts`
 - **THEN** the thrown `MojoFailureException`'s message includes a goal-agnostic summary count and
-  every failed artifact's own message, concatenated
+  every failed artifact's own message, concatenated — each identifiable by its own coordinates, not
+  only by the aggregate count
 
 #### Scenario: Stack traces are demoted to debug
 

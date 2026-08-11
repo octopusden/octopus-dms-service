@@ -87,10 +87,14 @@ as pure string formatting without a live or mocked Artifactory call for every ca
 **Not-found** — replaces the previous message in `get()`/`notFound()`:
 ```
 Artifact '$path' was not found in any of the repositories $repositories. This usually means
-either it was never published to Artifactory before this validation step ran, or the
-coordinates/version given to validation don't exactly match what was published — check the
-groupId/artifactId/version/packaging (or image/tag for Docker).
+either it was never published to Artifactory, or the requested coordinates/version don't
+exactly match what was published — check the groupId/artifactId/version/packaging (or
+image/tag for Docker).
 ```
+Worded for any `get()` caller, not just validation. `get()` also serves `download()` (a consumer
+fetching a distribution) and the checksum re-check in `ComponentServiceImpl.registerArtifact`; neither
+ran a validation step or supplied validation coordinates, so naming one would misdescribe the other
+two. "Requested coordinates" is true for all three.
 
 **Unavailable** — new, from `find()`/`storeUnavailable()`. Shared lead-in, then one of two closing
 sentences depending on whether the failure can clear on its own:
@@ -199,14 +203,18 @@ if (!exceptions.isEmpty()) {
 tests already assert on real `[ERROR]`/`[INFO]` output.
 
 `testMavenDmsPluginValidateArtifactsArtifactNotFound` uses the same helper against coordinates that
-don't exist, so the real server-side `UnableToFindArtifactException` fires, and asserts:
+don't exist — one Maven, one Debian — so the real server-side `UnableToFindArtifactException` fires,
+and asserts:
 
 - No per-artifact exception dump — the DMS exception's FQCN is absent from the output.
-- The actionable not-found text is present.
+- **Each** artifact's identifier appears on the same output line as the actionable not-found text.
 - The composed `"N of M artifact(s) failed"` summary is present.
 
-Two things to know about those assertions:
+Three things to know about those assertions:
 
+- The per-artifact check is per-line and requires identifier *and* message text together. Asserting
+  the message once anywhere in the output would pass while one of the two artifacts stayed generic —
+  the aggregate count alone can't catch that either.
 - Substring checks (`.any { it.contains(...) }`) rather than exact-line matching. The composed
   message's exact rendering (repository-set order, coordinate `toString()`) isn't worth pinning down.
 - The check is on the **exception class name**, not on `"\tat "` lines. `runMavenDmsPlugin` passes
@@ -258,12 +266,6 @@ sentence for the component owner running the build.
   right code, right message, right HTTP status. It adds no retry logic to `find()`/`get()`. If
   Artifactory is genuinely flaky, validate-artifacts still fails on the first bad attempt. Intentional
   non-goal for a diagnostics-only change.
-- **The not-found message is worded for the validation path, but `get()` has three callers.** It also
-  serves `download()` (a consumer fetching a distribution) and the checksum re-check in
-  `ComponentServiceImpl.registerArtifact`. Neither of those ran "validation", so a consumer whose
-  download 404s is told to check coordinates they never supplied. Accepted knowingly: the validation
-  path is where this diagnostic actually gets read, and generic wording would blunt it there. Dropping
-  the two mentions of "validation" would make it accurate everywhere if that ever bites.
 - **401/403/407 still map to HTTP 503**, which conventionally means "retry later" — the wrong advice
   for a config error. Only the message distinguishes them (§3). Acceptable because no caller branches
   on status or code, but if one ever does, this is the seam to revisit.

@@ -88,9 +88,8 @@ class StorageServiceImpl(
         repositories: Set<String>,
     ) = UnableToFindArtifactException(
         "Artifact '$path' was not found in any of the repositories $repositories. This usually means either it " +
-            "was never published to Artifactory before this validation step ran, or the coordinates/version " +
-            "given to validation don't exactly match what was published — check the groupId/artifactId/version/" +
-            "packaging (or image/tag for Docker).",
+            "was never published to Artifactory, or the requested coordinates/version don't exactly match what " +
+            "was published — check the groupId/artifactId/version/packaging (or image/tag for Docker).",
     )
 
     private fun storeUnavailable(

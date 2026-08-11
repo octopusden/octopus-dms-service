@@ -324,14 +324,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 this.second.none { it.contains("UnableToFindArtifactException") },
                 "Expected no per-artifact exception dump in the output: ${this.second}",
             )
-            assertTrue(
-                this.second.any { it.contains("was not found in any of the repositories") },
-                "Expected an actionable not-found message in the output: ${this.second}",
-            )
-            assertTrue(
-                this.second.any { it.contains("never published to Artifactory") },
-                "Expected the not-found message to suggest checking publication/coordinates: ${this.second}",
-            )
+            // Both artifacts must get their own actionable diagnostic. Asserting the message text
+            // once would pass while one artifact stayed generic, so each identifier is required to
+            // appear on the same line as the message.
+            assertActionableNotFound("test/add/invalid/distribution/", this.second)
+            assertActionableNotFound("test-add-distribution-invalid_1.0-1_amd64.deb", this.second)
             assertTrue(
                 this.second.any { it.contains("2 of 2 artifact(s) failed") },
                 "Expected the composed failure summary in the output: ${this.second}",
@@ -619,6 +616,20 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         actual: String,
     ) {
         assertTrue(source.contains(actual), "Expected the source $source to contain $actual")
+    }
+
+    private fun assertActionableNotFound(
+        artifactIdentifier: String,
+        output: List<String>,
+    ) {
+        assertTrue(
+            output.any {
+                it.contains(artifactIdentifier) &&
+                    it.contains("was not found in any of the repositories") &&
+                    it.contains("never published to Artifactory")
+            },
+            "Expected '$artifactIdentifier' to be reported with the actionable not-found message: $output",
+        )
     }
 
     /**
