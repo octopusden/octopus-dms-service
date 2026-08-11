@@ -66,6 +66,7 @@ class ReleaseManagementServiceImpl(
                 build.statusHistory[build.status],
                 build.parents.map { it.toBuildDTO() },
                 build.dependencies.map { it.toBuildDTO() },
+                build.limitations,
             )
         } else {
             throw IllegalVersionStatusException(

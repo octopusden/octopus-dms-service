@@ -455,6 +455,7 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
         component.clientCode,
         component.parentComponent,
         component.labels,
+        build.limitations,
     )
 
     private fun BuildFullDTO.toComponentVersionFullDTO(component: ComponentDTO) =
@@ -470,6 +471,7 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
             component.clientCode,
             component.parentComponent,
             component.labels,
+            limitations,
         )
 
     companion object {
