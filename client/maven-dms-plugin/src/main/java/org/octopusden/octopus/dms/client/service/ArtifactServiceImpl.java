@@ -41,7 +41,6 @@ import org.octopusden.octopus.escrow.utilities.DistributionUtilities;
 @Singleton
 public class ArtifactServiceImpl implements ArtifactService {
     private static final String PROHIBITED_SYMBOLS = ":,\\s";
-    private static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
     private static final Pattern DEB_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.deb$", PROHIBITED_SYMBOLS));
     private static final Pattern RPM_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.rpm$", PROHIBITED_SYMBOLS));
     private static final Pattern DOCKER_PATTERN = Pattern.compile("^([a-z0-9]+([_.-][a-z0-9]+)*/)*[a-z0-9]+([_.-][a-z0-9]+)*:\\w[\\w.-]{0,127}$");
@@ -81,8 +80,8 @@ public class ArtifactServiceImpl implements ArtifactService {
                 }
             } else if (entity instanceof MavenArtifactDistributionEntity) {
                 String mavenEntity = ((MavenArtifactDistributionEntity) entity).getGav();
-                if (!GAV_PATTERN.matcher(mavenEntity).matches()) {
-                    errors.add(String.format("MAVEN entity '%s' does not match '%s'", mavenEntity, GAV_PATTERN));
+                if (!Utils.isValidMavenGav(mavenEntity)) {
+                    errors.add(String.format("MAVEN entity '%s' does not match '%s'", mavenEntity, Utils.getGavPattern()));
                 }
             } else {
                 errors.add("Not supported distribution entity: " + entity);
@@ -156,18 +155,7 @@ public class ArtifactServiceImpl implements ArtifactService {
             } else if (distributionEntity instanceof MavenArtifactDistributionEntity) {
                 targetFile = null;
                 final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
-                final String[] structuredGav = gav.split(":");
-                int structuredGavSize = structuredGav.length;
-                if (structuredGavSize < 2 || structuredGavSize > 4) {
-                    throw new MojoFailureException("Invalid MAVEN entity " + gav);
-                }
-                targetCoordinates = new MavenArtifactCoordinatesDTO(new GavDTO(
-                        structuredGav[0],
-                        structuredGav[1],
-                        absoluteVersion,
-                        (structuredGavSize > 2) ? structuredGav[2] : "jar",
-                        (structuredGavSize > 3) ? structuredGav[3] : null
-                ));
+                targetCoordinates = new MavenArtifactCoordinatesDTO(Utils.parseMavenGav(gav, absoluteVersion));
             } else {
                 throw new MojoFailureException("Not supported distribution entity: " + distributionEntity);
             }
