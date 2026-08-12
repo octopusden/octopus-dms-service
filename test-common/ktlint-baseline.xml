@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <baseline version="1.0">
     <file name="src/main/kotlin/org/octopusden/octopus/dms/DmsServiceApplicationBaseTest.kt">
-        <error line="52" column="1" source="standard:no-wildcard-imports" />
-        <error line="1098" column="19" source="standard:property-naming" />
-        <error line="1099" column="19" source="standard:property-naming" />
-        <error line="1100" column="19" source="standard:property-naming" />
-        <error line="1125" column="19" source="standard:property-naming" />
-        <error line="1126" column="19" source="standard:property-naming" />
-        <error line="1171" column="141" source="standard:max-line-length" />
+        <error line="53" column="1" source="standard:no-wildcard-imports" />
+        <error line="1139" column="19" source="standard:property-naming" />
+        <error line="1140" column="19" source="standard:property-naming" />
+        <error line="1141" column="19" source="standard:property-naming" />
+        <error line="1166" column="19" source="standard:property-naming" />
+        <error line="1167" column="19" source="standard:property-naming" />
+        <error line="1212" column="141" source="standard:max-line-length" />
     </file>
 </baseline>
