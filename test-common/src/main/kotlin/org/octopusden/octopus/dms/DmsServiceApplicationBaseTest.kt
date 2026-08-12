@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertIterableEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertThrowsExactly
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -578,6 +579,41 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @Test
+    fun testGetComponentVersionArtifactsExposesReleaseLimitations() {
+        val artifact = getResource(releaseReleaseNotesFileName).openStream().use {
+            client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)
+        }
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0353.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.NOTES),
+        )
+
+        assertEquals(
+            RELEASE_LIMITATIONS,
+            client
+                .getComponentVersionArtifacts(
+                    eeComponent,
+                    eeComponentReleaseVersion0353.releaseVersion,
+                    ArtifactType.DISTRIBUTION,
+                ).componentVersion.limitations,
+        )
+    }
+
+    @Test
+    fun testGetComponentVersionArtifactsExposesNullReleaseLimitationsWhenAbsent() {
+        assertNull(
+            client
+                .getComponentVersionArtifacts(
+                    eeComponent,
+                    eeComponentReleaseVersion0354.releaseVersion,
+                    ArtifactType.DISTRIBUTION,
+                ).componentVersion.limitations,
+        )
+    }
+
     @ParameterizedTest
     @MethodSource
     fun testRegisterUploadedArtifact(version: Version) {
@@ -1095,6 +1131,11 @@ abstract class DmsServiceApplicationBaseTest {
         )
 
         const val ANY_VERSION = "ANY_VERSION"
+
+        // has to stay in sync with the ee-component 03.53.30.31-1 build in mockserver/builds.json
+        const val RELEASE_LIMITATIONS =
+            "Upgrade from 03.53.30.30 is not supported, reinstall required.\nSee TEST-1 for details."
+
         const val eeComponent = "ee-component"
         const val eeClientSpecificComponent = "ee-client-specific-component"
         const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"

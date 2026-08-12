@@ -10,7 +10,7 @@
     <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components</ID>
     <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: move "start operation" logging to ComponentController</ID>
     <ID>MaxLineLength:AdminServiceImpl.kt$AdminServiceImpl$*</ID>
-    <ID>MaxLineLength:BuildFullDTO.kt$BuildFullDTO$"BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies)"</ID>
+    <ID>MaxLineLength:BuildFullDTO.kt$BuildFullDTO$"BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies, limitations=$limitations)"</ID>
     <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies"</ID>
     <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it"</ID>
     <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Version '$buildVersion' of component '$componentName' is published. Unable to delete artifact with ID '$artifactId' for the component version. The version must first be unpublished"</ID>
