@@ -3,7 +3,8 @@ package org.octopusden.octopus.dms.exception
 abstract class DMSException(
     message: String,
     val code: String,
-) : RuntimeException(message) {
+    cause: Throwable? = null,
+) : RuntimeException(message, cause) {
     companion object {
         val CODE_EXCEPTION_MAP = mapOf(
             "DMS-40000" to { message: String -> GeneralArtifactStoreException(message) },
@@ -18,6 +19,7 @@ abstract class DMSException(
             "DMS-40012" to { message: String -> IllegalVersionStatusException(message) },
             "DMS-40013" to { message: String -> IllegalComponentRenamingException(message) },
             "DMS-40014" to { message: String -> VersionPublishedException(message) },
+            "DMS-40015" to { message: String -> ArtifactStoreUnavailableException(message) },
         )
     }
 }
@@ -69,3 +71,8 @@ class IllegalComponentRenamingException(
 class VersionPublishedException(
     message: String,
 ) : DMSException(message, "DMS-40014")
+
+class ArtifactStoreUnavailableException(
+    message: String,
+    cause: Throwable? = null,
+) : DMSException(message, "DMS-40015", cause)

@@ -6,27 +6,28 @@ import org.jfrog.artifactory.client.ArtifactoryClientBuilder
 import org.jfrog.artifactory.client.model.File
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.configuration.StorageProperties
+import org.octopusden.octopus.dms.exception.ArtifactStoreUnavailableException
 import org.octopusden.octopus.dms.exception.GeneralArtifactStoreException
 import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.service.StorageService
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.stereotype.Service
+import java.io.IOException
 import java.io.InputStream
 
 @Service
 class StorageServiceImpl(
     private val storageProperties: StorageProperties,
-) : StorageService,
-    HealthIndicator {
     private val client: Artifactory = ArtifactoryClientBuilder
         .create()
         .setUrl("${storageProperties.artifactory.host}/artifactory")
         .setIgnoreSSLIssues(storageProperties.artifactory.trustAllCerts)
         .setUsername(storageProperties.artifactory.user)
         .setPassword(storageProperties.artifactory.password)
-        .build()
-
+        .build(),
+) : StorageService,
+    HealthIndicator {
     private fun getRepositories(
         repositoryType: RepositoryType,
         includeStaging: Boolean,
@@ -58,10 +59,10 @@ class StorageServiceImpl(
         repositoryType: RepositoryType,
         includeStaging: Boolean,
         path: String,
-    ) = getRepositories(repositoryType, includeStaging).firstNotNullOfOrNull {
+    ) = getRepositories(repositoryType, includeStaging).firstNotNullOfOrNull { repository ->
         try {
             client
-                .repository(it)
+                .repository(repository)
                 .file(
                     if (repositoryType == RepositoryType.DOCKER) {
                         "$path/manifest.json"
@@ -70,7 +71,9 @@ class StorageServiceImpl(
                     },
                 ).info<File>()
         } catch (e: HttpResponseException) {
-            if (e.statusCode == 404) null else throw e
+            if (e.statusCode == 404) null else throw storeUnavailable(repository, path, e)
+        } catch (e: IOException) {
+            throw storeUnavailable(repository, path, e)
         }
     }
 
@@ -78,8 +81,30 @@ class StorageServiceImpl(
         repositoryType: RepositoryType,
         includeStaging: Boolean,
         path: String,
-    ) = find(repositoryType, includeStaging, path) ?: throw UnableToFindArtifactException(
-        "Artifact $path not found in repositories ${getRepositories(repositoryType, includeStaging)}",
+    ) = find(repositoryType, includeStaging, path) ?: throw notFound(path, getRepositories(repositoryType, includeStaging))
+
+    private fun notFound(
+        path: String,
+        repositories: Set<String>,
+    ) = UnableToFindArtifactException(
+        "Artifact '$path' was not found in any of the repositories $repositories. This usually means either it " +
+            "was never published to Artifactory, or the requested coordinates/version don't exactly match what " +
+            "was published — check the groupId/artifactId/version/packaging (or image/tag for Docker).",
+    )
+
+    private fun storeUnavailable(
+        repository: String,
+        path: String,
+        cause: IOException,
+    ) = ArtifactStoreUnavailableException(
+        "Unable to check whether artifact '$path' exists in repository '$repository': ${cause.message ?: cause}. " +
+            if (cause is HttpResponseException && cause.statusCode in CREDENTIAL_REJECTION_STATUSES) {
+                "Artifactory rejected DMS's own credentials for that repository — this is a DMS configuration " +
+                    "problem, so retrying will not help."
+            } else {
+                "Artifactory itself could not be queried (connectivity, timeout or DNS problem)."
+            },
+        cause,
     )
 
     override fun download(
@@ -103,4 +128,8 @@ class StorageServiceImpl(
         } catch (e: Exception) {
             Health.down(e).build()
         }
+
+    companion object {
+        private val CREDENTIAL_REJECTION_STATUSES = setOf(401, 403, 407)
+    }
 }

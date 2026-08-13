@@ -200,9 +200,12 @@ abstract class DmsServiceApplicationBaseTest {
     @ParameterizedTest
     @MethodSource("invalidArtifacts")
     fun testAddInvalidArtifacts(artifactCoordinates: ArtifactCoordinatesDTO) {
-        assertThrowsExactly(UnableToFindArtifactException::class.java) {
+        val exception = assertThrowsExactly(UnableToFindArtifactException::class.java) {
             client.addArtifact(artifactCoordinates)
         }
+        assertTrue(exception.message!!.contains(artifactCoordinates.toPath()))
+        assertTrue(exception.message!!.contains("published"))
+        assertTrue(exception.message!!.contains("coordinates"))
     }
 
     @Test

@@ -198,9 +198,29 @@ public class ArtifactServiceImpl implements ArtifactService {
             }
         }
         if (!exceptions.isEmpty()) {
-            exceptions.forEach(log::error);
-            throw new MojoFailureException(exceptions.size() + " exception(s) occurred");
+            List<String> messages = new ArrayList<>(exceptions.size());
+            for (Exception e : exceptions) {
+                String message = describeFailure(e);
+                messages.add(message);
+                log.error(message);
+                log.debug(message, e);
+            }
+            throw new MojoFailureException(String.format("%d of %d artifact(s) failed:%n%s",
+                    exceptions.size(), results.size(), String.join("\n", messages)));
         }
+    }
+
+    private static String describeFailure(Throwable e) {
+        Throwable effective = e.getCause() != null ? e.getCause() : e;
+        String context = effective.getMessage() != null ? effective.getMessage() : effective.toString();
+        Throwable root = effective;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        if (root != effective && root.getMessage() != null && !context.contains(root.getMessage())) {
+            return context + ": " + root.getMessage();
+        }
+        return context;
     }
 
     private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, String name) throws MojoExecutionException {

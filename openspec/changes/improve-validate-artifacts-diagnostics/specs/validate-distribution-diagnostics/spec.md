@@ -1,0 +1,131 @@
+## Purpose
+
+Defines how DMS reports artifact-lookup failures during validation/registration (`StorageServiceImpl`
+on the server, surfaced through `maven-dms-plugin`'s `validate-artifacts` goal), so that a failure
+is legible and actionable to the component owner running the build, without the underlying system
+needing to know *why* an artifact is missing.
+
+## ADDED Requirements
+
+### Requirement: A confirmed-missing artifact's message names what to check
+
+When an artifact is not found in any of the repositories configured for its type (every
+configured repository responds 404), the server SHALL raise `UnableToFindArtifactException` with a
+message that includes the artifact's path, the full list of repositories checked, and a
+suggestion to verify the artifact was published and that the requested coordinates/version match
+what was actually published.
+
+That message SHALL be worded neutrally with respect to which caller invoked `get()`. `get()` serves
+validation, `download()` and the checksum re-check in `registerArtifact`, so it SHALL NOT attribute
+the request to a validation step or to validation-supplied coordinates.
+
+#### Scenario: Every configured repository responds 404
+
+- **WHEN** `StorageServiceImpl.get()` is called for an artifact and every repository configured
+  for its `RepositoryType` returns HTTP 404 for that path
+- **THEN** `UnableToFindArtifactException` is thrown with a message naming the artifact's path,
+  every repository checked, and guidance to verify the artifact was published and that the
+  requested coordinates/version are correct
+
+#### Scenario: A repository responding 404 does not end the lookup
+
+- **WHEN** an earlier configured repository returns HTTP 404 for the path and a later one holds the
+  artifact
+- **THEN** `find()` returns the later repository's result, and `get()` does not throw
+
+#### Scenario: The not-found message does not name the calling operation
+
+- **WHEN** `UnableToFindArtifactException` is raised for any `get()` caller
+- **THEN** its message does not describe the request as validation or as carrying
+  validation-supplied coordinates
+
+### Requirement: A repository-lookup failure is distinguished from a confirmed-missing artifact
+
+When checking whether an artifact exists in a repository fails for a reason other than a
+confirmed 404 (a non-404 HTTP response, or any other `IOException` — connection, timeout, DNS —
+while querying that repository), the server SHALL raise `ArtifactStoreUnavailableException` (not
+`UnableToFindArtifactException`, and not an uncoded generic error), naming the repository, the
+artifact path, and the underlying failure. 
+
+Its message SHALL further distinguish a failure that may clear on its own from one that will not: 
+a rejected-credentials status (HTTP 401, 403 or 407) SHALL be described as a DMS configuration problem 
+that retrying will not fix, and every other cause as Artifactory being unqueryable. 
+
+A failure that is not an `IOException` (e.g. a programming error) SHALL NOT be caught or reported as 
+`ArtifactStoreUnavailableException`— it propagates unchanged, so a real bug is never mislabeled as "Artifactory unavailable".
+
+#### Scenario: Artifactory returns a non-404 error while checking a repository
+
+- **WHEN** querying a configured repository for an artifact's path returns an HTTP status other
+  than 200 or 404
+- **THEN** `ArtifactStoreUnavailableException` is thrown, and the lookup does not continue on to
+  the next configured repository
+
+#### Scenario: A connection failure occurs while checking a repository
+
+- **WHEN** querying a configured repository for an artifact's path fails with a connection,
+  timeout, or other `IOException`
+- **THEN** `ArtifactStoreUnavailableException` is thrown with the underlying error's message
+  included, rather than the raw exception propagating uncaught
+
+#### Scenario: Artifactory rejects DMS's credentials while checking a repository
+
+- **WHEN** querying a configured repository for an artifact's path returns HTTP 401, 403 or 407
+- **THEN** `ArtifactStoreUnavailableException`'s message states that Artifactory rejected DMS's own
+  credentials and that retrying will not help, instead of describing Artifactory as unqueryable
+
+#### Scenario: A programming error while checking a repository is not mislabeled
+
+- **WHEN** querying a configured repository for an artifact's path fails with an error that is
+  not an `IOException` (e.g. a `NullPointerException`)
+- **THEN** that error propagates unchanged — it is neither wrapped as
+  `ArtifactStoreUnavailableException` nor otherwise reported as an Artifactory-availability problem
+
+#### Scenario: The failure maps to a distinguishable HTTP status and error code
+
+- **WHEN** `ArtifactStoreUnavailableException` reaches the server's REST layer
+- **THEN** the response is HTTP 503 with error code `DMS-40015`, distinct from
+  `UnableToFindArtifactException`'s HTTP 400 / `DMS-40006` and from the generic, uncoded 500 a
+  previously-unhandled exception would have produced
+
+### Requirement: A wrapped store failure keeps its cause for the server log
+
+`DMSException` SHALL accept an optional `cause`, and `ArtifactStoreUnavailableException` SHALL be
+raised with the `IOException` it replaces as that cause, so the server-side log retains the full
+stack trace of where the store access actually failed. The cause SHALL NOT be exposed over the REST
+API — `ApplicationErrorResponse` continues to carry only the error code, exception name and message,
+so a client receives one actionable sentence and no trace.
+
+#### Scenario: A store failure is logged with its originating stack trace
+
+- **WHEN** `ArtifactStoreUnavailableException` is raised because a repository lookup threw an
+  `IOException`
+- **THEN** that `IOException` is the exception's `cause`, and the server's exception handler logs
+  the full chain
+
+#### Scenario: Adding a cause does not change existing exceptions or the wire format
+
+- **WHEN** any other `DMSException` subclass is raised, or any `DMSException` is reconstructed
+  client-side from an error code via `CODE_EXCEPTION_MAP`
+- **THEN** it behaves exactly as before, with a `null` cause, and the serialized
+  `ApplicationErrorResponse` is unchanged
+
+### Requirement: The Maven plugin's failure message is composed of each artifact's own message
+
+When `maven-dms-plugin`'s `ArtifactServiceImpl.processArtifacts` fails one or more artifacts, the
+build failure SHALL report each failed artifact's own message, and per-artifact stack traces SHALL
+NOT be logged above DEBUG level. Since `processArtifacts` backs both the `validate-artifacts` and
+`upload-artifacts` goals, the summary text SHALL NOT name a specific goal.
+
+#### Scenario: Multiple artifacts fail in one run
+
+- **WHEN** N of M artifacts fail during `ArtifactServiceImpl.processArtifacts`
+- **THEN** the thrown `MojoFailureException`'s message includes a goal-agnostic summary count and
+  every failed artifact's own message, concatenated — each identifiable by its own coordinates, not
+  only by the aggregate count
+
+#### Scenario: Stack traces are demoted to debug
+
+- **WHEN** an artifact fails validation
+- **THEN** the build log contains one ERROR-level line with that failure's message, and the full
+  stack trace is emitted only at DEBUG level (`-X`/`--debug`)
