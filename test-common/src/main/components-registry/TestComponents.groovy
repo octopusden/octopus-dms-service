@@ -21,6 +21,30 @@
     }
 }
 
+// Documentation component of ee-component. Its distribution GAV deliberately points at the
+// artifact the release repository of the Artifactory dump already holds, so resolving
+// 'ee-component-doc:1.0' yields test.add:distribution:1.0:zip:release - an artifact that exists.
+// Version formats are spelled out so that '1.0' is a valid release version of this component.
+"ee-component-doc" {
+    system = "CLASSIC"
+    componentDisplayName = "EE Component Documentation"
+    componentOwner = "EE Component Owner"
+    releaseManager = "EE Component Release Manager"
+    groupId = "test.add"
+    vcsUrl = "ssh://git@git.domain.corp/ee/ee-component-doc.git"
+    jira {
+        projectKey = 'EEDOC'
+        majorVersionFormat = '$major'
+        releaseVersionFormat = '$major.$minor'
+        displayName = 'EE Component Documentation'
+    }
+    distribution {
+        external = true
+        explicit = true
+        GAV = "test.add:distribution:zip:release"
+    }
+}
+
 "ee-component-with-version-ranges" {
     system = "CLASSIC"
     componentDisplayName = "EE Component With Version Ranges"

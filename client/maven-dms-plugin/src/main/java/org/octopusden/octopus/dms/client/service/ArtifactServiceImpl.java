@@ -19,7 +19,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -59,6 +61,8 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
                                  String artifactsCoordinatesDocker,
+                                 String docComponents,
+                                 String cregUrl,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
         final ArtifactType targetType = ArtifactType.findByType(type);
@@ -67,6 +71,13 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
         if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)) && targetType != ArtifactType.DISTRIBUTION) {
             throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
+        }
+        if (StringUtils.isNotBlank(docComponents) && targetType != ArtifactType.MANUALS) {
+            throw new MojoFailureException(String.format(
+                    "Documentation components are set, but type=%s is not '%s'. Documentation artifacts registered "
+                            + "under another type would be presented in the wrong place on the DMS portal.",
+                    type, ArtifactType.MANUALS.value()
+            ));
         }
 
         //Bulk validation
@@ -88,6 +99,16 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors.add("Not supported distribution entity: " + entity);
             }
         }
+        if (StringUtils.isNotBlank(artifactsCoordinatesVersion) && artifactsCoordinatesVersion.contains(",")) {
+            errors.add(String.format(
+                    "Version '%s' looks like a list of versions, but 'artifacts.coordinates.version' holds a single "
+                            + "version applied to every coordinate. Documentation components released on different "
+                            + "version lines have to be passed via 'doc.components' instead.",
+                    artifactsCoordinatesVersion
+            ));
+        }
+        final List<MavenArtifactCoordinatesDTO> docCoordinates =
+                resolveDocComponents(log, docComponents, cregUrl, errors);
         final Map<String, Function<String, ArtifactCoordinatesDTO>> entities = new HashMap<>();
         prepareEntities(
                 artifactsCoordinatesDeb,
@@ -120,9 +141,9 @@ public class ArtifactServiceImpl implements ArtifactService {
             throw new MojoFailureException(String.join("\n", errors));
         }
 
-        //Bulk processing
-        final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
-        final List<Future<?>> results = new ArrayList<>(distributionEntities.size());
+        //Bulk target construction - every coordinate is built before anything is submitted, so that
+        //an entity which fails to be built cannot leave a part of the invocation already published
+        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size() + docCoordinates.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         for (DistributionEntity distributionEntity : distributionEntities) {
@@ -171,15 +192,31 @@ public class ArtifactServiceImpl implements ArtifactService {
             } else {
                 throw new MojoFailureException("Not supported distribution entity: " + distributionEntity);
             }
-            results.add(executorService.submit(() ->
-                    processFunction.accept(new TargetArtifact(targetType, targetCoordinates, targetFile))
-            ));
+            targets.add(new TargetArtifact(targetType, targetCoordinates, targetFile));
         }
-        entities.forEach((entity, creater) ->
-                results.add(executorService.submit(() ->
-                        processFunction.accept(new TargetArtifact(targetType, creater.apply(entity), null))
-                ))
-        );
+        final Set<String> targetPaths = new HashSet<>();
+        for (TargetArtifact target : targets) {
+            targetPaths.add(target.coordinates.toPath());
+        }
+        for (MavenArtifactCoordinatesDTO docCoordinate : docCoordinates) {
+            if (targetPaths.add(docCoordinate.toPath())) {
+                log.info(String.format("Processing documentation artifact: '%s'", docCoordinate));
+                targets.add(new TargetArtifact(targetType, docCoordinate, null));
+            } else {
+                log.info(String.format(
+                        "Documentation artifact '%s' is already listed in 'artifacts.coordinates', skipping the duplicate",
+                        docCoordinate
+                ));
+            }
+        }
+        entities.forEach((entity, creater) -> targets.add(new TargetArtifact(targetType, creater.apply(entity), null)));
+
+        //Bulk processing
+        final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
+        final List<Future<?>> results = new ArrayList<>(targets.size());
+        for (TargetArtifact target : targets) {
+            results.add(executorService.submit(() -> processFunction.accept(target)));
+        }
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(2, TimeUnit.HOURS)) {
@@ -221,6 +258,31 @@ public class ArtifactServiceImpl implements ArtifactService {
             return context + ": " + root.getMessage();
         }
         return context;
+    }
+
+    /**
+     * Resolves {@code <component>:<version>} documentation links into artifact coordinates, each at
+     * the version of its own documentation component. Coordinates come from the Components Registry,
+     * so this path does not go through the shared, version agnostic coordinate format at all.
+     */
+    private List<MavenArtifactCoordinatesDTO> resolveDocComponents(
+            Log log,
+            String docComponents,
+            String cregUrl,
+            List<String> errors
+    ) {
+        if (StringUtils.isBlank(docComponents)) {
+            return Collections.emptyList();
+        }
+        if (StringUtils.isBlank(cregUrl)) {
+            errors.add("'doc.components' is set but 'creg.url' is not, so documentation components cannot be resolved");
+            return Collections.emptyList();
+        }
+        log.info(String.format("Resolving documentation components '%s'", docComponents));
+        final List<MavenArtifactCoordinatesDTO> coordinates =
+                DocComponentResolver.forUrl(cregUrl).resolve(docComponents, errors);
+        log.info(String.format("Documentation components resolved to %s artifact(s)", coordinates.size()));
+        return coordinates;
     }
 
     private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, String name) throws MojoExecutionException {

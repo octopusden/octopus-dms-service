@@ -1137,6 +1137,9 @@ abstract class DmsServiceApplicationBaseTest {
             "Upgrade from 03.53.30.30 is not supported, reinstall required.\nSee TEST-1 for details."
 
         const val eeComponent = "ee-component"
+
+        /** Documentation component of [eeComponent], see TestComponents.groovy. */
+        const val eeComponentDoc = "ee-component-doc"
         const val eeClientSpecificComponent = "ee-client-specific-component"
         const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"
 

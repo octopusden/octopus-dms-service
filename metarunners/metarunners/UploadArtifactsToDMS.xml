@@ -7,6 +7,7 @@
         * DMS_JVM_OPTS
         * DMS_JDK_VERSION
         * DMS_MAVEN_VERSION
+        * COMPONENT_REGISTRY_URL
         * env.BUILD_ENV
     </description>
     <settings>
@@ -19,6 +20,7 @@
             <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>
+            <param name="DOC_COMPONENTS" value="" spec="text description='Documentation components as component:version pairs, normally %DOC_DEPENDENCIES%. Coordinates are read from the Components Registry, so each pair keeps its own version' validationMode='any' display='normal'"/>
             <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="" spec="text description='Path to dms log file' validationMode='not_empty' display='normal'"/>
         </parameters>
         <build-runners>
@@ -27,7 +29,7 @@
                     <param name="goals" value="org.octopusden.octopus.dms:maven-dms-plugin:$version:upload-artifacts" />
                     <param name="jvmArgs" value="-Duser.home=%teamcity.agent.jvm.user.home% %DMS_JVM_OPTS%" />
                     <param name="maven.path" value="%env.BUILD_ENV%/MAVEN/%DMS_MAVEN_VERSION%" />
-                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Dtype=%ARTIFACT_TYPE% -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% %DMS_EXTRA_PARAMETERS%"/>
+                    <param name="runnerArgs" value="%DMS_STANDARD_PARAMETERS% -Dcomponent=%COMPONENT_NAME% -Dversion=%BUILD_VERSION% -Dtype=%ARTIFACT_TYPE% -Dartifacts.coordinates=%ARTIFACTS_COORDINATES% -Dartifacts.coordinates.version=%ARTIFACTS_COORDINATES_VERSION% -Dartifacts.coordinates.docker=%ARTIFACTS_COORDINATES_DOCKER% -Dartifacts.coordinates.deb=%ARTIFACTS_COORDINATES_DEB% -Dartifacts.coordinates.rpm=%ARTIFACTS_COORDINATES_RPM% -Ddoc.components=%DOC_COMPONENTS% -Dcreg.url=%COMPONENT_REGISTRY_URL% -DvalidationLog=%DMS_PUBLISH_VALIDATION_LOG_FILE% %DMS_EXTRA_PARAMETERS%"/>
                     <param name="target.jdk.home" value="%env.BUILD_ENV%/JDK/%DMS_JDK_VERSION%" />
                     <param name="teamcity.step.mode" value="default" />
                     <param name="userSettingsSelection" value="userSettingsSelection:default" />
