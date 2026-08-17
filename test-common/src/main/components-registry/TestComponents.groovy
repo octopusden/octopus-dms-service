@@ -39,8 +39,9 @@
         displayName = 'EE Component Documentation'
     }
     distribution {
+        // external but not explicit, the way documentation components are configured in practice
         external = true
-        explicit = true
+        explicit = false
         GAV = "test.add:distribution:zip:release"
     }
 }

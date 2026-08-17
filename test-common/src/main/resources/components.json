@@ -66,6 +66,19 @@
       }
     },
     {
+      "id": "ee-component-doc",
+      "name": "EE Component Documentation",
+      "solution": false,
+      "explicit": false,
+      "clientCode": null,
+      "parentComponent": null,
+      "securityGroups": {
+        "read": [
+          "Production Security"
+        ]
+      }
+    },
+    {
       "id": "ee-component-with-version-ranges",
       "name": "EE Component With Version Ranges",
       "solution": true,
