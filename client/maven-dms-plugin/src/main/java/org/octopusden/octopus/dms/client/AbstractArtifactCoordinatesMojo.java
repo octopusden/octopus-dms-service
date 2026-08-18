@@ -14,8 +14,9 @@ abstract public class AbstractArtifactCoordinatesMojo extends AbstractArtifactMo
     @Parameter(property = "artifacts.coordinates.docker")
     protected String artifactsCoordinatesDocker;
     /**
-     * Components whose distribution artifacts are to be published, as {@code <component>:<version>}
-     * pairs.
+     * Components whose distribution artifacts are to be published, as comma (or pipe) separated
+     * {@code <component>:<version>} pairs, for example
+     * {@code first-component:1.0.32,second-component:2.4.7}.
      * <p>
      * Each pair carries its own version, so components released on different version lines can be
      * published in a single invocation - which {@link #artifactsCoordinatesVersion}, a single value

@@ -20,7 +20,7 @@
             <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>
-            <param name="ARTIFACTS_COMPONENTS" value="" spec="text description='Components whose distribution artifacts to publish, as component:version pairs (e.g. %DOC_DEPENDENCIES% for documentation). Coordinates come from the Components Registry, so each pair keeps its own version' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COMPONENTS" value="" spec="text description='Components whose distribution artifacts to publish, as comma separated component:version pairs, e.g. first-component:1.0.32,second-component:2.4.7 (%DOC_DEPENDENCIES% supplies them for documentation). Coordinates come from the Components Registry, so each pair keeps its own version' validationMode='any' display='normal'"/>
             <param name="DMS_PUBLISH_VALIDATION_LOG_FILE" value="" spec="text description='Path to dms log file' validationMode='not_empty' display='normal'"/>
         </parameters>
         <build-runners>
