@@ -57,6 +57,7 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
         if (StringUtils.isBlank(artifactsCoordinates) &&
                 StringUtils.isBlank(artifactsCoordinatesDeb) &&
                 StringUtils.isBlank(artifactsCoordinatesRpm) &&
+                StringUtils.isBlank(artifactsCoordinatesDocker) &&
                 StringUtils.isBlank(artifactsComponents)
         ) {
             log.warn("Artifacts coordinates are not set. Do nothing");
