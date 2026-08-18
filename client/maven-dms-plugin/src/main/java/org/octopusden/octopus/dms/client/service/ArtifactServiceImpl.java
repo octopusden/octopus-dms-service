@@ -99,7 +99,22 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors.add("Not supported distribution entity: " + entity);
             }
         }
-        if (StringUtils.isNotBlank(artifactsCoordinatesVersion) && artifactsCoordinatesVersion.contains(",")) {
+        final List<MavenArtifactCoordinatesDTO> docCoordinates =
+                resolveDocComponents(log, docComponents, cregUrl, errors);
+        // A coordinate the documentation components already cover takes its version from the
+        // documentation component it belongs to, so the coordinate listed in
+        // 'artifacts.coordinates' is redundant and is dropped. The mapping is not guessed from
+        // names - it is the Components Registry that says which coordinates a documentation
+        // component distributes. Anything the documentation components do not cover is processed
+        // as before, so nothing is silently left unpublished.
+        final Set<String> supersededGavs = supersededMavenGavs(distributionEntities, docCoordinates);
+        final boolean mavenCoordinateNeedsSharedVersion = distributionEntities
+                .stream()
+                .anyMatch(entity -> entity instanceof MavenArtifactDistributionEntity
+                        && !supersededGavs.contains(((MavenArtifactDistributionEntity) entity).getGav()));
+        if (mavenCoordinateNeedsSharedVersion
+                && StringUtils.isNotBlank(artifactsCoordinatesVersion)
+                && artifactsCoordinatesVersion.contains(",")) {
             errors.add(String.format(
                     "Version '%s' looks like a list of versions, but 'artifacts.coordinates.version' holds a single "
                             + "version applied to every coordinate. Documentation components released on different "
@@ -107,8 +122,6 @@ public class ArtifactServiceImpl implements ArtifactService {
                     artifactsCoordinatesVersion
             ));
         }
-        final List<MavenArtifactCoordinatesDTO> docCoordinates =
-                resolveDocComponents(log, docComponents, cregUrl, errors);
         final Map<String, Function<String, ArtifactCoordinatesDTO>> entities = new HashMap<>();
         prepareEntities(
                 artifactsCoordinatesDeb,
@@ -177,6 +190,13 @@ public class ArtifactServiceImpl implements ArtifactService {
             } else if (distributionEntity instanceof MavenArtifactDistributionEntity) {
                 targetFile = null;
                 final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
+                if (supersededGavs.contains(gav)) {
+                    log.info(String.format(
+                            "MAVEN entity '%s' is covered by a documentation component, taking its version from there",
+                            gav
+                    ));
+                    continue;
+                }
                 final String[] structuredGav = gav.split(":");
                 int structuredGavSize = structuredGav.length;
                 if (structuredGavSize < 2 || structuredGavSize > 4) {
@@ -258,6 +278,63 @@ public class ArtifactServiceImpl implements ArtifactService {
             return context + ": " + root.getMessage();
         }
         return context;
+    }
+
+    /**
+     * The coordinates of {@code artifacts.coordinates} that the documentation components already
+     * cover, and whose version therefore comes from the documentation component rather than from the
+     * shared {@code artifacts.coordinates.version}.
+     * <p>
+     * Documentation components take precedence over {@code artifacts.coordinates} for the artifacts
+     * they distribute; everything they do not distribute is processed by the shared parameters as
+     * before. Matching is by everything but the version, and it is the Components Registry that
+     * states which coordinates a documentation component distributes, so the two sides are compared
+     * on data rather than on a guess derived from names.
+     */
+    static Set<String> supersededMavenGavs(
+            Collection<DistributionEntity> distributionEntities,
+            List<MavenArtifactCoordinatesDTO> docCoordinates
+    ) {
+        final Set<String> docCoordinateKeys = new HashSet<>();
+        for (MavenArtifactCoordinatesDTO docCoordinate : docCoordinates) {
+            docCoordinateKeys.add(versionAgnosticKey(docCoordinate));
+        }
+        final Set<String> superseded = new HashSet<>();
+        for (DistributionEntity entity : distributionEntities) {
+            if (entity instanceof MavenArtifactDistributionEntity) {
+                final MavenArtifactDistributionEntity maven = (MavenArtifactDistributionEntity) entity;
+                if (docCoordinateKeys.contains(versionAgnosticKey(maven))) {
+                    superseded.add(maven.getGav());
+                }
+            }
+        }
+        return superseded;
+    }
+
+    /**
+     * Identity of an artifact ignoring its version, so a coordinate listed without a version can be
+     * matched against a coordinate the Components Registry resolved with one.
+     */
+    private static String versionAgnosticKey(MavenArtifactCoordinatesDTO coordinates) {
+        return versionAgnosticKey(
+                coordinates.getGav().getGroupId(),
+                coordinates.getGav().getArtifactId(),
+                coordinates.getGav().getPackaging(),
+                coordinates.getGav().getClassifier()
+        );
+    }
+
+    private static String versionAgnosticKey(MavenArtifactDistributionEntity entity) {
+        return versionAgnosticKey(
+                entity.getGroupId(),
+                entity.getArtifactId(),
+                entity.getExtension().orElse("jar"),
+                entity.getClassifier().orElse(null)
+        );
+    }
+
+    private static String versionAgnosticKey(String groupId, String artifactId, String packaging, String classifier) {
+        return groupId + ':' + artifactId + ':' + packaging + ':' + (classifier == null ? "" : classifier);
     }
 
     /**
