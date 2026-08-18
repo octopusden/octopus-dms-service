@@ -1,9 +1,10 @@
+package org.octopusden.octopus.dms.client.service
+
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.SystemStreamLog
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.service.ArtifactServiceImpl
 
 /**
  * Coordinates passed through `artifacts.coordinates` are version agnostic: the version comes from

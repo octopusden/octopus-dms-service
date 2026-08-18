@@ -1,7 +1,8 @@
+package org.octopusden.octopus.dms.client.service
+
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.octopusden.octopus.components.registry.core.dto.DistributionDTO
-import org.octopusden.octopus.dms.client.service.ComponentArtifactsResolver
 
 /**
  * A pair is `<component>:<version>`, so every component carries its own version. The coordinates are
