@@ -8,8 +8,8 @@ import org.octopusden.octopus.dms.client.service.ArtifactServiceImpl
 /**
  * Coordinates passed through `artifacts.coordinates` are version agnostic: the version comes from
  * `artifacts.coordinates.version`, or from the released version when that is not set. This is the
- * long standing behaviour and it must stay untouched - documentation components released on their
- * own version lines are handled by `doc.components` instead.
+ * long standing behaviour and it must stay untouched - components released on their own version
+ * lines are handled by `artifacts.components` instead.
  */
 class ArtifactCoordinatesProcessingTest {
     private val service = ArtifactServiceImpl()
@@ -18,7 +18,7 @@ class ArtifactCoordinatesProcessingTest {
         coordinates: String?,
         coordinatesVersion: String? = null,
         version: String = "1.2.3",
-        docComponents: String? = null,
+        artifactsComponents: String? = null,
         cregUrl: String? = null,
         type: String = "distribution",
     ): List<MavenArtifactCoordinatesDTO> {
@@ -36,7 +36,7 @@ class ArtifactCoordinatesProcessingTest {
             null,
             null,
             null,
-            docComponents,
+            artifactsComponents,
             cregUrl,
             1,
         ) { target -> collected.add(target.coordinates as MavenArtifactCoordinatesDTO) }
@@ -86,27 +86,15 @@ class ArtifactCoordinatesProcessingTest {
             process("com.acme:docs:zip:english", coordinatesVersion = "1.0.32,1.0.8")
         }
         Assertions.assertTrue(exception.message!!.contains("looks like a list of versions"), exception.message)
-        Assertions.assertTrue(exception.message!!.contains("doc.components"), exception.message)
+        Assertions.assertTrue(exception.message!!.contains("artifacts.components"), exception.message)
     }
 
     @Test
-    fun `documentation components without a registry url are rejected`() {
+    fun `components without a registry url are rejected`() {
         val exception = Assertions.assertThrows(MojoFailureException::class.java) {
-            process(null, docComponents = "doc-alpha:1.0.32", type = "documentation")
+            process(null, artifactsComponents = "alpha:1.0.32")
         }
         Assertions.assertTrue(exception.message!!.contains("creg.url"), exception.message)
-    }
-
-    /**
-     * Documentation artifacts registered under another type would show up in the wrong place on the
-     * portal, and nothing downstream would notice - so the type is checked up front.
-     */
-    @Test
-    fun `documentation components under a non documentation type are rejected`() {
-        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
-            process(null, docComponents = "doc-alpha:1.0.32", type = "distribution")
-        }
-        Assertions.assertTrue(exception.message!!.contains("is not 'documentation'"), exception.message)
     }
 
     @Test

@@ -61,7 +61,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
                                  String artifactsCoordinatesDocker,
-                                 String docComponents,
+                                 String artifactsComponents,
                                  String cregUrl,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
@@ -71,13 +71,6 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
         if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)) && targetType != ArtifactType.DISTRIBUTION) {
             throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
-        }
-        if (StringUtils.isNotBlank(docComponents) && targetType != ArtifactType.MANUALS) {
-            throw new MojoFailureException(String.format(
-                    "Documentation components are set, but type=%s is not '%s'. Documentation artifacts registered "
-                            + "under another type would be presented in the wrong place on the DMS portal.",
-                    type, ArtifactType.MANUALS.value()
-            ));
         }
 
         //Bulk validation
@@ -99,15 +92,14 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors.add("Not supported distribution entity: " + entity);
             }
         }
-        final List<MavenArtifactCoordinatesDTO> docCoordinates =
-                resolveDocComponents(log, docComponents, cregUrl, errors);
-        // A coordinate the documentation components already cover takes its version from the
-        // documentation component it belongs to, so the coordinate listed in
-        // 'artifacts.coordinates' is redundant and is dropped. The mapping is not guessed from
-        // names - it is the Components Registry that says which coordinates a documentation
-        // component distributes. Anything the documentation components do not cover is processed
-        // as before, so nothing is silently left unpublished.
-        final Set<String> supersededGavs = supersededMavenGavs(distributionEntities, docCoordinates);
+        final List<MavenArtifactCoordinatesDTO> componentCoordinates =
+                resolveComponentArtifacts(log, artifactsComponents, cregUrl, errors);
+        // A coordinate that 'artifacts.components' already covers takes its version from the
+        // component it belongs to, so the entry in 'artifacts.coordinates' is redundant and is
+        // dropped. The mapping is not guessed from names - it is the Components Registry that says
+        // which coordinates a component version distributes. Anything not covered is processed as
+        // before, so nothing is silently left unpublished.
+        final Set<String> supersededGavs = supersededMavenGavs(distributionEntities, componentCoordinates);
         final boolean mavenCoordinateNeedsSharedVersion = distributionEntities
                 .stream()
                 .anyMatch(entity -> entity instanceof MavenArtifactDistributionEntity
@@ -117,8 +109,8 @@ public class ArtifactServiceImpl implements ArtifactService {
                 && artifactsCoordinatesVersion.contains(",")) {
             errors.add(String.format(
                     "Version '%s' looks like a list of versions, but 'artifacts.coordinates.version' holds a single "
-                            + "version applied to every coordinate. Documentation components released on different "
-                            + "version lines have to be passed via 'doc.components' instead.",
+                            + "version applied to every coordinate. Components released on different version lines "
+                            + "have to be passed via 'artifacts.components' instead.",
                     artifactsCoordinatesVersion
             ));
         }
@@ -156,7 +148,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         //Bulk target construction - every coordinate is built before anything is submitted, so that
         //an entity which fails to be built cannot leave a part of the invocation already published
-        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size() + docCoordinates.size());
+        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size() + componentCoordinates.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         for (DistributionEntity distributionEntity : distributionEntities) {
@@ -192,7 +184,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                 final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
                 if (supersededGavs.contains(gav)) {
                     log.info(String.format(
-                            "MAVEN entity '%s' is covered by a documentation component, taking its version from there",
+                            "MAVEN entity '%s' is covered by 'artifacts.components', taking its version from there",
                             gav
                     ));
                     continue;
@@ -218,14 +210,14 @@ public class ArtifactServiceImpl implements ArtifactService {
         for (TargetArtifact target : targets) {
             targetPaths.add(target.coordinates.toPath());
         }
-        for (MavenArtifactCoordinatesDTO docCoordinate : docCoordinates) {
-            if (targetPaths.add(docCoordinate.toPath())) {
-                log.info(String.format("Processing documentation artifact: '%s'", docCoordinate));
-                targets.add(new TargetArtifact(targetType, docCoordinate, null));
+        for (MavenArtifactCoordinatesDTO coordinate : componentCoordinates) {
+            if (targetPaths.add(coordinate.toPath())) {
+                log.info(String.format("Processing component artifact: '%s'", coordinate));
+                targets.add(new TargetArtifact(targetType, coordinate, null));
             } else {
                 log.info(String.format(
-                        "Documentation artifact '%s' is already listed in 'artifacts.coordinates', skipping the duplicate",
-                        docCoordinate
+                        "Component artifact '%s' is already listed in 'artifacts.coordinates', skipping the duplicate",
+                        coordinate
                 ));
             }
         }
@@ -281,29 +273,29 @@ public class ArtifactServiceImpl implements ArtifactService {
     }
 
     /**
-     * The coordinates of {@code artifacts.coordinates} that the documentation components already
-     * cover, and whose version therefore comes from the documentation component rather than from the
-     * shared {@code artifacts.coordinates.version}.
+     * The coordinates of {@code artifacts.coordinates} that {@code artifacts.components} already
+     * covers, and whose version therefore comes from the component it belongs to rather than from
+     * the shared {@code artifacts.coordinates.version}.
      * <p>
-     * Documentation components take precedence over {@code artifacts.coordinates} for the artifacts
-     * they distribute; everything they do not distribute is processed by the shared parameters as
+     * {@code artifacts.components} takes precedence over {@code artifacts.coordinates} for the
+     * artifacts it covers; everything it does not cover is processed by the shared parameters as
      * before. Matching is by everything but the version, and it is the Components Registry that
-     * states which coordinates a documentation component distributes, so the two sides are compared
-     * on data rather than on a guess derived from names.
+     * states which coordinates a component version distributes, so the two sides are compared on
+     * data rather than on a guess derived from names.
      */
     static Set<String> supersededMavenGavs(
             Collection<DistributionEntity> distributionEntities,
-            List<MavenArtifactCoordinatesDTO> docCoordinates
+            List<MavenArtifactCoordinatesDTO> componentCoordinates
     ) {
-        final Set<String> docCoordinateKeys = new HashSet<>();
-        for (MavenArtifactCoordinatesDTO docCoordinate : docCoordinates) {
-            docCoordinateKeys.add(versionAgnosticKey(docCoordinate));
+        final Set<String> componentCoordinateKeys = new HashSet<>();
+        for (MavenArtifactCoordinatesDTO coordinate : componentCoordinates) {
+            componentCoordinateKeys.add(versionAgnosticKey(coordinate));
         }
         final Set<String> superseded = new HashSet<>();
         for (DistributionEntity entity : distributionEntities) {
             if (entity instanceof MavenArtifactDistributionEntity) {
                 final MavenArtifactDistributionEntity maven = (MavenArtifactDistributionEntity) entity;
-                if (docCoordinateKeys.contains(versionAgnosticKey(maven))) {
+                if (componentCoordinateKeys.contains(versionAgnosticKey(maven))) {
                     superseded.add(maven.getGav());
                 }
             }
@@ -338,27 +330,27 @@ public class ArtifactServiceImpl implements ArtifactService {
     }
 
     /**
-     * Resolves {@code <component>:<version>} documentation links into artifact coordinates, each at
-     * the version of its own documentation component. Coordinates come from the Components Registry,
-     * so this path does not go through the shared, version agnostic coordinate format at all.
+     * Resolves {@code <component>:<version>} pairs into artifact coordinates, each at the version of
+     * the pair it came from. Coordinates come from the Components Registry, so this path does not go
+     * through the shared, version agnostic coordinate format at all.
      */
-    private List<MavenArtifactCoordinatesDTO> resolveDocComponents(
+    private List<MavenArtifactCoordinatesDTO> resolveComponentArtifacts(
             Log log,
-            String docComponents,
+            String artifactsComponents,
             String cregUrl,
             List<String> errors
     ) {
-        if (StringUtils.isBlank(docComponents)) {
+        if (StringUtils.isBlank(artifactsComponents)) {
             return Collections.emptyList();
         }
         if (StringUtils.isBlank(cregUrl)) {
-            errors.add("'doc.components' is set but 'creg.url' is not, so documentation components cannot be resolved");
+            errors.add("'artifacts.components' is set but 'creg.url' is not, so they cannot be resolved");
             return Collections.emptyList();
         }
-        log.info(String.format("Resolving documentation components '%s'", docComponents));
+        log.info(String.format("Resolving artifacts of components '%s'", artifactsComponents));
         final List<MavenArtifactCoordinatesDTO> coordinates =
-                DocComponentResolver.forUrl(cregUrl).resolve(docComponents, errors);
-        log.info(String.format("Documentation components resolved to %s artifact(s)", coordinates.size()));
+                ComponentArtifactsResolver.forUrl(cregUrl).resolve(artifactsComponents, errors);
+        log.info(String.format("Components resolved to %s artifact(s)", coordinates.size()));
         return coordinates;
     }
 

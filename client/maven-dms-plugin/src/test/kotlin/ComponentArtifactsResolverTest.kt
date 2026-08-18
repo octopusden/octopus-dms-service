@@ -1,18 +1,18 @@
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.octopusden.octopus.components.registry.core.dto.DistributionDTO
-import org.octopusden.octopus.dms.client.service.DocComponentResolver
+import org.octopusden.octopus.dms.client.service.ComponentArtifactsResolver
 
 /**
- * A documentation link is `<component>:<version>`, so every documentation component carries its own
- * version. The coordinates are not part of the link - they come from the documentation component's
- * `distribution.GAV` in the Components Registry, which is what lets a technical writer add a
- * language without any change on the consumer side.
+ * A pair is `<component>:<version>`, so every component carries its own version. The coordinates are
+ * not part of the pair - they come from that component version's `distribution.GAV` in the Components
+ * Registry, which is what lets an artifact be added to a component without any change on the
+ * consumer side.
  */
-class DocComponentResolverTest {
-    private fun resolver(vararg distributions: Pair<String, String?>): DocComponentResolver {
+class ComponentArtifactsResolverTest {
+    private fun resolver(vararg distributions: Pair<String, String?>): ComponentArtifactsResolver {
         val byKey = distributions.toMap()
-        return DocComponentResolver { component, version ->
+        return ComponentArtifactsResolver { component, version ->
             val gav = byKey["$component:$version"]
                 ?: error("Component '$component' version '$version' is not found")
             DistributionDTO(false, true, gav)
@@ -37,9 +37,9 @@ class DocComponentResolverTest {
         }
     }
 
-    /** The case that used to fail: two documentation components on different version lines. */
+    /** The case that used to fail: two components on different version lines. */
     @Test
-    fun `each documentation component keeps its own version`() {
+    fun `each component keeps its own version`() {
         val errors = mutableListOf<String>()
         val resolved = resolver(
             "doc-alpha:1.0.32" to "com.acme.doc:alpha-doc:zip:english",
@@ -57,7 +57,7 @@ class DocComponentResolverTest {
     }
 
     @Test
-    fun `a documentation component with several languages yields an artifact per language`() {
+    fun `a component distributing several artifacts yields one coordinate per artifact`() {
         val errors = mutableListOf<String>()
         val resolved = resolver(
             "doc-alpha:3.2.15" to "com.acme.doc:alpha-doc:zip:english,com.acme.doc:alpha-doc:zip:russian",
@@ -79,7 +79,7 @@ class DocComponentResolverTest {
     }
 
     @Test
-    fun `the same documentation component listed twice is resolved once`() {
+    fun `the same component listed twice is resolved once`() {
         val errors = mutableListOf<String>()
         val resolved = resolver("doc-alpha:1.0" to "com.acme.doc:alpha-doc:zip")
             .resolve("doc-alpha:1.0,doc-alpha:1.0", errors)
@@ -108,9 +108,9 @@ class DocComponentResolverTest {
     }
 
     @Test
-    fun `a documentation component without a distribution GAV is reported`() {
+    fun `a component without a distribution GAV is reported`() {
         val errors = mutableListOf<String>()
-        val resolved = DocComponentResolver { _, _ -> DistributionDTO(false, true, null) }
+        val resolved = ComponentArtifactsResolver { _, _ -> DistributionDTO(false, true, null) }
             .resolve("doc-alpha:1.0", errors)
 
         Assertions.assertTrue(resolved.isEmpty())
@@ -119,7 +119,7 @@ class DocComponentResolverTest {
     }
 
     @Test
-    fun `an unknown documentation component is reported instead of failing the resolution`() {
+    fun `an unknown component is reported instead of failing the resolution`() {
         val errors = mutableListOf<String>()
         val resolved = resolver("doc-alpha:1.0" to "com.acme.doc:alpha-doc:zip")
             .resolve("doc-alpha:1.0,doc-missing:9.9", errors)

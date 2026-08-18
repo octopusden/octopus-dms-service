@@ -29,7 +29,7 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 StringUtils.isBlank(artifactsCoordinatesDeb) &&
                 StringUtils.isBlank(artifactsCoordinatesRpm) &&
                 StringUtils.isBlank(artifactsCoordinatesDocker) &&
-                StringUtils.isBlank(docComponents)
+                StringUtils.isBlank(artifactsComponents)
         ) {
             log.warn("Artifacts coordinates are not set. Do nothing");
             return;
@@ -45,7 +45,7 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 artifactsCoordinatesDeb,
                 artifactsCoordinatesRpm,
                 artifactsCoordinatesDocker,
-                docComponents,
+                artifactsComponents,
                 cregUrl,
                 parallelism,
                 targetArtifact ->

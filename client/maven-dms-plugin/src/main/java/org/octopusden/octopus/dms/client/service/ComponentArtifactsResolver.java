@@ -15,19 +15,20 @@ import org.octopusden.octopus.escrow.dto.MavenArtifactDistributionEntity;
 import org.octopusden.octopus.escrow.utilities.DistributionUtilities;
 
 /**
- * Turns documentation component links into artifact coordinates.
+ * Turns {@code <component>:<version>} pairs into the coordinates of the artifacts those component
+ * versions distribute.
  * <p>
- * A link is a {@code <component>:<version>} pair, so every documentation component carries its own
- * version and components released on different version lines can be uploaded in one invocation.
- * The coordinates are not part of the link: they are read from the documentation component's
- * {@code distribution.GAV} in the Components Registry, which keeps the registry the single source
- * of truth. A technical writer adding a language therefore needs no change on the consumer side.
+ * Because the version belongs to the pair, components released on different version lines can be
+ * uploaded in one invocation - which the single shared {@code artifacts.coordinates.version} cannot
+ * express. The coordinates are not part of the pair: they are read from that component version's
+ * {@code distribution.GAV} in the Components Registry, which keeps the registry the single source of
+ * truth. Adding an artifact to a component therefore needs no change on the consumer side.
  * <p>
  * The lookup is expressed as {@link DistributionLookup} so that the resolution logic is testable
  * without HTTP, and this class deliberately knows nothing about the Maven plugin API - it reports
  * problems by appending to the caller's error list rather than throwing {@code MojoFailureException}.
  */
-public class DocComponentResolver {
+public class ComponentArtifactsResolver {
     private static final String DEFAULT_PACKAGING = "jar";
 
     /**
@@ -40,34 +41,34 @@ public class DocComponentResolver {
 
     private final DistributionLookup lookup;
 
-    public DocComponentResolver(final DistributionLookup lookup) {
+    public ComponentArtifactsResolver(final DistributionLookup lookup) {
         this.lookup = lookup;
     }
 
     /**
      * Resolves against a live Components Registry.
      */
-    public static DocComponentResolver forUrl(final String cregUrl) {
+    public static ComponentArtifactsResolver forUrl(final String cregUrl) {
         final ClassicComponentsRegistryServiceClient client =
                 new ClassicComponentsRegistryServiceClient(() -> cregUrl);
-        return new DocComponentResolver(
+        return new ComponentArtifactsResolver(
                 (component, version) -> client.getDetailedComponent(component, version).getDistribution()
         );
     }
 
     /**
-     * @param docComponents comma (or pipe) separated {@code <component>:<version>} pairs
-     * @param errors        cumulative list of errors, appended to so that every problem of a bulk
-     *                      invocation is reported at once instead of failing on the first one
-     * @return coordinates of every artifact the given documentation components distribute, each at
-     *         the version of its own documentation component, de-duplicated
+     * @param components comma (or pipe) separated {@code <component>:<version>} pairs
+     * @param errors     cumulative list of errors, appended to so that every problem of a bulk
+     *                   invocation is reported at once instead of failing on the first one
+     * @return coordinates of every artifact the given component versions distribute, each at the
+     *         version of the pair it came from, de-duplicated
      */
-    public List<MavenArtifactCoordinatesDTO> resolve(final String docComponents, final List<String> errors) {
+    public List<MavenArtifactCoordinatesDTO> resolve(final String components, final List<String> errors) {
         final Map<String, MavenArtifactCoordinatesDTO> resolved = new LinkedHashMap<>();
-        if (StringUtils.isBlank(docComponents)) {
+        if (StringUtils.isBlank(components)) {
             return new ArrayList<>(resolved.values());
         }
-        for (String pair : docComponents.split("[,|]")) {
+        for (String pair : components.split("[,|]")) {
             final String link = pair.trim();
             if (link.isEmpty()) {
                 continue;
@@ -75,7 +76,7 @@ public class DocComponentResolver {
             final String[] parts = link.split(":");
             if (parts.length != 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
                 errors.add(String.format(
-                        "Documentation component '%s' does not match '<component>:<version>'", link
+                        "Component '%s' does not match '<component>:<version>'", link
                 ));
                 continue;
             }
@@ -95,14 +96,14 @@ public class DocComponentResolver {
             distribution = lookup.distribution(component, version);
         } catch (Exception e) {
             errors.add(String.format(
-                    "Unable to read the distribution of documentation component '%s' version '%s': %s",
+                    "Unable to read the distribution of component '%s' version '%s': %s",
                     component, version, e.getMessage()
             ));
             return;
         }
         if (distribution == null || StringUtils.isBlank(distribution.getGav())) {
             errors.add(String.format(
-                    "Documentation component '%s' version '%s' has no distribution GAV defined",
+                    "Component '%s' version '%s' has no distribution GAV defined",
                     component, version
             ));
             return;
@@ -112,7 +113,7 @@ public class DocComponentResolver {
             entities = DistributionUtilities.parseDistributionGAV(distribution.getGav());
         } catch (RuntimeException e) {
             errors.add(String.format(
-                    "Distribution GAV '%s' of documentation component '%s' version '%s' is invalid: %s",
+                    "Distribution GAV '%s' of component '%s' version '%s' is invalid: %s",
                     distribution.getGav(), component, version, e.getMessage()
             ));
             return;
@@ -130,7 +131,7 @@ public class DocComponentResolver {
                 resolved.putIfAbsent(coordinates.toPath(), coordinates);
             } else {
                 errors.add(String.format(
-                        "Distribution of documentation component '%s' version '%s' contains a non MAVEN entity '%s'",
+                        "Distribution of component '%s' version '%s' contains a non MAVEN entity '%s'",
                         component, version, entity
                 ));
             }
