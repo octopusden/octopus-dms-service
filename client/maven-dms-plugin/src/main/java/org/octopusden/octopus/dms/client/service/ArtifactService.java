@@ -18,8 +18,6 @@ public interface ArtifactService {
                           String artifactsCoordinatesDeb,
                           String artifactsCoordinatesRpm,
                           String artifactsCoordinatesDocker,
-                          String artifactsComponents,
-                          String cregUrl,
                           int processParallelism,
                           Consumer<ArtifactServiceImpl.TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException;
 }

@@ -272,41 +272,6 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         }
     }
 
-    /**
-     * Components are passed as `<component>:<version>` pairs and their coordinates are read from
-     * `distribution.GAV` in the Components Registry, at the version of the pair. This is what lets
-     * components released on different version lines be handled in one invocation - the single
-     * `artifacts.coordinates.version` cannot express that.
-     *
-     * `ee-component-doc` distributes `test.add:distribution:zip:release`, so the pair
-     * `ee-component-doc:1.0` has to resolve to [releaseMavenDistributionCoordinates].
-     */
-    @Test
-    fun testMavenDmsPluginValidateArtifactsComponents() {
-        with(
-            runMavenDmsPlugin(
-                "artifacts-components.log",
-                "validate-artifacts",
-                listOf(
-                    "-Dcomponent=$eeComponent",
-                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
-                    "-Dartifacts.components=$eeComponentDoc:1.0",
-                    "-Dcreg.url=$cregServiceUrl",
-                    "-Dtype=documentation",
-                ),
-            ),
-        ) {
-            assertEquals(0, this.first, this.second.joinToString("\n"))
-            assertContains(this.second, "[INFO] Resolving artifacts of components '$eeComponentDoc:1.0'")
-            assertContains(this.second, "[INFO] Components resolved to 1 artifact(s)")
-            assertContains(
-                this.second,
-                "[INFO] Validated artifact '${releaseMavenDistributionCoordinates.toPath()}' " +
-                    "for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
-            )
-        }
-    }
-
     @Test
     fun testMavenDmsPluginValidateArtifactsInvalidDistribution() {
         with(

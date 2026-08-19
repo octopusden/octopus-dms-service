@@ -125,9 +125,6 @@ dependencies {
     ) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
     }
-    implementation(
-        "org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}",
-    )
 
     implementation("org.octopusden.octopus.releng:versions-api:${project.properties["versions-api.version"]}")
     implementation("org.octopusden.octopus.tools.wl:validation:2.0.7")

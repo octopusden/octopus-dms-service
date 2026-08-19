@@ -17,11 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -69,8 +65,6 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
                                  String artifactsCoordinatesDocker,
-                                 String artifactsComponents,
-                                 String cregUrl,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
         final ArtifactType targetType = ArtifactType.findByType(type);
@@ -101,26 +95,12 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors.add("Not supported distribution entity: " + entity);
             }
         }
-        final List<MavenArtifactCoordinatesDTO> componentCoordinates =
-                resolveComponentArtifacts(log, artifactsComponents, cregUrl, errors);
-        // A coordinate that 'artifacts.components' already covers takes its version from the
-        // component it belongs to, so the entry in 'artifacts.coordinates' is redundant and is
-        // dropped. The mapping is not guessed from names - it is the Components Registry that says
-        // which coordinates a component version distributes. Anything not covered is processed as
-        // before, so nothing is silently left unpublished.
-        // A coordinate stating its own version takes part in neither decision below: it needs
-        // neither the shared version nor the version of a component that happens to cover it.
-        final List<DistributionEntity> sharedVersionEntities = new ArrayList<>(distributionEntities.size());
-        for (VersionedEntity versionedEntity : distributionEntities) {
-            if (versionedEntity.version == null) {
-                sharedVersionEntities.add(versionedEntity.entity);
-            }
-        }
-        final Set<String> supersededGavs = supersededMavenGavs(sharedVersionEntities, componentCoordinates);
-        final boolean mavenCoordinateNeedsSharedVersion = sharedVersionEntities
+        // Only a coordinate that does not state its own version has anything to take from the
+        // shared one, so only such a coordinate can make a joined value a problem.
+        final boolean mavenCoordinateNeedsSharedVersion = distributionEntities
                 .stream()
-                .anyMatch(entity -> entity instanceof MavenArtifactDistributionEntity
-                        && !supersededGavs.contains(((MavenArtifactDistributionEntity) entity).getGav()));
+                .anyMatch(versioned -> versioned.entity instanceof MavenArtifactDistributionEntity
+                        && versioned.version == null);
         if (mavenCoordinateNeedsSharedVersion
                 && StringUtils.isNotBlank(artifactsCoordinatesVersion)
                 && artifactsCoordinatesVersion.contains(",")) {
@@ -165,7 +145,7 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         //Bulk target construction - every coordinate is built before anything is submitted, so that
         //an entity which fails to be built cannot leave a part of the invocation already published
-        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size() + componentCoordinates.size());
+        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
         for (VersionedEntity versionedEntity : distributionEntities) {
@@ -200,13 +180,6 @@ public class ArtifactServiceImpl implements ArtifactService {
             } else if (distributionEntity instanceof MavenArtifactDistributionEntity) {
                 targetFile = null;
                 final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
-                if (supersededGavs.contains(gav)) {
-                    log.info(String.format(
-                            "MAVEN entity '%s' is covered by 'artifacts.components', taking its version from there",
-                            gav
-                    ));
-                    continue;
-                }
                 final String[] structuredGav = gav.split(":");
                 int structuredGavSize = structuredGav.length;
                 if (structuredGavSize < 2 || structuredGavSize > 4) {
@@ -223,21 +196,6 @@ public class ArtifactServiceImpl implements ArtifactService {
                 throw new MojoFailureException("Not supported distribution entity: " + distributionEntity);
             }
             targets.add(new TargetArtifact(targetType, targetCoordinates, targetFile));
-        }
-        final Set<String> targetPaths = new HashSet<>();
-        for (TargetArtifact target : targets) {
-            targetPaths.add(target.coordinates.toPath());
-        }
-        for (MavenArtifactCoordinatesDTO coordinate : componentCoordinates) {
-            if (targetPaths.add(coordinate.toPath())) {
-                log.info(String.format("Processing component artifact: '%s'", coordinate));
-                targets.add(new TargetArtifact(targetType, coordinate, null));
-            } else {
-                log.info(String.format(
-                        "Component artifact '%s' is already listed in 'artifacts.coordinates', skipping the duplicate",
-                        coordinate
-                ));
-            }
         }
         entities.forEach((entity, creater) -> targets.add(new TargetArtifact(targetType, creater.apply(entity), null)));
 
@@ -288,88 +246,6 @@ public class ArtifactServiceImpl implements ArtifactService {
             return context + ": " + root.getMessage();
         }
         return context;
-    }
-
-    /**
-     * The coordinates of {@code artifacts.coordinates} that {@code artifacts.components} already
-     * covers, and whose version therefore comes from the component it belongs to rather than from
-     * the shared {@code artifacts.coordinates.version}.
-     * <p>
-     * {@code artifacts.components} takes precedence over {@code artifacts.coordinates} for the
-     * artifacts it covers; everything it does not cover is processed by the shared parameters as
-     * before. Matching is by everything but the version, and it is the Components Registry that
-     * states which coordinates a component version distributes, so the two sides are compared on
-     * data rather than on a guess derived from names.
-     */
-    static Set<String> supersededMavenGavs(
-            Collection<DistributionEntity> distributionEntities,
-            List<MavenArtifactCoordinatesDTO> componentCoordinates
-    ) {
-        final Set<String> componentCoordinateKeys = new HashSet<>();
-        for (MavenArtifactCoordinatesDTO coordinate : componentCoordinates) {
-            componentCoordinateKeys.add(versionAgnosticKey(coordinate));
-        }
-        final Set<String> superseded = new HashSet<>();
-        for (DistributionEntity entity : distributionEntities) {
-            if (entity instanceof MavenArtifactDistributionEntity) {
-                final MavenArtifactDistributionEntity maven = (MavenArtifactDistributionEntity) entity;
-                if (componentCoordinateKeys.contains(versionAgnosticKey(maven))) {
-                    superseded.add(maven.getGav());
-                }
-            }
-        }
-        return superseded;
-    }
-
-    /**
-     * Identity of an artifact ignoring its version, so a coordinate listed without a version can be
-     * matched against a coordinate the Components Registry resolved with one.
-     */
-    private static String versionAgnosticKey(MavenArtifactCoordinatesDTO coordinates) {
-        return versionAgnosticKey(
-                coordinates.getGav().getGroupId(),
-                coordinates.getGav().getArtifactId(),
-                coordinates.getGav().getPackaging(),
-                coordinates.getGav().getClassifier()
-        );
-    }
-
-    private static String versionAgnosticKey(MavenArtifactDistributionEntity entity) {
-        return versionAgnosticKey(
-                entity.getGroupId(),
-                entity.getArtifactId(),
-                entity.getExtension().orElse("jar"),
-                entity.getClassifier().orElse(null)
-        );
-    }
-
-    private static String versionAgnosticKey(String groupId, String artifactId, String packaging, String classifier) {
-        return groupId + ':' + artifactId + ':' + packaging + ':' + (classifier == null ? "" : classifier);
-    }
-
-    /**
-     * Resolves {@code <component>:<version>} pairs into artifact coordinates, each at the version of
-     * the pair it came from. Coordinates come from the Components Registry, so this path does not go
-     * through the shared, version agnostic coordinate format at all.
-     */
-    private List<MavenArtifactCoordinatesDTO> resolveComponentArtifacts(
-            Log log,
-            String artifactsComponents,
-            String cregUrl,
-            List<String> errors
-    ) {
-        if (StringUtils.isBlank(artifactsComponents)) {
-            return Collections.emptyList();
-        }
-        if (StringUtils.isBlank(cregUrl)) {
-            errors.add("'artifacts.components' is set but 'creg.url' is not, so they cannot be resolved");
-            return Collections.emptyList();
-        }
-        log.info(String.format("Resolving artifacts of components '%s'", artifactsComponents));
-        final List<MavenArtifactCoordinatesDTO> coordinates =
-                ComponentArtifactsResolver.forUrl(cregUrl).resolve(artifactsComponents, errors);
-        log.info(String.format("Components resolved to %s artifact(s)", coordinates.size()));
-        return coordinates;
     }
 
     /**

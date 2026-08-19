@@ -24,16 +24,12 @@ class ArtifactCoordinatesProcessingTest {
         coordinates: String?,
         coordinatesVersion: String? = null,
         version: String = "1.2.3",
-        artifactsComponents: String? = null,
-        cregUrl: String? = null,
         type: String = "distribution",
     ): List<MavenArtifactCoordinatesDTO> =
         processAny(
             coordinates,
             coordinatesVersion,
             version,
-            artifactsComponents,
-            cregUrl,
             type,
         ).map { it as MavenArtifactCoordinatesDTO }
 
@@ -41,8 +37,6 @@ class ArtifactCoordinatesProcessingTest {
         coordinates: String?,
         coordinatesVersion: String? = null,
         version: String = "1.2.3",
-        artifactsComponents: String? = null,
-        cregUrl: String? = null,
         type: String = "distribution",
     ): List<ArtifactCoordinatesDTO> {
         val collected = mutableListOf<ArtifactCoordinatesDTO>()
@@ -59,8 +53,6 @@ class ArtifactCoordinatesProcessingTest {
             null,
             null,
             null,
-            artifactsComponents,
-            cregUrl,
             1,
         ) { target -> collected.add(target.coordinates) }
         return collected
@@ -110,14 +102,6 @@ class ArtifactCoordinatesProcessingTest {
         }
         Assertions.assertTrue(exception.message!!.contains("looks like a list of versions"), exception.message)
         Assertions.assertTrue(exception.message!!.contains("<coordinate>@<version>"), exception.message)
-    }
-
-    @Test
-    fun `components without a registry url are rejected`() {
-        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
-            process(null, artifactsComponents = "alpha:1.0.32")
-        }
-        Assertions.assertTrue(exception.message!!.contains("creg.url"), exception.message)
     }
 
     @Test
