@@ -43,7 +43,15 @@ import org.octopusden.octopus.escrow.utilities.DistributionUtilities;
 @Singleton
 public class ArtifactServiceImpl implements ArtifactService {
     private static final String PROHIBITED_SYMBOLS = ":,\\s";
+    /**
+     * Separates a coordinate from the version it is published at, as in
+     * {@code com.acme:docs:zip:english@1.0.32}. The coordinate itself is colon separated, so the
+     * version cannot be appended with a colon - and it belongs to the coordinate rather than to the
+     * invocation, which is what {@code artifacts.coordinates.version} cannot express.
+     */
+    private static final char COORDINATE_VERSION_SEPARATOR = '@';
     private static final Pattern GAV_PATTERN = Pattern.compile(String.format("^([^%1$s]+(:[^%1$s]+){1,3})$", PROHIBITED_SYMBOLS));
+    private static final Pattern COORDINATE_VERSION_PATTERN = Pattern.compile(String.format("^[^%1$s]+$", PROHIBITED_SYMBOLS));
     private static final Pattern DEB_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.deb$", PROHIBITED_SYMBOLS));
     private static final Pattern RPM_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.rpm$", PROHIBITED_SYMBOLS));
     private static final Pattern DOCKER_PATTERN = Pattern.compile("^([a-z0-9]+([_.-][a-z0-9]+)*/)*[a-z0-9]+([_.-][a-z0-9]+)*:\\w[\\w.-]{0,127}$");
@@ -75,8 +83,9 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         //Bulk validation
         final List<String> errors = new ArrayList<>();
-        final Collection<DistributionEntity> distributionEntities = parseDistributionEntities(artifactsCoordinates, name);
-        for (DistributionEntity entity : distributionEntities) {
+        final List<VersionedEntity> distributionEntities = parseDistributionEntities(artifactsCoordinates, name, errors);
+        for (VersionedEntity versionedEntity : distributionEntities) {
+            final DistributionEntity entity = versionedEntity.entity;
             log.debug(String.format("Validate: '%s'", entity));
             if (entity instanceof FileDistributionEntity) {
                 final URI fileURI = ((FileDistributionEntity) entity).getUri();
@@ -99,8 +108,16 @@ public class ArtifactServiceImpl implements ArtifactService {
         // dropped. The mapping is not guessed from names - it is the Components Registry that says
         // which coordinates a component version distributes. Anything not covered is processed as
         // before, so nothing is silently left unpublished.
-        final Set<String> supersededGavs = supersededMavenGavs(distributionEntities, componentCoordinates);
-        final boolean mavenCoordinateNeedsSharedVersion = distributionEntities
+        // A coordinate stating its own version takes part in neither decision below: it needs
+        // neither the shared version nor the version of a component that happens to cover it.
+        final List<DistributionEntity> sharedVersionEntities = new ArrayList<>(distributionEntities.size());
+        for (VersionedEntity versionedEntity : distributionEntities) {
+            if (versionedEntity.version == null) {
+                sharedVersionEntities.add(versionedEntity.entity);
+            }
+        }
+        final Set<String> supersededGavs = supersededMavenGavs(sharedVersionEntities, componentCoordinates);
+        final boolean mavenCoordinateNeedsSharedVersion = sharedVersionEntities
                 .stream()
                 .anyMatch(entity -> entity instanceof MavenArtifactDistributionEntity
                         && !supersededGavs.contains(((MavenArtifactDistributionEntity) entity).getGav()));
@@ -109,8 +126,8 @@ public class ArtifactServiceImpl implements ArtifactService {
                 && artifactsCoordinatesVersion.contains(",")) {
             errors.add(String.format(
                     "Version '%s' looks like a list of versions, but 'artifacts.coordinates.version' holds a single "
-                            + "version applied to every coordinate. Components released on different version lines "
-                            + "have to be passed via 'artifacts.components' instead.",
+                            + "version applied to every coordinate. Artifacts released on different version lines "
+                            + "state their version per coordinate, as '<coordinate>@<version>'.",
                     artifactsCoordinatesVersion
             ));
         }
@@ -151,7 +168,8 @@ public class ArtifactServiceImpl implements ArtifactService {
         final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size() + componentCoordinates.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
-        for (DistributionEntity distributionEntity : distributionEntities) {
+        for (VersionedEntity versionedEntity : distributionEntities) {
+            final DistributionEntity distributionEntity = versionedEntity.entity;
             File targetFile;
             MavenArtifactCoordinatesDTO targetCoordinates;
             log.info(String.format("Processing: '%s'", distributionEntity));
@@ -197,7 +215,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                 targetCoordinates = new MavenArtifactCoordinatesDTO(new GavDTO(
                         structuredGav[0],
                         structuredGav[1],
-                        absoluteVersion,
+                        (versionedEntity.version != null) ? versionedEntity.version : absoluteVersion,
                         (structuredGavSize > 2) ? structuredGav[2] : "jar",
                         (structuredGavSize > 3) ? structuredGav[3] : null
                 ));
@@ -354,13 +372,67 @@ public class ArtifactServiceImpl implements ArtifactService {
         return coordinates;
     }
 
-    private Collection<DistributionEntity> parseDistributionEntities(String artifactsCoordinates, String name) throws MojoExecutionException {
-        Collection<DistributionEntity> entities = Collections.emptyList();
-        if (StringUtils.isNotBlank(artifactsCoordinates)) {
-            entities = DistributionUtilities.parseDistributionGAV(artifactsCoordinates);
-            if (entities.size() > 1 && name != null) {
-                throw new MojoExecutionException("The 'name' parameter should be set only if one artifact is specified in 'artifactsCoordinates' property");
+    /**
+     * An entry of {@code artifacts.coordinates} together with the version it states itself.
+     */
+    static final class VersionedEntity {
+        final DistributionEntity entity;
+        /** Version taken from the entry's own suffix, {@code null} when the entry states none. */
+        final String version;
+
+        VersionedEntity(final DistributionEntity entity, final String version) {
+            this.entity = entity;
+            this.version = version;
+        }
+    }
+
+    /**
+     * Splits {@code artifacts.coordinates} into its entries and reads the optional
+     * {@code @<version>} suffix of each one, so that artifacts released on different version lines
+     * can be published in a single invocation.
+     * <p>
+     * Entries are parsed one by one rather than as one string, which keeps the version of an entry
+     * attached to the entity parsed from it - two entries may well name the same coordinate at
+     * different versions. The suffix is stripped before {@link DistributionUtilities}, whose Maven
+     * coordinate syntax does not admit it.
+     * <p>
+     * A file URI is left alone: {@code @} is a legitimate character in a path, and a file artifact
+     * is published at the released version rather than at one stated by the coordinate.
+     */
+    private List<VersionedEntity> parseDistributionEntities(
+            String artifactsCoordinates,
+            String name,
+            List<String> errors
+    ) throws MojoExecutionException {
+        final List<VersionedEntity> entities = new ArrayList<>();
+        if (StringUtils.isBlank(artifactsCoordinates)) {
+            return entities;
+        }
+        for (String rawEntry : artifactsCoordinates.split("[,|]")) {
+            final String entry = rawEntry.trim();
+            if (entry.isEmpty()) {
+                continue;
             }
+            String coordinate = entry;
+            String entryVersion = null;
+            final int separator = entry.lastIndexOf(COORDINATE_VERSION_SEPARATOR);
+            if (separator >= 0 && !entry.startsWith("file:")) {
+                coordinate = entry.substring(0, separator).trim();
+                entryVersion = entry.substring(separator + 1).trim();
+                if (coordinate.isEmpty() || !COORDINATE_VERSION_PATTERN.matcher(entryVersion).matches()) {
+                    errors.add(String.format(
+                            "Entry '%s' does not match '<coordinate>%s<version>'",
+                            entry, COORDINATE_VERSION_SEPARATOR
+                    ));
+                    continue;
+                }
+            }
+            for (DistributionEntity entity : DistributionUtilities.parseDistributionGAV(coordinate)) {
+                entities.add(new VersionedEntity(entity, entryVersion));
+            }
+        }
+        if (entities.size() > 1 && name != null) {
+            throw new MojoExecutionException("The 'name' parameter should be set only if one artifact is specified in 'artifactsCoordinates' property");
         }
         return entities;
     }
