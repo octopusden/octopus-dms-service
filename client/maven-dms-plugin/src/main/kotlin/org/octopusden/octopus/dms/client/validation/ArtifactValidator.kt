@@ -172,11 +172,11 @@ class ArtifactValidator private constructor(
                     FileType.TAR, FileType.TARGZ, FileType.TARXZ -> {
                         val tarFile =
                             if (type == FileType.TARXZ) {
-                                TarArchiveInputStream(XZCompressorInputStream(file))
+                                TarArchiveInputStream(XZCompressorInputStream(file), Charsets.UTF_8.name())
                             } else if (type == FileType.TARGZ) {
-                                TarArchiveInputStream(GZIPInputStream(file))
+                                TarArchiveInputStream(GZIPInputStream(file), Charsets.UTF_8.name())
                             } else {
-                                TarArchiveInputStream(file)
+                                TarArchiveInputStream(file, Charsets.UTF_8.name())
                             }
                         val errors = ArrayList<String>()
                         var entry = tarFile.nextTarEntry
@@ -195,7 +195,7 @@ class ArtifactValidator private constructor(
 
                     FileType.RPM -> Scanner().run(ReadableChannelWrapper(Channels.newChannel(file))).header.run {
                         val errors = ArrayList<String>()
-                        val payload = CpioArchiveInputStream(Util.openPayloadStream(this, file))
+                        val payload = CpioArchiveInputStream(Util.openPayloadStream(this, file), Charsets.UTF_8.name())
                         var entry = payload.nextCPIOEntry
                         while (entry != null) {
                             val entryPath = "$path/${entry.name}"
@@ -238,7 +238,7 @@ class ArtifactValidator private constructor(
         private val detectFunctions = sequenceOf(
             { file: InputStream ->
                 Scanner().run(ReadableChannelWrapper(Channels.newChannel(file))).header.apply {
-                    CpioArchiveInputStream(Util.openPayloadStream(this, file)).nextCPIOEntry
+                    CpioArchiveInputStream(Util.openPayloadStream(this, file), Charsets.UTF_8.name()).nextCPIOEntry
                 }
                 FileType.RPM
             },
