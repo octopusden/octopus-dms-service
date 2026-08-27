@@ -100,7 +100,7 @@ class ArtifactCoordinatesProcessingTest {
         val exception = Assertions.assertThrows(MojoFailureException::class.java) {
             process("com.acme:docs:zip:english", coordinatesVersion = "1.0.32,1.0.8")
         }
-        Assertions.assertTrue(exception.message!!.contains("looks like a list of versions"), exception.message)
+        Assertions.assertTrue(exception.message!!.contains("is not a single version"), exception.message)
         Assertions.assertTrue(exception.message!!.contains("<coordinate>@<version>"), exception.message)
     }
 
@@ -172,6 +172,46 @@ class ArtifactCoordinatesProcessingTest {
             process("com.acme:docs:zip@1.0.32:extra")
         }
         Assertions.assertTrue(exception.message!!.contains("<coordinate>@<version>"), exception.message)
+    }
+
+    /**
+     * An unparseable coordinate joins the other errors of the invocation rather than escaping as a
+     * runtime exception: stripping the suffix off `com.acme@1.0` leaves a one-segment coordinate.
+     */
+    @Test
+    fun `an unparseable coordinate is reported with the other errors`() {
+        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
+            process("com.acme@1.0,com.acme:docs:zip@")
+        }
+
+        Assertions.assertTrue(exception.message!!.contains("Invalid GAV entry"), exception.message)
+        Assertions.assertTrue(exception.message!!.contains("com.acme:docs:zip@"), exception.message)
+    }
+
+    /**
+     * The one input the producing side is proven to emit for a doc component distributing both
+     * forms: releng versions the coordinate and leaves the file URI alone.
+     */
+    @Test
+    fun `a file uri and a versioned coordinate travel in one value`(
+        @TempDir directory: Path,
+    ) {
+        val file = Files.createFile(directory.resolve("handbook.zip"))
+        val resolved = processAny("${file.toUri()},org.acme.doc:docs:zip@1.5")
+            .map { it as MavenArtifactCoordinatesDTO }
+            .associate { it.gav.artifactId to it.gav.version }
+
+        // The file artifact is published at the released version, the coordinate at its own.
+        Assertions.assertEquals(mapOf("handbook" to "1.2.3", "docs" to "1.5"), resolved)
+    }
+
+    /** TeamCity parameters produce stray spaces routinely, so every part is trimmed. */
+    @Test
+    fun `spaces around the entry, the coordinate and the version are ignored`() {
+        val resolved = process("  com.acme:docs:zip:english @ 1.0.32 ,  com.acme:plain  ", coordinatesVersion = "2.0.0")
+            .associate { it.gav.artifactId to it.gav.version }
+
+        Assertions.assertEquals(mapOf("docs" to "1.0.32", "plain" to "2.0.0"), resolved)
     }
 
     /**

@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,8 +78,8 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         //Bulk validation
         final List<String> errors = new ArrayList<>();
-        final List<VersionedEntity> distributionEntities = parseDistributionEntities(artifactsCoordinates, name, errors);
-        for (VersionedEntity versionedEntity : distributionEntities) {
+        final List<VersionedEntity> versionedEntities = parseDistributionEntities(artifactsCoordinates, name, errors);
+        for (VersionedEntity versionedEntity : versionedEntities) {
             final DistributionEntity entity = versionedEntity.entity;
             log.debug(String.format("Validate: '%s'", entity));
             if (entity instanceof FileDistributionEntity) {
@@ -96,19 +97,23 @@ public class ArtifactServiceImpl implements ArtifactService {
             }
         }
         // Only a coordinate that does not state its own version has anything to take from the
-        // shared one, so only such a coordinate can make a joined value a problem.
-        final boolean mavenCoordinateNeedsSharedVersion = distributionEntities
+        // shared one, so only such a coordinate can be affected by a malformed value here.
+        final boolean mavenCoordinateNeedsSharedVersion = versionedEntities
                 .stream()
                 .anyMatch(versioned -> versioned.entity instanceof MavenArtifactDistributionEntity
                         && versioned.version == null);
+        // A version is a single value wherever it appears, so the shared parameter is held to the
+        // same rule as a suffix rather than to a guess about its content. The case this started
+        // from - several versions joined with a comma and applied to every coordinate - is one of
+        // the things it rejects.
         if (mavenCoordinateNeedsSharedVersion
                 && StringUtils.isNotBlank(artifactsCoordinatesVersion)
-                && artifactsCoordinatesVersion.contains(",")) {
+                && !COORDINATE_VERSION_PATTERN.matcher(artifactsCoordinatesVersion).matches()) {
             errors.add(String.format(
-                    "Version '%s' looks like a list of versions, but 'artifacts.coordinates.version' holds a single "
-                            + "version applied to every coordinate. Artifacts released on different version lines "
-                            + "state their version per coordinate, as '<coordinate>@<version>'.",
-                    artifactsCoordinatesVersion
+                    "Version '%s' is not a single version, but 'artifacts.coordinates.version' holds one version "
+                            + "applied to every coordinate. Artifacts released on different version lines state "
+                            + "their version per coordinate, as '<coordinate>%s<version>'.",
+                    artifactsCoordinatesVersion, COORDINATE_VERSION_SEPARATOR
             ));
         }
         final Map<String, Function<String, ArtifactCoordinatesDTO>> entities = new HashMap<>();
@@ -145,16 +150,16 @@ public class ArtifactServiceImpl implements ArtifactService {
 
         //Bulk target construction - every coordinate is built before anything is submitted, so that
         //an entity which fails to be built cannot leave a part of the invocation already published
-        final List<TargetArtifact> targets = new ArrayList<>(distributionEntities.size());
+        final List<TargetArtifact> targets = new ArrayList<>(versionedEntities.size());
         final boolean extractNameFromArtifactCoordinate = StringUtils.isBlank(name);
         final String absoluteVersion = StringUtils.isNotBlank(artifactsCoordinatesVersion) ? artifactsCoordinatesVersion : version;
-        for (VersionedEntity versionedEntity : distributionEntities) {
-            final DistributionEntity distributionEntity = versionedEntity.entity;
+        for (VersionedEntity versionedEntity : versionedEntities) {
+            final DistributionEntity entity = versionedEntity.entity;
             File targetFile;
             MavenArtifactCoordinatesDTO targetCoordinates;
-            log.info(String.format("Processing: '%s'", distributionEntity));
-            if (distributionEntity instanceof FileDistributionEntity) {
-                final FileDistributionEntity fileDistributionEntity = (FileDistributionEntity) distributionEntity;
+            log.info(String.format("Processing: '%s'", entity));
+            if (entity instanceof FileDistributionEntity) {
+                final FileDistributionEntity fileDistributionEntity = (FileDistributionEntity) entity;
                 final Path filePath = Paths.get(fileDistributionEntity.getUri());
                 targetFile = filePath.toFile();
                 final String[] fileName = targetFile.getName().split("\\.");
@@ -177,9 +182,9 @@ public class ArtifactServiceImpl implements ArtifactService {
                         (fileName.length > 1) ? fileName[fileName.length - 1] : "jar",
                         fileDistributionEntity.getClassifier().orElse(classifier)
                 ));
-            } else if (distributionEntity instanceof MavenArtifactDistributionEntity) {
+            } else if (entity instanceof MavenArtifactDistributionEntity) {
                 targetFile = null;
-                final String gav = ((MavenArtifactDistributionEntity) distributionEntity).getGav();
+                final String gav = ((MavenArtifactDistributionEntity) entity).getGav();
                 final String[] structuredGav = gav.split(":");
                 int structuredGavSize = structuredGav.length;
                 if (structuredGavSize < 2 || structuredGavSize > 4) {
@@ -193,7 +198,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                         (structuredGavSize > 3) ? structuredGav[3] : null
                 ));
             } else {
-                throw new MojoFailureException("Not supported distribution entity: " + distributionEntity);
+                throw new MojoFailureException("Not supported distribution entity: " + entity);
             }
             targets.add(new TargetArtifact(targetType, targetCoordinates, targetFile));
         }
@@ -303,7 +308,17 @@ public class ArtifactServiceImpl implements ArtifactService {
                     continue;
                 }
             }
-            for (DistributionEntity entity : DistributionUtilities.parseDistributionGAV(coordinate)) {
+            // Every problem of a bulk invocation is meant to be reported at once. An unparseable
+            // coordinate used to escape as a runtime exception instead, so the first one ended the
+            // run with a stack trace while '@' suffix problems accumulated.
+            final Collection<DistributionEntity> parsed;
+            try {
+                parsed = DistributionUtilities.parseDistributionGAV(coordinate);
+            } catch (RuntimeException e) {
+                errors.add(e.getMessage());
+                continue;
+            }
+            for (DistributionEntity entity : parsed) {
                 entities.add(new VersionedEntity(entity, entryVersion));
             }
         }
