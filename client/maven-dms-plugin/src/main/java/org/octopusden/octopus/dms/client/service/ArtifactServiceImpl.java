@@ -311,11 +311,17 @@ public class ArtifactServiceImpl implements ArtifactService {
             // Every problem of a bulk invocation is meant to be reported at once. An unparseable
             // coordinate used to escape as a runtime exception instead, so the first one ended the
             // run with a stack trace while '@' suffix problems accumulated.
+            //
+            // The two types caught here are the ones the parser uses to report a bad coordinate:
+            // IllegalArgumentException for a string that is neither a Maven GAV nor a usable file
+            // URI, IllegalStateException for a file URI whose query names an unknown attribute or
+            // an illegal value. Anything else is a defect in the parser rather than bad input, and
+            // is left to surface as one.
             final Collection<DistributionEntity> parsed;
             try {
                 parsed = DistributionUtilities.parseDistributionGAV(coordinate);
-            } catch (RuntimeException e) {
-                errors.add(e.getMessage());
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                errors.add(String.format("Entry '%s': %s", entry, e.getMessage()));
                 continue;
             }
             for (DistributionEntity entity : parsed) {

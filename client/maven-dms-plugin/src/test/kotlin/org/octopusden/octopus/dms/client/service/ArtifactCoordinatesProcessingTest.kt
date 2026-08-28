@@ -165,6 +165,22 @@ class ArtifactCoordinatesProcessingTest {
         Assertions.assertTrue(exception.message!!.contains("com.acme:docs:zip@"), exception.message)
     }
 
+    /**
+     * A file URI carrying an unknown query attribute is the other way the parser rejects a
+     * coordinate, and it rejects it with an `IllegalStateException` rather than an
+     * `IllegalArgumentException`. It has to be reported like any other bad entry.
+     */
+    @Test
+    fun `a file uri with an unknown query attribute is reported as an error`() {
+        val entry = "file:///opt/dist/handbook.zip?unknown=value"
+        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
+            process(entry)
+        }
+
+        Assertions.assertTrue(exception.message!!.contains("Unknown query attribute"), exception.message)
+        Assertions.assertTrue(exception.message!!.contains("Entry '$entry'"), exception.message)
+    }
+
     /** A version is a single value, so a colon in it is a malformed entry rather than a coordinate. */
     @Test
     fun `a version that is not a single value is rejected`() {
@@ -185,6 +201,7 @@ class ArtifactCoordinatesProcessingTest {
         }
 
         Assertions.assertTrue(exception.message!!.contains("Invalid GAV entry"), exception.message)
+        Assertions.assertTrue(exception.message!!.contains("Entry 'com.acme@1.0'"), exception.message)
         Assertions.assertTrue(exception.message!!.contains("com.acme:docs:zip@"), exception.message)
     }
 
