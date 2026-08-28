@@ -70,7 +70,11 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 Collections.emptyList()
         );
         FileFilterConfig localFilterConfig = null;
-        if (wlIgnore != null && wlIgnore.exists()) {
+        if (wlIgnore != null
+                && wlIgnore.exists()
+                && wlIgnore.isFile()
+                && wlIgnore.length() > 0
+        ) {
             try {
                 localFilterConfig = objectMapper.readValue(wlIgnore, FileFilterConfig.class);
             } catch (IOException e) {
