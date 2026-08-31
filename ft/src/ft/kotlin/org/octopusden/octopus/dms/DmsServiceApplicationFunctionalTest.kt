@@ -126,21 +126,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             runner.buildAndFail()
         }
 
-        if (!shouldSucceed) {
-            assertTrue(
-                result.output.contains("Unsupported class file major version"),
-                "Build should have failed with a Java-class-version incompatibility in Gradle 7.6's Groovy, but failed with: ${result.output.take(
-                    500,
-                )}",
-            )
-        }
-
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
-            this.parentFile.mkdirs()
-            this.outputStream().use {
-                it.writer(UTF_8).write(result.output)
-            }
-        }
+        // Dump the child build's output before asserting anything: on an assertion
+        // failure this log is the only record of what the testkit build actually did,
+        // and the previous order lost exactly the case that needed diagnosing.
+        writeTestKitLog(buildDir, "test-gradle-dms-client-$gradleVersion.log", result.output)
 
         if (shouldSucceed) {
             reports.forEach {
@@ -195,12 +184,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "--info",
                 ),
             ).build()
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-plugin.log")) {
-            this.parentFile.mkdirs()
-            this.outputStream().use {
-                it.writer(UTF_8).write(result.output)
-            }
-        }
+        writeTestKitLog(buildDir, "test-gradle-dms-plugin.log", result.output)
         releaseNotesRELEASE.openStream().use { expected ->
             targetDir.resolve(releaseNotesCoordinates.gav.toPath().substringAfterLast("/")).inputStream().use { actual ->
                 assertArrayEquals(expected.readBytes(), actual.readBytes())
@@ -670,6 +654,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         )
     }
 
+    private fun writeTestKitLog(
+        buildDir: File,
+        fileName: String,
+        output: String,
+    ) = with(buildDir.resolve("logs").resolve(fileName)) {
+        // File.writeText flushes and closes; wrapping the raw OutputStream in a
+        // writer and only closing the stream silently dropped the encoder's 8 KiB
+        // buffer, which is why these logs used to be 0 or exactly 8192 bytes.
+        parentFile.mkdirs()
+        writeText(output, UTF_8)
+    }
+
     /**
      * Resolve the GRADLE_USER_HOME the testkit child should use. Prefer the real
      * ~/.gradle on the TC agent so init scripts, gradle.properties
@@ -699,12 +695,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =
             Stream.of(
-                // Gradle 7.6 cannot execute under our current TC agent: the agent's
-                // `~/.gradle/init.gradle` is compiled against Java 21 (class-file major
-                // version 65) and Groovy 2.5 bundled with Gradle 7.6 rejects it with
-                // "Unsupported class file major version 65" during init-script
-                // semantic analysis — there is no way for the testkit child to run
-                // that script. So the 7.6 case legitimately fails; assert the failure.
+                // Gradle 7.6 cannot run this client: the plugin's Kotlin classes are
+                // Java 21 bytecode (class-file major version 65) and the testkit child
+                // would have to run Gradle 7.6 on the agent's JDK 21, which Gradle 7.6
+                // does not support. So the 7.6 case legitimately fails and we only
+                // assert *that* it fails (GradleRunner.buildAndFail), never *how*:
+                // the failure text comes from the CI agent's environment, not from our
+                // product. It was "Failed to create Jar file" (#75), re-baselined to
+                // "Unsupported class file major version" (#83), and broke again on
+                // 2026-08-30 when the agents stopped producing that message (TC builds
+                // 12091129 and 12095408 — the child build then ran 23-68 s instead of
+                // ~5 s before failing elsewhere). The saved test-kit log artifact is
+                // the place to look if this case ever needs re-diagnosing.
                 Arguments.of("7.6", false),
                 Arguments.of("8.6", true),
             )
