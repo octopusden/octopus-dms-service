@@ -711,18 +711,24 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =
             Stream.of(
-                // Gradle 7.6 cannot run this client: the plugin's Kotlin classes are
-                // Java 21 bytecode (class-file major version 65) and the testkit child
-                // would have to run Gradle 7.6 on the agent's JDK 21, which Gradle 7.6
-                // does not support. So the 7.6 case legitimately fails and we only
-                // assert *that* it fails (GradleRunner.buildAndFail), never *how*:
-                // the failure text comes from the CI agent's environment, not from our
-                // product. It was "Failed to create Jar file" (#75), re-baselined to
-                // "Unsupported class file major version" (#83), and broke again on
-                // 2026-08-30 when the agents stopped producing that message (TC builds
-                // 12091129 and 12095408 — the child build then ran 23-68 s instead of
-                // ~5 s before failing elsewhere). The saved test-kit log artifact is
-                // the place to look if this case ever needs re-diagnosing.
+                // Gradle 7.6 cannot run here at all: it predates Java 21 support (which
+                // landed in Gradle 8.5) and the agents run JDK 21, so the testkit child
+                // is an unsupported combination before our code is even reached. Note
+                // this is NOT about the client's own bytecode — gradle-dms-client is
+                // pure Java at release 8, and common/client pin jvmTarget 1.8, so that
+                // whole buildscript classpath is class-file major 52.
+                //
+                // So the 7.6 case legitimately fails and we assert only *that* it fails
+                // (GradleRunner.buildAndFail), never *how*: the failure text is a
+                // property of the agent, not of our product. It was "Failed to create
+                // Jar file" (#75), re-baselined to "Unsupported class file major
+                // version" (#83) on the theory that the agent's Java-21 init.gradle was
+                // rejected by Groovy 2.5, and broke again on 2026-08-30 when the agents
+                // stopped producing that message (TC builds 12091129 and 12095408 — the
+                // child then ran 23-68 s instead of ~5 s before failing elsewhere; what
+                // it fails on now is not yet known). The saved test-kit log artifact is
+                // the place to look, and the input for narrowing this case down to a
+                // product-level invariant.
                 Arguments.of("7.6", false),
                 Arguments.of("8.6", true),
             )
