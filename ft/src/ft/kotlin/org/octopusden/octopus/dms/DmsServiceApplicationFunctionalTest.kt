@@ -124,6 +124,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
         val result = runTestKitBuild(runner, shouldSucceed, buildDir, "test-gradle-dms-client-$gradleVersion.log")
 
+        if (!shouldSucceed) {
+            // The one invariant worth asserting on the negative row: whatever the agent
+            // makes Gradle 7.6 fail on, the client must not have exported anything.
+            // targetDir is clean by construction (projectDir is deleted and re-copied
+            // above), and this says nothing about *how* the failure happened, so it
+            // cannot rot the way the old failure-text assertion did.
+            assertTrue(
+                targetDir.listFiles().isNullOrEmpty(),
+                "Gradle $gradleVersion was expected to fail without exporting, but produced: ${targetDir.list()?.toList()}",
+            )
+        }
+
         if (shouldSucceed) {
             reports.forEach {
                 it.first.byteInputStream(UTF_8).use { expected ->
@@ -674,12 +686,15 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         buildDir: File,
         fileName: String,
         output: String,
-    ) = with(buildDir.resolve("logs").resolve(fileName)) {
-        // File.writeText flushes and closes; wrapping the raw OutputStream in a
-        // writer and only closing the stream silently dropped the encoder's 8 KiB
-        // buffer, which is why these logs used to be 0 or exactly 8192 bytes.
-        parentFile.mkdirs()
-        writeText(output, UTF_8)
+    ) {
+        // File.writeText flushes and closes. Wrapping the raw OutputStream in a writer
+        // and closing only the stream dropped whatever was still sitting in the
+        // encoder's 8 KiB buffer, so every log was truncated down to a multiple of
+        // 8192 bytes — 0 for the short ones, and a plausible-looking 98304 for a long
+        // one, which is why this went unnoticed.
+        val log = buildDir.resolve("logs").resolve(fileName)
+        log.parentFile.mkdirs()
+        log.writeText(output, UTF_8)
     }
 
     /**
@@ -719,7 +734,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 // whole buildscript classpath is class-file major 52.
                 //
                 // So the 7.6 case legitimately fails and we assert only *that* it fails
-                // (GradleRunner.buildAndFail), never *how*: the failure text is a
+                // (GradleRunner.buildAndFail) and that nothing was exported, never
+                // *how* it failed: the failure text is a
                 // property of the agent, not of our product. It was "Failed to create
                 // Jar file" (#75), re-baselined to "Unsupported class file major
                 // version" (#83) on the theory that the agent's Java-21 init.gradle was
