@@ -14,8 +14,8 @@
             <param name="COMPONENT_NAME" value="" spec="text description='Name of Component registered in Component Registry' validationMode='not_empty' display='normal'"/>
             <param name="BUILD_VERSION" value="" spec="text description='Component version registered in JIRA' validationMode='not_empty' display='normal'"/>
             <param name="ARTIFACT_TYPE" value="distribution" spec="select description='Artifact type' data_1='distribution' data_2='notes' data_3='report' data_4='static' data_5='documentation' data_6='compliance-artifacts' display='normal'"/>
-            <param name="ARTIFACTS_COORDINATES" value="" spec="text description='Maven artifacts coordinates (without version)' validationMode='any' display='normal'"/>
-            <param name="ARTIFACTS_COORDINATES_VERSION" value="" spec="text description='Maven artifacts coordinates version (if it differs from BUILD_VERSION)' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES" value="" spec="text description='Comma separated Maven artifacts coordinates. A coordinate may state the version it is published at as coordinate@version, e.g. com.acme:docs:zip:english@1.0.32 - artifacts released on different version lines can then be passed together (%DOC_ARTIFACTS% supplies them for documentation). A coordinate without it takes the version below' validationMode='any' display='normal'"/>
+            <param name="ARTIFACTS_COORDINATES_VERSION" value="" spec="text description='Version of every coordinate above that does not state one itself (if it differs from BUILD_VERSION)' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DEB" value="" spec="text description='DEB packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_RPM" value="" spec="text description='RPM packages coordinates' validationMode='any' display='normal'"/>
             <param name="ARTIFACTS_COORDINATES_DOCKER" value="" spec="text description='Docker images coordinates' validationMode='any' display='normal'"/>

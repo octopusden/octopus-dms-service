@@ -272,6 +272,44 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         }
     }
 
+    /**
+     * A coordinate states the version it is published at as `<coordinate>@<version>`, which is what
+     * lets artifacts released on different version lines be handled in one invocation - the single
+     * `artifacts.coordinates.version` cannot express that.
+     *
+     * Both artifacts of the dump live at 1.0 while the component is released as
+     * [eeComponentReleaseVersion0354], so nothing here resolves unless the suffix is what the
+     * version is taken from: without it the lookup would go to the released version and find
+     * nothing.
+     */
+    @Test
+    fun testMavenDmsPluginValidateArtifactsCoordinateVersions() {
+        with(
+            runMavenDmsPlugin(
+                "coordinate-versions.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$DEV_ARTIFACTS_COORDINATES@1.0,$RELEASE_ARTIFACTS_COORDINATES@1.0",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(0, this.first, this.second.joinToString("\n"))
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${devMavenDistributionCoordinates.toPath()}' " +
+                    "for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseMavenDistributionCoordinates.toPath()}' " +
+                    "for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+        }
+    }
+
     @Test
     fun testMavenDmsPluginValidateArtifactsInvalidDistribution() {
         with(
