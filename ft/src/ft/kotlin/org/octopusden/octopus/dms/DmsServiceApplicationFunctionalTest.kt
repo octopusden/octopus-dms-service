@@ -1,6 +1,8 @@
 package org.octopusden.octopus.dms
 
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.UnexpectedBuildResultException
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -120,16 +122,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 ),
             )
 
-        val result = if (shouldSucceed) {
-            runner.build()
-        } else {
-            runner.buildAndFail()
-        }
-
-        // Dump the child build's output before asserting anything: on an assertion
-        // failure this log is the only record of what the testkit build actually did,
-        // and the previous order lost exactly the case that needed diagnosing.
-        writeTestKitLog(buildDir, "test-gradle-dms-client-$gradleVersion.log", result.output)
+        val result = runTestKitBuild(runner, shouldSucceed, buildDir, "test-gradle-dms-client-$gradleVersion.log")
 
         if (shouldSucceed) {
             reports.forEach {
@@ -163,7 +156,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-plugin")
         val targetDir = projectDir.resolve("export")
         val useDevRepoArg2 = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
-        val result = GradleRunner
+        val runner = GradleRunner
             .create()
             .withProjectDir(projectDir)
             .withTestKitDir(agentGradleUserHome(buildDir, "dms-plugin"))
@@ -183,8 +176,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "downloadReleaseNotes",
                     "--info",
                 ),
-            ).build()
-        writeTestKitLog(buildDir, "test-gradle-dms-plugin.log", result.output)
+            )
+        val result = runTestKitBuild(runner, shouldSucceed = true, buildDir = buildDir, logFileName = "test-gradle-dms-plugin.log")
         releaseNotesRELEASE.openStream().use { expected ->
             targetDir.resolve(releaseNotesCoordinates.gav.toPath().substringAfterLast("/")).inputStream().use { actual ->
                 assertArrayEquals(expected.readBytes(), actual.readBytes())
@@ -652,6 +645,29 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             },
             "Expected '$artifactIdentifier' to be reported with the actionable not-found message: $output",
         )
+    }
+
+    /**
+     * Run the testkit child build and always leave its output on disk, including when
+     * GradleRunner throws because the result was the opposite of what we asked for:
+     * an unexpected success or failure is exactly the case worth diagnosing, and the
+     * output is only reachable through the exception's own BuildResult.
+     */
+    private fun runTestKitBuild(
+        runner: GradleRunner,
+        shouldSucceed: Boolean,
+        buildDir: File,
+        logFileName: String,
+    ): BuildResult {
+        val result =
+            try {
+                if (shouldSucceed) runner.build() else runner.buildAndFail()
+            } catch (e: UnexpectedBuildResultException) {
+                writeTestKitLog(buildDir, logFileName, e.buildResult.output)
+                throw e
+            }
+        writeTestKitLog(buildDir, logFileName, result.output)
+        return result
     }
 
     private fun writeTestKitLog(
