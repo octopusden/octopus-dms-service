@@ -3,6 +3,7 @@ package org.octopusden.octopus.dms
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -383,6 +384,68 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             ),
         ) {
             assertEquals(0, this.first)
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+        }
+    }
+
+    @Test
+    fun testMavenDmsPluginValidateArtifactsWlIgnoreEmptyFile() {
+        val coordValue = "file:///${File(
+            "",
+        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
+        val wlIgnoreArgs = "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.empty-wlignore.json"
+        with(
+            runMavenDmsPlugin(
+                "wl-ignore-empty-file.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$coordArgs",
+                    "-DwlIgnore=$wlIgnoreArgs",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(0, this.first)
+            assertFalse(this.second.contains("[INFO] Can not deserialize $wlIgnoreArgs, error:"))
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+        }
+    }
+
+    @Test
+    fun testMavenDmsPluginValidateArtifactsWlIgnoreDirectory() {
+        val wlIgnoreDir = File(
+            "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin",
+        )
+        wlIgnoreDir.mkdirs()
+
+        val coordValue = "file:///${File(
+            "",
+        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
+        with(
+            runMavenDmsPlugin(
+                "wl-ignore-dir.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$coordArgs",
+                    "-DwlIgnore=${wlIgnoreDir.absolutePath}",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(0, this.first)
+            assertFalse(this.second.contains("[INFO] Can not deserialize ${wlIgnoreDir.absolutePath}, error:"))
             assertContains(
                 this.second,
                 "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
