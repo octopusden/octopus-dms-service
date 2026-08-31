@@ -734,15 +734,15 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 // whole buildscript classpath is class-file major 52.
                 //
                 // So the 7.6 case legitimately fails and we assert only *that* it fails
-                // (GradleRunner.buildAndFail) and that nothing was exported, never
-                // *how* it failed: the failure text is a
-                // property of the agent, not of our product. It was "Failed to create
-                // Jar file" (#75), re-baselined to "Unsupported class file major
-                // version" (#83) on the theory that the agent's Java-21 init.gradle was
-                // rejected by Groovy 2.5, and broke again on 2026-08-30 when the agents
-                // stopped producing that message (TC builds 12091129 and 12095408 — the
-                // child then ran 23-68 s instead of ~5 s before failing elsewhere; what
-                // it fails on now is not yet known). The saved test-kit log artifact is
+                // (GradleRunner.buildAndFail) and that nothing was exported, never *how*
+                // it failed: the failure text is a property of the build agent, not of
+                // our product. It was "Failed to create Jar file" (#75), re-baselined to
+                // "Unsupported class file major version" (#83) on the theory that the
+                // agent's Java-21 init script was rejected by Groovy 2.5, and broke
+                // again on 2026-08-30, on two runs where that message did not appear and
+                // the child ran 23-68 s instead of the usual ~5 s before failing
+                // elsewhere. What it fails on in those runs is still unknown, and it
+                // does not reproduce on every agent. The saved test-kit log artifact is
                 // the place to look, and the input for narrowing this case down to a
                 // product-level invariant.
                 Arguments.of("7.6", false),
