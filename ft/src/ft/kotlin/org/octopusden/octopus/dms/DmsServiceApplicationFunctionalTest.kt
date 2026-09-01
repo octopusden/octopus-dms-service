@@ -1,6 +1,8 @@
 package org.octopusden.octopus.dms
 
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.UnexpectedBuildResultException
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -121,26 +123,18 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 ),
             )
 
-        val result = if (shouldSucceed) {
-            runner.build()
-        } else {
-            runner.buildAndFail()
-        }
+        val result = runTestKitBuild(runner, shouldSucceed, buildDir, "test-gradle-dms-client-$gradleVersion.log")
 
         if (!shouldSucceed) {
+            // The one invariant worth asserting on the negative row: whatever the agent
+            // makes Gradle 7.6 fail on, the client must not have exported anything.
+            // targetDir is clean by construction (projectDir is deleted and re-copied
+            // above), and this says nothing about *how* the failure happened, so it
+            // cannot rot the way the old failure-text assertion did.
             assertTrue(
-                result.output.contains("Unsupported class file major version"),
-                "Build should have failed with a Java-class-version incompatibility in Gradle 7.6's Groovy, but failed with: ${result.output.take(
-                    500,
-                )}",
+                targetDir.listFiles().isNullOrEmpty(),
+                "Gradle $gradleVersion was expected to fail without exporting, but produced: ${targetDir.list()?.toList()}",
             )
-        }
-
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-client-$gradleVersion.log")) {
-            this.parentFile.mkdirs()
-            this.outputStream().use {
-                it.writer(UTF_8).write(result.output)
-            }
         }
 
         if (shouldSucceed) {
@@ -175,7 +169,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val projectDir = buildDir.resolve("resources").resolve("ft").resolve("test-gradle-dms-plugin")
         val targetDir = projectDir.resolve("export")
         val useDevRepoArg2 = System.getProperty("use_dev_repository")?.let { "-Puse_dev_repository=$it" }
-        val result = GradleRunner
+        val runner = GradleRunner
             .create()
             .withProjectDir(projectDir)
             .withTestKitDir(agentGradleUserHome(buildDir, "dms-plugin"))
@@ -195,13 +189,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "downloadReleaseNotes",
                     "--info",
                 ),
-            ).build()
-        with(buildDir.resolve("logs").resolve("test-gradle-dms-plugin.log")) {
-            this.parentFile.mkdirs()
-            this.outputStream().use {
-                it.writer(UTF_8).write(result.output)
-            }
-        }
+            )
+        val result = runTestKitBuild(runner, shouldSucceed = true, buildDir = buildDir, logFileName = "test-gradle-dms-plugin.log")
         releaseNotesRELEASE.openStream().use { expected ->
             targetDir.resolve(releaseNotesCoordinates.gav.toPath().substringAfterLast("/")).inputStream().use { actual ->
                 assertArrayEquals(expected.readBytes(), actual.readBytes())
@@ -269,6 +258,44 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             assertContains(
                 this.second,
                 "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+        }
+    }
+
+    /**
+     * A coordinate states the version it is published at as `<coordinate>@<version>`, which is what
+     * lets artifacts released on different version lines be handled in one invocation - the single
+     * `artifacts.coordinates.version` cannot express that.
+     *
+     * Both artifacts of the dump live at 1.0 while the component is released as
+     * [eeComponentReleaseVersion0354], so nothing here resolves unless the suffix is what the
+     * version is taken from: without it the lookup would go to the released version and find
+     * nothing.
+     */
+    @Test
+    fun testMavenDmsPluginValidateArtifactsCoordinateVersions() {
+        with(
+            runMavenDmsPlugin(
+                "coordinate-versions.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$DEV_ARTIFACTS_COORDINATES@1.0,$RELEASE_ARTIFACTS_COORDINATES@1.0",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(0, this.first, this.second.joinToString("\n"))
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${devMavenDistributionCoordinates.toPath()}' " +
+                    "for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseMavenDistributionCoordinates.toPath()}' " +
+                    "for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
             )
         }
     }
@@ -704,6 +731,44 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     /**
+     * Run the testkit child build and always leave its output on disk, including when
+     * GradleRunner throws because the result was the opposite of what we asked for:
+     * an unexpected success or failure is exactly the case worth diagnosing, and the
+     * output is only reachable through the exception's own BuildResult.
+     */
+    private fun runTestKitBuild(
+        runner: GradleRunner,
+        shouldSucceed: Boolean,
+        buildDir: File,
+        logFileName: String,
+    ): BuildResult {
+        val result =
+            try {
+                if (shouldSucceed) runner.build() else runner.buildAndFail()
+            } catch (e: UnexpectedBuildResultException) {
+                writeTestKitLog(buildDir, logFileName, e.buildResult.output)
+                throw e
+            }
+        writeTestKitLog(buildDir, logFileName, result.output)
+        return result
+    }
+
+    private fun writeTestKitLog(
+        buildDir: File,
+        fileName: String,
+        output: String,
+    ) {
+        // File.writeText flushes and closes. Wrapping the raw OutputStream in a writer
+        // and closing only the stream dropped whatever was still sitting in the
+        // encoder's 8 KiB buffer, so every log was truncated down to a multiple of
+        // 8192 bytes — 0 for the short ones, and a plausible-looking 98304 for a long
+        // one, which is why this went unnoticed.
+        val log = buildDir.resolve("logs").resolve(fileName)
+        log.parentFile.mkdirs()
+        log.writeText(output, UTF_8)
+    }
+
+    /**
      * Resolve the GRADLE_USER_HOME the testkit child should use. Prefer the real
      * ~/.gradle on the TC agent so init scripts, gradle.properties
      * (NEXUS_USER/NEXUS_PASSWORD), and wrapper caches are picked up naturally — no
@@ -732,12 +797,34 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =
             Stream.of(
-                // Gradle 7.6 cannot execute under our current TC agent: the agent's
-                // `~/.gradle/init.gradle` is compiled against Java 21 (class-file major
-                // version 65) and Groovy 2.5 bundled with Gradle 7.6 rejects it with
-                // "Unsupported class file major version 65" during init-script
-                // semantic analysis — there is no way for the testkit child to run
-                // that script. So the 7.6 case legitimately fails; assert the failure.
+                // Gradle 7.6 cannot consume this client, and the mechanism is now
+                // pinned down (reproduced hermetically, no CI agent involved, on a JDK
+                // that 7.6 itself supports): the client pulls in jackson-core, a
+                // multi-release jar carrying META-INF/versions/21 entries. Gradle 7.6
+                // runs ASM over every entry while instrumenting the buildscript
+                // classpath, and that ASM cannot read class-file major 65 —
+                //   Failed to create Jar file .../jars-9/.../jackson-core-<v>.jar
+                //   Caused by: Failed to process the entry 'META-INF/versions/21/...'
+                //   Caused by: IllegalArgumentException: Unsupported class file major version 65
+                // It is therefore independent of the JDK the build runs on. Note this is
+                // NOT about the client's own bytecode: gradle-dms-client is pure Java at
+                // release 8 and common/client pin jvmTarget 1.8, all class-file major 52.
+                //
+                // We still assert only *that* 7.6 fails (GradleRunner.buildAndFail) and
+                // that nothing was exported — never the failure text. The same ASM error
+                // reaches the output through two different routes depending on the agent:
+                // the jackson jar above, or, earlier and faster, the agent's own Java-21
+                // init script, whose message differs and whose plain (non-stacktrace)
+                // output does not even mention the class-file version. Pinning either
+                // text is what broke this row twice already — "Failed to create Jar file"
+                // (#75) and "Unsupported class file major version" (#83).
+                //
+                // Worth revisiting: consumers reach this client through one standard
+                // pipeline template on Gradle 8.6 and Java 8, so no consumer runs 7.x at
+                // all, while the row below that does mirror a consumer ("8.6") runs on
+                // whatever JDK the agent has — currently 21, never 8. See the FT debt
+                // issue: the matrix tests a combination nobody uses and skips the one
+                // everybody uses.
                 Arguments.of("7.6", false),
                 Arguments.of("8.6", true),
             )
