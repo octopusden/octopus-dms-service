@@ -408,6 +408,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dcomponent=$eeComponent",
                     "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
                     "-Dartifacts.coordinates=$coordArgs",
+                    // forbidden.xml intentionally excluded to ensure validation succeeds
+                    "-DexcludeFiles=forbidden.xml",
                     "-DwlIgnore=$wlIgnoreArgs",
                     "-Dtype=distribution",
                 ),
@@ -443,6 +445,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dcomponent=$eeComponent",
                     "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
                     "-Dartifacts.coordinates=$coordArgs",
+                    // forbidden.xml intentionally excluded to ensure validation succeeds
+                    "-DexcludeFiles=forbidden.xml",
                     "-DwlIgnore=${wlIgnoreDir.absolutePath}",
                     "-Dtype=distribution",
                 ),
