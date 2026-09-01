@@ -726,25 +726,34 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =
             Stream.of(
-                // Gradle 7.6 cannot run here at all: it predates Java 21 support (which
-                // landed in Gradle 8.5) and the agents run JDK 21, so the testkit child
-                // is an unsupported combination before our code is even reached. Note
-                // this is NOT about the client's own bytecode — gradle-dms-client is
-                // pure Java at release 8, and common/client pin jvmTarget 1.8, so that
-                // whole buildscript classpath is class-file major 52.
+                // Gradle 7.6 cannot consume this client, and the mechanism is now
+                // pinned down (reproduced hermetically, no CI agent involved, on a JDK
+                // that 7.6 itself supports): the client pulls in jackson-core, a
+                // multi-release jar carrying META-INF/versions/21 entries. Gradle 7.6
+                // runs ASM over every entry while instrumenting the buildscript
+                // classpath, and that ASM cannot read class-file major 65 —
+                //   Failed to create Jar file .../jars-9/.../jackson-core-<v>.jar
+                //   Caused by: Failed to process the entry 'META-INF/versions/21/...'
+                //   Caused by: IllegalArgumentException: Unsupported class file major version 65
+                // It is therefore independent of the JDK the build runs on. Note this is
+                // NOT about the client's own bytecode: gradle-dms-client is pure Java at
+                // release 8 and common/client pin jvmTarget 1.8, all class-file major 52.
                 //
-                // So the 7.6 case legitimately fails and we assert only *that* it fails
-                // (GradleRunner.buildAndFail) and that nothing was exported, never *how*
-                // it failed: the failure text is a property of the build agent, not of
-                // our product. It was "Failed to create Jar file" (#75), re-baselined to
-                // "Unsupported class file major version" (#83) on the theory that the
-                // agent's Java-21 init script was rejected by Groovy 2.5, and broke
-                // again on 2026-08-30, on two runs where that message did not appear and
-                // the child ran 23-68 s instead of the usual ~5 s before failing
-                // elsewhere. What it fails on in those runs is still unknown, and it
-                // does not reproduce on every agent. The saved test-kit log artifact is
-                // the place to look, and the input for narrowing this case down to a
-                // product-level invariant.
+                // We still assert only *that* 7.6 fails (GradleRunner.buildAndFail) and
+                // that nothing was exported — never the failure text. The same ASM error
+                // reaches the output through two different routes depending on the agent:
+                // the jackson jar above, or, earlier and faster, the agent's own Java-21
+                // init script, whose message differs and whose plain (non-stacktrace)
+                // output does not even mention the class-file version. Pinning either
+                // text is what broke this row twice already — "Failed to create Jar file"
+                // (#75) and "Unsupported class file major version" (#83).
+                //
+                // Worth revisiting: consumers reach this client through one standard
+                // pipeline template on Gradle 8.6 and Java 8, so no consumer runs 7.x at
+                // all, while the row below that does mirror a consumer ("8.6") runs on
+                // whatever JDK the agent has — currently 21, never 8. See the FT debt
+                // issue: the matrix tests a combination nobody uses and skips the one
+                // everybody uses.
                 Arguments.of("7.6", false),
                 Arguments.of("8.6", true),
             )
