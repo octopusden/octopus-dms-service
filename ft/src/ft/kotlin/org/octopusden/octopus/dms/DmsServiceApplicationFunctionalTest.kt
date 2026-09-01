@@ -393,9 +393,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnoreEmptyFile() {
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${
+            File("").absolutePath
+        }/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip" +
+            "?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         val wlIgnoreArgs = "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.empty-wlignore.json"
         with(
@@ -427,9 +429,11 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         )
         wlIgnoreDir.mkdirs()
 
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${
+            File("").absolutePath
+        }/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip" +
+            "?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(
             runMavenDmsPlugin(
