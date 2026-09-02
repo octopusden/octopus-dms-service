@@ -1,18 +1,28 @@
 package org.octopusden.octopus.dms.client.util;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import org.apache.commons.lang3.StringUtils;
+import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
+import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 
 public class Utils {
     private Utils() {
+    }
+
+    public static String readNonBlankContent(final File file) throws IOException {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+        final String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+        return StringUtils.isBlank(content) ? null : content;
     }
 
     public static synchronized void writeToLogFile(String message, Path log) {

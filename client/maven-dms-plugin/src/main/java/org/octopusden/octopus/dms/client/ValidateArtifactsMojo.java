@@ -8,10 +8,9 @@ import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.service.ArtifactService;
 import org.octopusden.octopus.dms.client.service.DMSService;
+import org.octopusden.octopus.dms.client.util.Utils;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -73,18 +72,13 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 Collections.emptyList()
         );
         FileFilterConfig localFilterConfig = null;
-        if (wlIgnore != null
-                && wlIgnore.exists()
-                && wlIgnore.isFile()
-        ) {
-            try {
-                String content = new String(Files.readAllBytes(wlIgnore.toPath()), StandardCharsets.UTF_8);
-                if (StringUtils.isNotBlank(content)) {
-                    localFilterConfig = objectMapper.readValue(wlIgnore, FileFilterConfig.class);
-                }
-            } catch (IOException e) {
-                log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e.getMessage()));
+        try {
+            String wlIgnoreContent = Utils.readNonBlankContent(wlIgnore);
+            if (wlIgnoreContent != null) {
+                localFilterConfig = objectMapper.readValue(wlIgnoreContent, FileFilterConfig.class);
             }
+        } catch (IOException e) {
+            log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e.getMessage()));
         }
         FileFilterConfig fileFilterConfig = FileFilter.mergeConfigs(mojoParamFilterConfig, localFilterConfig);
         Set<String> excludePatterns = new HashSet<>(
