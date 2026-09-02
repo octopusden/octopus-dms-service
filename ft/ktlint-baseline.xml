@@ -3,7 +3,7 @@
     <file name="src/ft/kotlin/org/octopusden/octopus/dms/DmsServiceApplicationFunctionalTest.kt">
         <error line="371" column="141" source="standard:max-line-length" />
         <error line="398" column="141" source="standard:max-line-length" />
-        <error line="794" column="27" source="standard:property-naming" />
-        <error line="795" column="27" source="standard:property-naming" />
+        <error line="760" column="27" source="standard:property-naming" />
+        <error line="761" column="27" source="standard:property-naming" />
     </file>
 </baseline>
