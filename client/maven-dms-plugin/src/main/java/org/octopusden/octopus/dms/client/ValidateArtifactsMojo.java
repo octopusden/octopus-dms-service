@@ -10,6 +10,8 @@ import org.octopusden.octopus.dms.client.service.ArtifactService;
 import org.octopusden.octopus.dms.client.service.DMSService;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -74,12 +76,14 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
         if (wlIgnore != null
                 && wlIgnore.exists()
                 && wlIgnore.isFile()
-                && wlIgnore.length() > 0
         ) {
             try {
-                localFilterConfig = objectMapper.readValue(wlIgnore, FileFilterConfig.class);
+                String content = new String(Files.readAllBytes(wlIgnore.toPath()), StandardCharsets.UTF_8);
+                if (StringUtils.isNotBlank(content)) {
+                    localFilterConfig = objectMapper.readValue(wlIgnore, FileFilterConfig.class);
+                }
             } catch (IOException e) {
-                log.info(String.format("Can not deserialize %s, error:", wlIgnore), e);
+                log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e.getMessage()));
             }
         }
         FileFilterConfig fileFilterConfig = FileFilter.mergeConfigs(mojoParamFilterConfig, localFilterConfig);
