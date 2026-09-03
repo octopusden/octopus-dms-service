@@ -33,7 +33,7 @@ public class UploadFileMojo extends AbstractArtifactMojo {
         }
         String[] fileName = file.getName().split("\\.");
         final DmsServiceUploadingClient dmsServiceClient = getDmsServiceClient();
-        dmsService.uploadArtifact(getLog(),
+        dmsService.registerComponentVersionArtifact(getLog(),
                 dmsServiceClient,
                 file,
                 uploadAttempts,
@@ -50,7 +50,7 @@ public class UploadFileMojo extends AbstractArtifactMojo {
                         (fileName.length > 1) ? fileName[fileName.length - 1] : "jar",
                         classifier
                 )),
-                !replace,
+                failOnAlreadyExists,
                 validationLog == null ? null : validationLog.toPath(),
                 dryRun);
     }

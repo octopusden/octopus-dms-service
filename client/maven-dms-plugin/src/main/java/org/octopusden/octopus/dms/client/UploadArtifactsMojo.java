@@ -46,14 +46,15 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 artifactsCoordinatesDocker,
                 parallelism,
                 targetArtifact ->
-                        dmsService.uploadArtifact(log,
+                        dmsService.registerComponentVersionArtifact(
+                                log,
                                 dmsServiceClient,
                                 targetArtifact.file,
                                 uploadAttempts,
                                 ComponentVersion.create(component, version),
                                 targetArtifact.type,
                                 targetArtifact.coordinates,
-                                !replace,
+                                failOnAlreadyExists,
                                 validationLog == null ? null : validationLog.toPath(),
                                 dryRun
                         )

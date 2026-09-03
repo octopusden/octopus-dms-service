@@ -17,7 +17,6 @@ import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO;
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
@@ -68,8 +67,15 @@ public class DMSServiceImpl implements DMSService {
         }
     }
 
+    /**
+     * Registers an artifact for the specified component version.
+     * If a file is provided, uploads it first; otherwise, registers the artifact
+     * using the provided coordinates.
+     *
+     * @param file artifact file to upload, or {@code null} if the artifact already exists in the repository
+     */
     @Override
-    public void uploadArtifact(
+    public void registerComponentVersionArtifact(
             Log log,
             DmsServiceUploadingClient dmsServiceClient,
             File file,

@@ -297,7 +297,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .toObject(object : TypeReference<ArtifactDTO>() {})
 
         override fun uploadArtifact(
-            artifactCoordinates: MavenArtifactCoordinatesDTO,
+            artifactCoordinates: ArtifactCoordinatesDTO,
             file: InputStream,
             fileName: String?,
             failOnAlreadyExists: Boolean?,

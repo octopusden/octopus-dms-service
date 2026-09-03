@@ -14,8 +14,8 @@ abstract public class AbstractArtifactMojo extends AbstractDmsMojo {
     @Parameter(property = "name")
     protected String name;
 
-    @Parameter(property = "replace", defaultValue = "true")
-    protected boolean replace;
+    @Parameter(property = "failOnAlreadyExists", defaultValue = "false")
+    protected boolean failOnAlreadyExists;
 
     @Parameter(property = "uploadAttempts", defaultValue = "3")
     protected int uploadAttempts;
