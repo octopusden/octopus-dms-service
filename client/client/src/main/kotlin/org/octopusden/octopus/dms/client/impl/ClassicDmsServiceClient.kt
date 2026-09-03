@@ -23,10 +23,9 @@ import org.octopusden.octopus.dms.client.DmsServiceUploadingClient
 import org.octopusden.octopus.dms.client.TextBodyDecoder
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -134,11 +133,11 @@ class ClassicDmsServiceClient(
     ) = client.addArtifact(artifactCoordinates, failOnAlreadyExists)
 
     override fun uploadArtifact(
-        artifactCoordinates: MavenArtifactCoordinatesDTO,
+        artifactCoordinates: ArtifactCoordinatesDTO,
         file: InputStream,
         fileName: String?,
         failOnAlreadyExists: Boolean?,
-    ): MavenArtifactDTO {
+    ): ArtifactDTO {
         val httpEntity = MultipartEntityBuilder
             .create()
             .addPart(
@@ -168,7 +167,7 @@ class ClassicDmsServiceClient(
                 throw RuntimeException(responseBody)
             }
         }
-        return response.entity.content.use { objectMapper.readValue(it, MavenArtifactDTO::class.java) }
+        return response.entity.content.use { objectMapper.readValue(it, ArtifactDTO::class.java) }
     }
 
     private fun createClient(parametersProvider: DmsServiceClientParametersProvider): DmsServiceFeignClient {

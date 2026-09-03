@@ -50,7 +50,7 @@ public class DMSServiceImpl implements DMSService {
             try {
                 ArtifactDTO artifact;
                 if (file != null) {
-                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
+                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, coordinates, failOnAlreadyExists);
                 } else {
                     artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
                 }
@@ -86,7 +86,7 @@ public class DMSServiceImpl implements DMSService {
             try {
                 ArtifactDTO artifact;
                 if (file != null) {
-                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
+                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, coordinates, failOnAlreadyExists);
                 } else {
                     artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
                 }
@@ -134,7 +134,7 @@ public class DMSServiceImpl implements DMSService {
             DmsServiceUploadingClient dmsServiceClient,
             File file,
             int uploadAttempts,
-            MavenArtifactCoordinatesDTO coordinates,
+            ArtifactCoordinatesDTO coordinates,
             boolean failOnAlreadyExists
     ) throws Exception {
         Validate.isTrue(file.isFile(), "File should exist at " + file.getAbsolutePath());

@@ -84,11 +84,16 @@ class ArtifactController(
     @PostMapping("upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')") // TODO: separate permission for download?
     fun upload(
-        @Parameter(
-            description = "Fail if artifact is uploaded already",
-        ) @RequestParam("fail-on-already-exists", defaultValue = "false", required = false) failOnAlreadyExists: Boolean,
-        @Parameter(schema = Schema(implementation = MavenArtifactCoordinatesDTO::class)) @RequestPart("artifact") artifactCoordinates:
-            ArtifactCoordinatesDTO,
-        @Parameter(description = "Artifact file") @RequestPart("file") file: MultipartFile,
+        @Parameter(description = "Fail if artifact is uploaded already")
+        @RequestParam("fail-on-already-exists", defaultValue = "false", required = false)
+        failOnAlreadyExists: Boolean,
+
+        @Parameter(schema = Schema(implementation = ArtifactCoordinatesDTO::class))
+        @RequestPart("artifact")
+        artifactCoordinates: ArtifactCoordinatesDTO,
+
+        @Parameter(description = "Artifact file")
+        @RequestPart("file")
+        file: MultipartFile,
     ) = artifactService.upload(failOnAlreadyExists, artifactCoordinates, file)
 }

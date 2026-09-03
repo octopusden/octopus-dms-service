@@ -21,12 +21,30 @@ import io.swagger.v3.oas.annotations.media.Schema
 )
 @Schema(
     description = "Artifact coordinates",
+    oneOf = [
+        MavenArtifactCoordinatesDTO::class,
+        DebianArtifactCoordinatesDTO::class,
+        RpmArtifactCoordinatesDTO::class,
+        DockerArtifactCoordinatesDTO::class,
+    ],
     discriminatorProperty = "repositoryType",
     discriminatorMapping = [
-        DiscriminatorMapping("MAVEN", schema = MavenArtifactCoordinatesDTO::class),
-        DiscriminatorMapping("DEBIAN", schema = DebianArtifactCoordinatesDTO::class),
-        DiscriminatorMapping("RPM", schema = RpmArtifactCoordinatesDTO::class),
-        DiscriminatorMapping("DOCKER", schema = DockerArtifactCoordinatesDTO::class),
+        DiscriminatorMapping(
+            value = "MAVEN",
+            schema = MavenArtifactCoordinatesDTO::class,
+        ),
+        DiscriminatorMapping(
+            value = "DEBIAN",
+            schema = DebianArtifactCoordinatesDTO::class,
+        ),
+        DiscriminatorMapping(
+            value = "RPM",
+            schema = RpmArtifactCoordinatesDTO::class,
+        ),
+        DiscriminatorMapping(
+            value = "DOCKER",
+            schema = DockerArtifactCoordinatesDTO::class,
+        ),
     ],
 )
 abstract class ArtifactCoordinatesDTO(
