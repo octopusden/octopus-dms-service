@@ -5,6 +5,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.UnexpectedBuildResultException
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -410,6 +411,43 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             ),
         ) {
             assertEquals(0, this.first)
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+        }
+    }
+
+    @Test
+    fun testMavenDmsPluginValidateArtifactsWlIgnoreEmptyFile() {
+        val coordValue = "file:///${
+            File("").absolutePath
+        }/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip" +
+            "?artifactId=distribution&classifier=test"
+        val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
+        val wlIgnoreValue = "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.empty-wlignore.json"
+        val wlIgnoreArgs = if (isWindowsSystem) "\"$wlIgnoreValue\"" else wlIgnoreValue
+        with(
+            runMavenDmsPlugin(
+                "wl-ignore-empty-file.log",
+                "validate-artifacts",
+                listOf(
+                    "-Dcomponent=$eeComponent",
+                    "-Dversion=${eeComponentReleaseVersion0354.buildVersion}",
+                    "-Dartifacts.coordinates=$coordArgs",
+                    // forbidden.xml intentionally excluded to ensure validation succeeds
+                    "-DexcludeFiles=forbidden.xml",
+                    "-DwlIgnore=$wlIgnoreArgs",
+                    "-Dtype=distribution",
+                ),
+            ),
+        ) {
+            assertEquals(0, this.first)
+            assertFalse(
+                this.second.any { it.contains("Can not deserialize") },
+                "Expected no deserialize complaint for the unusable wlIgnore: ${this.second}",
+            )
             assertContains(
                 this.second,
                 "[INFO] Validated artifact 'corp/domain/dms/$eeComponent/distribution/distribution/${eeComponentReleaseVersion0354.buildVersion}/distribution-${eeComponentReleaseVersion0354.buildVersion}-test.zip' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
