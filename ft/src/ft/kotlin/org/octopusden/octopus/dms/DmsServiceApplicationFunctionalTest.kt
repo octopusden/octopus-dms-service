@@ -426,7 +426,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip" +
             "?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
-        val wlIgnoreArgs = "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.empty-wlignore.json"
+        val wlIgnoreValue = "${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/.empty-wlignore.json"
+        val wlIgnoreArgs = if (isWindowsSystem) "\"$wlIgnoreValue\"" else wlIgnoreValue
         with(
             runMavenDmsPlugin(
                 "wl-ignore-empty-file.log",
