@@ -73,12 +73,9 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
         );
         FileFilterConfig localFilterConfig = null;
         try {
-            String wlIgnoreContent = Utils.readNonBlankContent(wlIgnore);
-            if (wlIgnoreContent != null) {
-                localFilterConfig = objectMapper.readValue(wlIgnoreContent, FileFilterConfig.class);
-            }
+            localFilterConfig = Utils.readJsonIfNotBlank(wlIgnore, objectMapper, FileFilterConfig.class);
         } catch (IOException e) {
-            log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e.getMessage()));
+            log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e));
         }
         FileFilterConfig fileFilterConfig = FileFilter.mergeConfigs(mojoParamFilterConfig, localFilterConfig);
         Set<String> excludePatterns = new HashSet<>(

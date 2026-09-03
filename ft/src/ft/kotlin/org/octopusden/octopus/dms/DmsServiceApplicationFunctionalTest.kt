@@ -444,7 +444,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         ) {
             assertEquals(0, this.first)
             assertFalse(
-                this.second.any { it.contains("Can not deserialize $wlIgnoreArgs") },
+                this.second.any { it.contains("Can not deserialize") },
                 "Expected no deserialize complaint for the unusable wlIgnore: ${this.second}",
             )
             assertContains(
