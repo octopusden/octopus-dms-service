@@ -32,6 +32,7 @@ import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
@@ -141,7 +142,7 @@ abstract class DmsServiceApplicationBaseTest {
         val releaseNotesRC = getResource(devReleaseNotesFileName)
         val artifact = releaseNotesRC.openStream().use {
             client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, true)
-        }
+        } as MavenArtifactDTO
         assertEquals(true, artifact.uploaded)
         assertEquals(RepositoryType.MAVEN, artifact.repositoryType)
         assertEquals(releaseNotesCoordinates.gav, artifact.gav)
@@ -160,6 +161,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
         releaseNotesRELEASE.openStream().use {
             with(client.uploadArtifact(releaseNotesCoordinates, it, releaseReleaseNotesFileName)) {
+                this as MavenArtifactDTO
                 assertEquals(artifact.id, id)
                 assertEquals(artifact.repositoryType, repositoryType)
                 assertEquals(artifact.uploaded, uploaded)
@@ -213,7 +215,7 @@ abstract class DmsServiceApplicationBaseTest {
         val releaseNotesRC = getResource(devReleaseNotesFileName)
         val artifact = releaseNotesRC.openStream().use {
             client.uploadArtifact(releaseNotesCoordinates, it, devReleaseNotesFileName, true)
-        }
+        } as MavenArtifactDTO
         updateSha256(artifact.id, "some-other-sha256")
         assertThrowsExactly(ArtifactChecksumChangedException::class.java) {
             client.registerComponentVersionArtifact(
@@ -680,7 +682,7 @@ abstract class DmsServiceApplicationBaseTest {
                 file = inputStream,
                 fileName = TEST_SBOM_FILE_NAME,
             )
-        }
+        } as MavenArtifactDTO
 
         assertTrue(uploadedSbomArtifact.uploaded)
         assertEquals(RepositoryType.MAVEN, uploadedSbomArtifact.repositoryType)
