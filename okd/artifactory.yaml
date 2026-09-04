@@ -52,12 +52,20 @@ objects:
               set -e
               echo "Initializing Artifactory configuration"
               mkdir -p /opt/jfrog/artifactory/var/etc/artifactory
+              mkdir -p /opt/jfrog/artifactory/var/etc/security
+              mkdir -p /opt/jfrog/artifactory/var/work
+              mkdir -p /opt/jfrog/artifactory/var/data
+              mkdir -p /opt/jfrog/artifactory/var/log
               echo "Copying system.yaml"
               cp /tmp/system.yaml /opt/jfrog/artifactory/var/etc/system.yaml
               echo "Copying artifactory.system.properties"
               cp /tmp/artifactory.system.properties /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
-              chmod 666 /opt/jfrog/artifactory/var/etc/system.yaml
-              chmod 666 /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
+              echo "Artifactory directories:"
+              ls -ld \
+                /opt/jfrog/artifactory/var \
+                /opt/jfrog/artifactory/var/etc \
+                /opt/jfrog/artifactory/var/etc/security
+              echo "Initialization completed"
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var

@@ -35,4 +35,11 @@ interface ComponentsRegistryService {
         version: String,
         versions: List<String>,
     ): List<String>
+
+    fun getExternalExplicitComponent(componentName: String): ComponentDTO
+
+    fun getExternalExplicitComponentVersion(
+        componentName: String,
+        version: String,
+    ): ComponentDTO
 }

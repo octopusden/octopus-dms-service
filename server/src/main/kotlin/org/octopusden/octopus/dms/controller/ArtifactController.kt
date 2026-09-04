@@ -6,9 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.service.ArtifactService
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,21 +33,30 @@ class ArtifactController(
     @PreAuthorize("@permissionEvaluator.hasPermission('ACCESS_META')")
     fun repositories(
         @Parameter(description = "Repository type") @RequestParam("repository-type") repositoryType: RepositoryType,
-    ) = artifactService.repositories(repositoryType).sortedDescending()
+    ): List<String> {
+        log.info("")
+        return artifactService.repositories(repositoryType).sortedDescending()
+    }
 
     @Operation(summary = "Get Artifact")
     @GetMapping("{id}")
     @PreAuthorize("@permissionEvaluator.hasPermission('ACCESS_META')")
     fun get(
         @Parameter(description = "ID") @PathVariable("id") id: Long,
-    ) = artifactService.get(id)
+    ): ArtifactDTO {
+        log.info("")
+        return artifactService.get(id)
+    }
 
     @Operation(summary = "Find Artifact")
     @PostMapping("find")
     @PreAuthorize("@permissionEvaluator.hasPermission('ACCESS_META')")
     fun find(
         @RequestBody artifactCoordinates: ArtifactCoordinatesDTO,
-    ) = artifactService.find(artifactCoordinates)
+    ): ArtifactDTO {
+        log.info("")
+        return artifactService.find(artifactCoordinates)
+    }
 
     @GetMapping(
         "{id}/download",
@@ -56,18 +66,26 @@ class ArtifactController(
     fun download(
         @Parameter(description = "ID") @PathVariable("id") id: Long,
         response: HttpServletResponse,
-    ) = artifactService.download(id).run {
-        response.contentType = when {
-            arrayOf(".zip", ".jar", ".tar").any { this.fileName.endsWith(it) } -> MediaType.APPLICATION_OCTET_STREAM_VALUE
-            arrayOf(".htm", ".html").any { this.fileName.endsWith(it) } -> MediaType.TEXT_HTML_VALUE
-            else -> MediaType.TEXT_PLAIN_VALUE
+    ) {
+        log.info("")
+        artifactService.download(id).run {
+            response.contentType = when {
+                arrayOf(
+                    ".zip",
+                    ".jar",
+                    ".tar"
+                ).any { this.fileName.endsWith(it) } -> MediaType.APPLICATION_OCTET_STREAM_VALUE
+
+                arrayOf(".htm", ".html").any { this.fileName.endsWith(it) } -> MediaType.TEXT_HTML_VALUE
+                else -> MediaType.TEXT_PLAIN_VALUE
+            }
+            response.status = 200
+            if (response.contentType == MediaType.APPLICATION_OCTET_STREAM_VALUE) {
+                response.addHeader("Content-disposition", "attachment; filename= " + this.fileName)
+            }
+            this.file.use { it.copyTo(response.outputStream) }
+            response.flushBuffer()
         }
-        response.status = 200
-        if (response.contentType == MediaType.APPLICATION_OCTET_STREAM_VALUE) {
-            response.addHeader("Content-disposition", "attachment; filename= " + this.fileName)
-        }
-        this.file.use { it.copyTo(response.outputStream) }
-        response.flushBuffer()
     }
 
     @Operation(summary = "Add Artifact")
@@ -78,7 +96,10 @@ class ArtifactController(
             description = "Fail if artifact is added already",
         ) @RequestParam("fail-on-already-exists", defaultValue = "false", required = false) failOnAlreadyExists: Boolean,
         @RequestBody artifactCoordinates: ArtifactCoordinatesDTO,
-    ) = artifactService.add(failOnAlreadyExists, artifactCoordinates)
+    ): ArtifactDTO {
+        log.info("")
+        return artifactService.add(failOnAlreadyExists, artifactCoordinates)
+    }
 
     @Operation(summary = "Upload Artifact")
     @PostMapping("upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -95,5 +116,12 @@ class ArtifactController(
         @Parameter(description = "Artifact file")
         @RequestPart("file")
         file: MultipartFile,
-    ) = artifactService.upload(failOnAlreadyExists, artifactCoordinates, file)
+    ): ArtifactDTO {
+        log.info("")
+        return artifactService.upload(failOnAlreadyExists, artifactCoordinates, file)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(ArtifactController::class.java)
+    }
 }

@@ -108,6 +108,14 @@ class ComponentsRegistryServiceImpl(
             .reversed()
     }
 
+    override fun getExternalExplicitComponent(componentName: String): ComponentDTO =
+        getExternalComponent(componentName).explicitOrBreak()
+
+    override fun getExternalExplicitComponentVersion(
+        componentName: String,
+        version: String,
+    ): ComponentDTO = getExternalComponentVersion(componentName, version).explicitOrBreak()
+
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)
 
@@ -148,6 +156,13 @@ class ComponentsRegistryServiceImpl(
                     it,
                 )
             }
+        }
+
+        private fun ComponentDTO.explicitOrBreak(): ComponentDTO {
+            if (!explicit) {
+                throw IllegalComponentTypeException("Component '$id' is not explicit")
+            }
+            return this
         }
     }
 }
