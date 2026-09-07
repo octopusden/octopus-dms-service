@@ -34,14 +34,6 @@ class ComponentServiceImpl(
     private val applicationEventPublisher: ApplicationEventPublisher,
     @param:Value("\${dms-service.docker-registry}") private val dockerRegistry: String,
 ) : ComponentService {
-    /* Implementation notes:
-     *
-     * Use non-limited waiting pessimistic transaction advisory locks by component (see `componentRepository.lock`) because of:
-     * - "on-demand" nature of Component and ComponentVersion entities
-     * - "administrative only" and "safe" delete operation
-     * - low concurrency (the main case is race condition on saving Component and ComponentVersion entities during parallel registration of artifacts)
-     */
-
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
         return componentsRegistryService.getExternalComponents(filter).sortedWith { a, b ->
             a.name.lowercase().compareTo(b.name.lowercase())

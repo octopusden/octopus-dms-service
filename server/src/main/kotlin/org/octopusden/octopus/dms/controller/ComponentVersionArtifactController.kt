@@ -195,19 +195,21 @@ class ComponentVersionArtifactController(
 
     @Operation(summary = "Upload artifact and register it for component version")
     @PostMapping(
-        "{component-name}/versions/{version}/artifacts/upload",
+        "upload",
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
     )
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun uploadAndRegisterComponentVersionArtifact(
         @PathVariable("component-name") componentName: String,
         @PathVariable version: String,
-        @Parameter(schema = Schema(implementation = ArtifactCoordinatesDTO::class))
         @RequestPart("artifact") artifactCoordinates: ArtifactCoordinatesDTO,
-        @Parameter(description = "Artifact file")
         @RequestPart("file") file: MultipartFile,
-        @RequestParam artifactType: ArtifactType,
-        @RequestParam(defaultValue = "false", required = false) failOnAlreadyExists: Boolean,
+        @RequestParam("artifact-type") artifactType: ArtifactType,
+        @RequestParam(
+            "fail-on-already-exists",
+            defaultValue = "false",
+            required = false,
+        ) failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
         log.info(
             "Upload artifact and register it: component='{}', version='{}', coordinates='{}', " +
@@ -231,14 +233,18 @@ class ComponentVersionArtifactController(
     }
 
     @Operation(summary = "Add artifact by coordinates and register it for component version")
-    @PostMapping("{component-name}/versions/{version}/artifacts")
+    @PostMapping("add")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun addAndRegisterComponentVersionArtifact(
         @PathVariable("component-name") componentName: String,
         @PathVariable version: String,
         @RequestBody artifactCoordinates: ArtifactCoordinatesDTO,
-        @RequestParam artifactType: ArtifactType,
-        @RequestParam(defaultValue = "false", required = false) failOnAlreadyExists: Boolean,
+        @RequestParam("artifact-type") artifactType: ArtifactType,
+        @RequestParam(
+            "fail-on-already-exists",
+            defaultValue = "false",
+            required = false,
+        ) failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
         log.info(
             "Add existing artifact and register it: component='{}', version='{}', coordinates='{}', " +

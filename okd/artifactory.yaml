@@ -53,24 +53,20 @@ objects:
               echo "Initializing Artifactory configuration"
               mkdir -p /opt/jfrog/artifactory/var/etc/artifactory
               mkdir -p /opt/jfrog/artifactory/var/etc/security
-              mkdir -p /opt/jfrog/artifactory/var/work
-              mkdir -p /opt/jfrog/artifactory/var/data
-              mkdir -p /opt/jfrog/artifactory/var/log
-              echo "Copying system.yaml"
               cp /tmp/system.yaml /opt/jfrog/artifactory/var/etc/system.yaml
-              echo "Copying artifactory.system.properties"
               cp /tmp/artifactory.system.properties /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
-              echo "Artifactory directories:"
-              ls -ld \
-                /opt/jfrog/artifactory/var \
-                /opt/jfrog/artifactory/var/etc \
-                /opt/jfrog/artifactory/var/etc/security
               if [ ! -s /opt/jfrog/artifactory/var/etc/security/master.key ]; then
                 echo "Generating master.key"
                 head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' \
                   > /opt/jfrog/artifactory/var/etc/security/master.key
               fi
+              if [ ! -s /opt/jfrog/artifactory/var/etc/security/join.key ]; then
+                echo "Generating join.key"
+                head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' \
+                  > /opt/jfrog/artifactory/var/etc/security/join.key
+              fi
               chmod 600 /opt/jfrog/artifactory/var/etc/security/master.key || true
+              chmod 600 /opt/jfrog/artifactory/var/etc/security/join.key || true
               echo "Initialization completed"
           volumeMounts:
             - name: artifactory-data

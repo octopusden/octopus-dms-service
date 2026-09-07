@@ -11,6 +11,7 @@ import feign.httpclient.ApacheHttpClient
 import feign.jackson.JacksonDecoder
 import feign.jackson.JacksonEncoder
 import feign.slf4j.Slf4jLogger
+import org.apache.http.HttpEntity
 import org.apache.http.HttpHeaders
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
@@ -24,6 +25,7 @@ import org.octopusden.octopus.dms.client.TextBodyDecoder
 import org.octopusden.octopus.dms.client.common.dto.ApplicationErrorResponse
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
@@ -31,7 +33,9 @@ import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.exception.DMSException
 import java.io.InputStream
+import java.net.URLEncoder
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.concurrent.TimeUnit
 
@@ -132,6 +136,20 @@ class ClassicDmsServiceClient(
         failOnAlreadyExists: Boolean?,
     ) = client.addArtifact(artifactCoordinates, failOnAlreadyExists)
 
+    override fun addAndRegisterComponentVersionArtifact(
+        componentName: String,
+        version: String,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        artifactType: ArtifactType,
+        failOnAlreadyExists: Boolean
+    ): ArtifactFullDTO = client.addAndRegisterComponentVersionArtifact(
+        componentName,
+        version,
+        artifactCoordinates,
+        artifactType,
+        failOnAlreadyExists,
+    )
+
     override fun uploadArtifact(
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: InputStream,
@@ -142,32 +160,117 @@ class ClassicDmsServiceClient(
             .create()
             .addPart(
                 "artifact",
-                StringBody(objectMapper.writeValueAsString(artifactCoordinates), ContentType.APPLICATION_JSON),
-            ).addBinaryBody("file", file, ContentType.DEFAULT_BINARY, fileName)
+                StringBody(
+                    objectMapper.writeValueAsString(artifactCoordinates),
+                    ContentType.APPLICATION_JSON,
+                ),
+            )
+            .addBinaryBody(
+                "file",
+                file,
+                ContentType.DEFAULT_BINARY,
+                fileName,
+            )
             .build()
-        val httpPost = HttpPost(
-            "${parametersProvider.getApiUrl()}/rest/api/3/artifacts/upload" +
-                if (failOnAlreadyExists != null) "?fail-on-already-exists=$failOnAlreadyExists" else "",
+        val url = buildString {
+            append(parametersProvider.getApiUrl())
+            append("/rest/api/3/artifacts/upload")
+            if (failOnAlreadyExists != null) {
+                append("?fail-on-already-exists=")
+                append(failOnAlreadyExists)
+            }
+        }
+        return executeMultipartPost(
+            url,
+            httpEntity,
+            ArtifactDTO::class.java,
         )
-        httpPost.entity = httpEntity
-        httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.mimeType)
-        httpPost.addHeader(HttpHeaders.AUTHORIZATION, getAuthHeader())
+    }
+
+    override fun uploadAndRegisterComponentVersionArtifact(
+        componentName: String,
+        version: String,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        file: InputStream,
+        fileName: String?,
+        artifactType: ArtifactType,
+        failOnAlreadyExists: Boolean?,
+    ): ArtifactFullDTO {
+        val httpEntity = MultipartEntityBuilder
+            .create()
+            .addPart(
+                "artifact",
+                StringBody(
+                    objectMapper.writeValueAsString(artifactCoordinates),
+                    ContentType.APPLICATION_JSON,
+                ),
+            )
+            .addBinaryBody(
+                "file",
+                file,
+                ContentType.DEFAULT_BINARY,
+                fileName,
+            )
+            .build()
+
+        val url = buildString {
+            append(parametersProvider.getApiUrl())
+            append("/rest/api/3/components/")
+            append(URLEncoder.encode(componentName, StandardCharsets.UTF_8.name()))
+            append("/versions/")
+            append(URLEncoder.encode(version, StandardCharsets.UTF_8.name()))
+            append("/artifacts/upload")
+            append("?artifact-type=")
+            append(artifactType)
+
+            if (failOnAlreadyExists != null) {
+                append("&fail-on-already-exists=")
+                append(failOnAlreadyExists)
+            }
+        }
+
+        return executeMultipartPost(
+            url,
+            httpEntity,
+            ArtifactFullDTO::class.java,
+        )
+    }
+
+    private fun <T> executeMultipartPost(
+        url: String,
+        httpEntity: HttpEntity,
+        responseType: Class<T>,
+    ): T {
+        val httpPost = HttpPost(url).apply {
+            entity = httpEntity
+            addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.mimeType)
+            addHeader(HttpHeaders.AUTHORIZATION, getAuthHeader())
+        }
+
         val response = httpClient.execute(httpPost)
+
         if (response.statusLine.statusCode / 100 != 2) {
             response.entity.content.use {
                 val responseBody = it.readBytes().toString(Charsets.UTF_8)
+
                 try {
-                    objectMapper.readValue(responseBody, ApplicationErrorResponse::class.java)
+                    objectMapper.readValue(
+                        responseBody,
+                        ApplicationErrorResponse::class.java,
+                    )
                 } catch (_: Exception) {
                     null
                 }?.let { error ->
                     throw DMSException.CODE_EXCEPTION_MAP[error.code]?.invoke(error.message)
                         ?: RuntimeException(error.message)
                 }
+
                 throw RuntimeException(responseBody)
             }
         }
-        return response.entity.content.use { objectMapper.readValue(it, ArtifactDTO::class.java) }
+        return response.entity.content.use {
+            objectMapper.readValue(it, responseType)
+        }
     }
 
     private fun createClient(parametersProvider: DmsServiceClientParametersProvider): DmsServiceFeignClient {

@@ -296,6 +296,26 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .response
             .toObject(object : TypeReference<ArtifactDTO>() {})
 
+        override fun addAndRegisterComponentVersionArtifact(
+            componentName: String,
+            version: String,
+            artifactCoordinates: ArtifactCoordinatesDTO,
+            artifactType: ArtifactType,
+            failOnAlreadyExists: Boolean
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/components/$componentName/versions/$version/artifacts/add")
+                    .param("artifact-type", artifactType.value())
+                    .param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(artifactCoordinates))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
+
         override fun uploadArtifact(
             artifactCoordinates: ArtifactCoordinatesDTO,
             file: InputStream,
@@ -326,6 +346,41 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             ).andReturn()
             .response
             .toObject(object : TypeReference<MavenArtifactDTO>() {})
+
+        override fun uploadAndRegisterComponentVersionArtifact(
+            componentName: String,
+            version: String,
+            artifactCoordinates: ArtifactCoordinatesDTO,
+            file: InputStream,
+            fileName: String?,
+            artifactType: ArtifactType,
+            failOnAlreadyExists: Boolean?
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/rest/api/3/components/$componentName/versions/$version/artifacts/upload")
+                    .also {
+                        it.param("artifact-type", artifactType.value())
+                        if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    }.file(
+                        MockMultipartFile(
+                            "artifact",
+                            "",
+                            ContentType.APPLICATION_JSON.mimeType,
+                            objectMapper.writeValueAsString(artifactCoordinates).toByteArray(),
+                        ),
+                    ).file(
+                        MockMultipartFile(
+                            "file",
+                            fileName ?: "",
+                            ContentType.DEFAULT_BINARY.mimeType,
+                            file,
+                        ),
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
 
         private fun MockHttpServletResponse.processError() {
             if (this.status / 100 != 2) {
