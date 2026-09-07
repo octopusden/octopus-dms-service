@@ -34,7 +34,7 @@ class ComponentController(
             "@permissionEvaluator.filterComponents(returnObject)",
     )
     fun getComponents(filter: ComponentRequestFilter): ComponentsDTO {
-        log.info("Get components: filter={}", filter)
+        log.info("Get components: filter='{}'", filter)
         return ComponentsDTO(
             componentService
                 .getComponents(filter)
@@ -55,8 +55,10 @@ class ComponentController(
     fun getComponentMinorVersions(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
     ): List<String> {
-        log.info("Get component minor version: componentName={}", componentName)
-        return componentService.getComponentMinorVersions(componentName).sortedDescending()
+        log.info("Get component minor versions: component='{}'", componentName)
+        return componentService
+            .getComponentMinorVersions(componentName)
+            .sortedDescending()
     }
 
     @Operation(
@@ -81,7 +83,12 @@ class ComponentController(
             required = false,
         ) includeRc: Boolean,
     ): ComponentVersionsDTO {
-        log.info("TODO")
+        log.info(
+            "Get component versions: component='{}', minorVersions='{}', includeRc='{}'",
+            componentName,
+            minorVersions,
+            includeRc,
+        )
         return ComponentVersionsDTO(
             componentService
                 .getComponentVersionsWithInfo(componentName, minorVersions, includeRc)
@@ -99,7 +106,11 @@ class ComponentController(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
         @Parameter(description = "Build version") @PathVariable("version") version: String,
     ): List<ComponentVersionDTO> {
-        log.info("TODO")
+        log.info(
+            "Get component version dependencies: component='{}', version='{}'",
+            componentName,
+            version,
+        )
         return componentService
             .getComponentVersionDependencies(componentName, version)
             .sortedWith(compareBy({ it.version.component }, { it.versionInfo }))
@@ -113,8 +124,13 @@ class ComponentController(
         @Parameter(description = "Build version") @PathVariable("version") version: String,
         @RequestBody patchComponentVersionDTO: PatchComponentVersionDTO,
     ): ComponentVersionDTO {
-        log.info("TODO")
-        return componentService.patchComponentVersion(componentName, version, patchComponentVersionDTO)
+        log.info(
+            "Patch component version: component='{}', version='{}', patch='{}'",
+            componentName,
+            version,
+            patchComponentVersionDTO,
+        )
+        return componentService.patchComponentVersion(componentName, version, patchComponentVersionDTO,)
     }
 
     @Operation(summary = "List of Component Previous Lines Versions")
@@ -132,7 +148,12 @@ class ComponentController(
             required = false,
         ) includeRc: Boolean,
     ): VersionsDTO {
-        log.info("TODO")
+        log.info(
+            "Get previous lines latest versions: component='{}', version='{}', includeRc='{}'",
+            componentName,
+            version,
+            includeRc,
+        )
         return VersionsDTO(
             componentService.getPreviousLinesLatestVersions(componentName, version, includeRc).sortedDescending(),
         )

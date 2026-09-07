@@ -34,7 +34,7 @@ class ArtifactController(
     fun repositories(
         @Parameter(description = "Repository type") @RequestParam("repository-type") repositoryType: RepositoryType,
     ): List<String> {
-        log.info("")
+        log.info("Get repositories: repositoryType='{}'", repositoryType)
         return artifactService.repositories(repositoryType).sortedDescending()
     }
 
@@ -44,7 +44,7 @@ class ArtifactController(
     fun get(
         @Parameter(description = "ID") @PathVariable("id") id: Long,
     ): ArtifactDTO {
-        log.info("")
+        log.info("Get artifact: id='{}'", id)
         return artifactService.get(id)
     }
 
@@ -54,7 +54,7 @@ class ArtifactController(
     fun find(
         @RequestBody artifactCoordinates: ArtifactCoordinatesDTO,
     ): ArtifactDTO {
-        log.info("")
+        log.info("Find artifact: coordinates='{}'", artifactCoordinates)
         return artifactService.find(artifactCoordinates)
     }
 
@@ -67,7 +67,7 @@ class ArtifactController(
         @Parameter(description = "ID") @PathVariable("id") id: Long,
         response: HttpServletResponse,
     ) {
-        log.info("")
+        log.info("Download artifact: id='{}'", id)
         artifactService.download(id).run {
             response.contentType = when {
                 arrayOf(
@@ -79,6 +79,12 @@ class ArtifactController(
                 arrayOf(".htm", ".html").any { this.fileName.endsWith(it) } -> MediaType.TEXT_HTML_VALUE
                 else -> MediaType.TEXT_PLAIN_VALUE
             }
+            log.info(
+                "Download artifact resolved: id='{}', fileName='{}', contentType='{}'",
+                id,
+                fileName,
+                response.contentType,
+            )
             response.status = 200
             if (response.contentType == MediaType.APPLICATION_OCTET_STREAM_VALUE) {
                 response.addHeader("Content-disposition", "attachment; filename= " + this.fileName)
@@ -97,7 +103,11 @@ class ArtifactController(
         ) @RequestParam("fail-on-already-exists", defaultValue = "false", required = false) failOnAlreadyExists: Boolean,
         @RequestBody artifactCoordinates: ArtifactCoordinatesDTO,
     ): ArtifactDTO {
-        log.info("")
+        log.info(
+            "Add artifact: coordinates='{}', failOnAlreadyExists='{}'",
+            artifactCoordinates,
+            failOnAlreadyExists,
+        )
         return artifactService.add(failOnAlreadyExists, artifactCoordinates)
     }
 
@@ -117,7 +127,14 @@ class ArtifactController(
         @RequestPart("file")
         file: MultipartFile,
     ): ArtifactDTO {
-        log.info("")
+        log.info(
+            "Upload artifact: coordinates='{}', failOnAlreadyExists='{}', fileName='{}', fileSize='{}', contentType='{}'",
+            artifactCoordinates,
+            failOnAlreadyExists,
+            file.originalFilename,
+            file.size,
+            file.contentType,
+        )
         return artifactService.upload(failOnAlreadyExists, artifactCoordinates, file)
     }
 

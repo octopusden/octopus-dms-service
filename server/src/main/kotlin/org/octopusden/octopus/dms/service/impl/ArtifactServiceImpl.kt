@@ -30,13 +30,11 @@ class ArtifactServiceImpl(
     private val artifactRepository: ArtifactRepository,
 ) : ArtifactService {
     override fun repositories(repositoryType: RepositoryType): List<String> {
-        log.info("Get $repositoryType repositories")
         return storageService.getRepositoriesUrls(repositoryType, false)
     }
 
     @Transactional(readOnly = true)
     override fun get(id: Long): ArtifactDTO {
-        log.info("Get artifact with ID '$id'")
         return artifactRepository
             .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
@@ -45,7 +43,6 @@ class ArtifactServiceImpl(
 
     @Transactional(readOnly = true)
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
-        log.info("Find artifact with coordinates '$artifactCoordinates'")
         return (
             artifactRepository.findByPath(artifactCoordinates.toPath())
                 ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
@@ -54,7 +51,6 @@ class ArtifactServiceImpl(
 
     @Transactional(readOnly = true)
     override fun download(id: Long): DownloadArtifactDTO {
-        log.info("Download artifact with ID '$id'")
         val artifact = artifactRepository
             .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
@@ -69,7 +65,6 @@ class ArtifactServiceImpl(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
     ): ArtifactDTO {
-        log.info("Add artifact with coordinates '$artifactCoordinates'")
         val sha256 = storageService
             .get(
                 artifactCoordinates.repositoryType,
@@ -92,7 +87,6 @@ class ArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
     ): ArtifactDTO {
-        log.info("Upload file ${file.originalFilename} as artifact with coordinates '$artifactCoordinates'")
         val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
             with("Artifact '${it.path}' already uploaded") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)

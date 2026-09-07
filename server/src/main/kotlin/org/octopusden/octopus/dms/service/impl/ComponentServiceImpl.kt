@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class ComponentServiceImpl( // TODO: move "start operation" logging to ComponentController
+class ComponentServiceImpl(
     private val componentsRegistryService: ComponentsRegistryService,
     private val releaseManagementService: ReleaseManagementService,
     private val componentRepository: ComponentRepository,
@@ -43,7 +43,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
      */
 
     override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
-        log.info("Get components")
         return componentsRegistryService.getExternalComponents(filter).sortedWith { a, b ->
             a.name.lowercase().compareTo(b.name.lowercase())
         }
@@ -51,7 +50,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
 
     @Transactional(readOnly = true)
     override fun getComponentMinorVersions(componentName: String): Set<String> {
-        log.info("Get minor versions of component '$componentName'")
         componentsRegistryService.getExternalExplicitComponent(componentName)
         return componentVersionRepository.getMinorVersionsByComponentName(componentName)
     }
@@ -62,7 +60,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
         minorVersions: List<String>,
         includeRc: Boolean,
     ): List<ComponentVersionWithInfoDTO> {
-        log.info("Get versions of component '$componentName'")
         val componentVersions = getComponentVersions(componentName, minorVersions, includeRc)
         val numericVersionFactory = NumericVersionFactory(componentsRegistryService.getVersionNames())
         return componentVersions.map { ComponentVersionWithInfoDTO(it, numericVersionFactory.create(it.version)) }
@@ -73,7 +70,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
         componentName: String,
         version: String,
     ): List<ComponentVersionWithInfoDTO> {
-        log.info("Get dependencies of version '$version' of component '$componentName'")
         if (!componentsRegistryService.getExternalExplicitComponentVersion(componentName, version).solution) {
             throw IllegalComponentTypeException("Component '$componentName' is not solution")
         }
@@ -96,7 +92,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
         version: String,
         patchComponentVersionDTO: PatchComponentVersionDTO,
     ): ComponentVersionDTO {
-        log.info("${if (patchComponentVersionDTO.published) "Publish" else "Revoke"} version '$version' of component '$componentName'")
         val component = componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, !patchComponentVersionDTO.published)
         componentRepository.lock(component.id.hashCode())
@@ -190,7 +185,6 @@ class ComponentServiceImpl( // TODO: move "start operation" logging to Component
         version: String,
         includeRc: Boolean,
     ): List<String> {
-        log.info("Get previous versions for version '$version' of component '$componentName'" + if (includeRc) " including RC" else "")
         val componentVersions = getComponentVersions(componentName, emptyList(), includeRc)
         return componentsRegistryService.findPreviousLines(
             componentName,

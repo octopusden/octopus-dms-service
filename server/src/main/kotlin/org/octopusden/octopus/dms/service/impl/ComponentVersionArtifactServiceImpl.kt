@@ -52,7 +52,6 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         type: ArtifactType?,
     ): ArtifactsDTO {
-        log.info("Get artifacts" + (type?.let { " with type '$it'" } ?: "") + " for version '$version' of component '$componentName'")
         val component = componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, true)
         val componentVersion = componentVersionRepository.findByComponentNameAndVersion(component.id, release.version)
@@ -77,7 +76,6 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         artifactId: Long,
     ): ArtifactFullDTO {
-        log.info("Get artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         return getComponentVersionArtifactEntity(componentName, version, artifactId).toFullDTO(dockerRegistry)
     }
 
@@ -87,7 +85,6 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         artifactId: Long,
     ): DownloadArtifactDTO {
-        log.info("Download artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         return getComponentVersionArtifactEntity(componentName, version, artifactId).artifact.let {
             DownloadArtifactDTO(it.fileName, storageService.download(it.repositoryType, false, it.path))
         }
@@ -101,9 +98,6 @@ class ComponentVersionArtifactServiceImpl(
         failOnAlreadyExists: Boolean,
         registerArtifactDTO: RegisterArtifactDTO,
     ): ArtifactFullDTO {
-        log.info(
-            "Register '${registerArtifactDTO.type}' artifact with ID '$artifactId' for version '$version' of component '$componentName'",
-        )
         componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
@@ -174,7 +168,6 @@ class ComponentVersionArtifactServiceImpl(
         artifactId: Long,
         dryRun: Boolean,
     ) {
-        log.info("Delete artifact with ID '$artifactId' for version '$version' of component '$componentName'")
         val buildVersion = releaseManagementService.findRelease(componentName, version, true)?.version ?: version
         componentRepository.lock(componentName.hashCode())
         componentVersionRepository.findByComponentNameAndVersion(componentName, buildVersion)?.let { componentVersion ->
