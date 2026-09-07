@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.service.ArtifactService;
 import org.octopusden.octopus.dms.client.service.DMSService;
+import org.octopusden.octopus.dms.client.util.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -71,12 +72,10 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 Collections.emptyList()
         );
         FileFilterConfig localFilterConfig = null;
-        if (wlIgnore != null && wlIgnore.exists()) {
-            try {
-                localFilterConfig = objectMapper.readValue(wlIgnore, FileFilterConfig.class);
-            } catch (IOException e) {
-                log.info(String.format("Can not deserialize %s, error:", wlIgnore), e);
-            }
+        try {
+            localFilterConfig = Utils.readJsonIfNotBlank(wlIgnore, objectMapper, FileFilterConfig.class);
+        } catch (IOException e) {
+            log.info(String.format("Can not deserialize %s, error: %s", wlIgnore, e));
         }
         FileFilterConfig fileFilterConfig = FileFilter.mergeConfigs(mojoParamFilterConfig, localFilterConfig);
         Set<String> excludePatterns = new HashSet<>(
