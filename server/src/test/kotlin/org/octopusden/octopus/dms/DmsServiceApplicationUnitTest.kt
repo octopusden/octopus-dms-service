@@ -124,6 +124,34 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .response
             .toObject(object : TypeReference<ComponentVersionDTO>() {})
 
+        override fun publishComponentVersion(
+            componentName: String,
+            version: String,
+        ): ComponentVersionDTO = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/components/$componentName/versions/$version/publish")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ComponentVersionDTO>() {})
+
+        override fun revokeComponentVersion(
+            componentName: String,
+            version: String,
+        ): ComponentVersionDTO = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/components/$componentName/versions/$version/revoke")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ComponentVersionDTO>() {})
+
         override fun getPreviousLinesLatestVersions(
             componentName: String,
             version: String,

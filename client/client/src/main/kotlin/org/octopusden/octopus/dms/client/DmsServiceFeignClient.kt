@@ -56,6 +56,20 @@ interface DmsServiceFeignClient {
         patchComponentVersionDTO: PatchComponentVersionDTO,
     ): ComponentVersionDTO
 
+    @RequestLine("POST rest/api/3/components/{component-name}/versions/{version}/publish")
+    @Headers("Content-Type: application/json")
+    fun publishComponentVersion(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+    ): ComponentVersionDTO
+
+    @RequestLine("POST rest/api/3/components/{component-name}/versions/{version}/revoke")
+    @Headers("Content-Type: application/json")
+    fun revokeComponentVersion(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+    ): ComponentVersionDTO
+
     @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/previous-lines-latest-versions?include-rc={include-rc}")
     fun getPreviousLinesLatestVersions(
         @Param("component-name") componentName: String,

@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -117,6 +118,11 @@ class ComponentController(
             .map { it.version }
     }
 
+    @Deprecated(
+        "Use the dedicated publish/revoke endpoints instead: " +
+                "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
+                "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
+    )
     @PatchMapping("{component-name}/versions/{version}")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun patchComponentVersion(
@@ -124,13 +130,41 @@ class ComponentController(
         @Parameter(description = "Build version") @PathVariable("version") version: String,
         @RequestBody patchComponentVersionDTO: PatchComponentVersionDTO,
     ): ComponentVersionDTO {
-        log.info(
-            "Patch component version: component='{}', version='{}', patch='{}'",
+        log.warn(
+            "Deprecated! Patch component version: component='{}', version='{}', patch='{}'",
             componentName,
             version,
             patchComponentVersionDTO,
         )
         return componentService.patchComponentVersion(componentName, version, patchComponentVersionDTO,)
+    }
+
+    @PostMapping("{component-name}/versions/{version}/publish")
+    @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
+    fun publishComponentVersion(
+        @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
+        @Parameter(description = "Build version") @PathVariable("version") version: String,
+    ): ComponentVersionDTO {
+        log.info(
+            "Publish component version: component='{}', version='{}'",
+            componentName,
+            version,
+        )
+        return componentService.publishComponentVersion(componentName, version)
+    }
+
+    @PostMapping("{component-name}/versions/{version}/revoke")
+    @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
+    fun revokeComponentVersion(
+        @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
+        @Parameter(description = "Build version") @PathVariable("version") version: String,
+    ): ComponentVersionDTO {
+        log.info(
+            "Revoke component version: component='{}', version='{}'",
+            componentName,
+            version,
+        )
+        return componentService.revokeComponentVersion(componentName, version)
     }
 
     @Operation(summary = "List of Component Previous Lines Versions")

@@ -17,7 +17,6 @@ import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
-import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO;
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
@@ -143,10 +142,9 @@ public class DMSServiceImpl implements DMSService {
         log.info(String.format("Publish component '%s' version '%s', dry run '%s'", componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
         if (!dryRun) {
             try {
-                dmsServiceClient.patchComponentVersion(
+                dmsServiceClient.publishComponentVersion(
                         componentVersion.getComponentName(),
-                        componentVersion.getVersion(),
-                        new PatchComponentVersionDTO(true)
+                        componentVersion.getVersion()
                 );
             } catch (Exception e) {
                 throw new RuntimeMojoExecutionException(String.format("Failed to publish component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()), e);

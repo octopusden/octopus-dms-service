@@ -28,6 +28,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -71,6 +72,16 @@ class ClassicDmsServiceClient(
         version: String,
         patchComponentVersionDTO: PatchComponentVersionDTO,
     ) = client.patchComponentVersion(componentName, version, patchComponentVersionDTO)
+
+    override fun publishComponentVersion(
+        componentName: String,
+        version: String
+    ): ComponentVersionDTO = client.publishComponentVersion(componentName, version)
+
+    override fun revokeComponentVersion(
+        componentName: String,
+        version: String
+    ): ComponentVersionDTO = client.revokeComponentVersion(componentName, version)
 
     override fun getPreviousLinesLatestVersions(
         componentName: String,

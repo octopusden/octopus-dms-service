@@ -33,4 +33,14 @@ interface ComponentService {
         version: String,
         includeRc: Boolean,
     ): List<String>
+
+    fun publishComponentVersion(
+        componentName: String,
+        version: String,
+    ): ComponentVersionDTO
+
+    fun revokeComponentVersion(
+        componentName: String,
+        version: String,
+    ): ComponentVersionDTO
 }

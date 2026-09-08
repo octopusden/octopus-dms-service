@@ -82,6 +82,13 @@ class ComponentVersionArtifactServiceImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun getComponentVersionArtifactFullDTOs(
+        componentVersion: ComponentVersion,
+    ): List<ArtifactFullDTO> {
+        return componentVersionArtifactRepository.findByComponentVersion(componentVersion).map { it.toFullDTO(dockerRegistry) }
+    }
+
+    @Transactional(readOnly = true)
     override fun getComponentVersionArtifact(
         componentName: String,
         version: String,

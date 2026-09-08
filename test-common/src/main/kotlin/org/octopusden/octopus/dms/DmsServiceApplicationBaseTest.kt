@@ -1783,10 +1783,9 @@ abstract class DmsServiceApplicationBaseTest {
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
             )
         }
-        client.patchComponentVersion(
+        client.revokeComponentVersion(
             eeComponent,
             eeComponentReleaseVersion0354.releaseVersion,
-            PatchComponentVersionDTO(false),
         )
         val newArtifact = client.addArtifact(releaseDockerDistributionCoordinates)
         val result = client.registerComponentVersionArtifact(
@@ -1846,6 +1845,170 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @Test
+    fun testPublishComponentVersionRejectsRCVersion() {
+        assertThrowsExactly(IllegalVersionStatusException::class.java) {
+            client.publishComponentVersion(
+                eeComponent,
+                eeComponentRCVersion0354.buildVersion,
+            )
+        }
+    }
+
+    @Test
+    fun testPublishComponentVersionRejectsUnpublishedDependencies() {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+        )
+        assertThrowsExactly(VersionPublishedException::class.java) {
+            client.publishComponentVersion(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+            )
+        }
+    }
+
+    @Test
+    fun testPublishComponentVersionSucceedsWithPublishedDependencies() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val result = client.publishComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        assertTrue(result.published)
+        assertEquals(eeComponentReleaseVersion0354.buildVersion, result.version)
+        assertEquals(ComponentVersionStatus.RELEASE, result.status)
+    }
+
+    @Test
+    fun testPublishComponentVersionIdempotentWhenAlreadyPublished() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val result = client.publishComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        assertTrue(result.published)
+    }
+
+    @Test
+    fun testRevokeComponentVersionIdempotentWhenNotPublished() {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+        )
+        val result = client.revokeComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        assertFalse(result.published)
+    }
+
+    @Test
+    fun testRevokeComponentVersionSucceedsAfterPublish() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val result = client.revokeComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        assertFalse(result.published)
+        assertEquals(eeComponentReleaseVersion0354.buildVersion, result.version)
+    }
+
+    @Test
+    fun testPublishRevokePublishCycle() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        client.revokeComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        val result = client.publishComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        assertTrue(result.published)
+    }
+
+    @Test
+    fun testRevokeEnablesDistributionRegistration() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        assertThrowsExactly(VersionPublishedException::class.java) {
+            client.addAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                releaseDockerDistributionCoordinates,
+                ArtifactType.DISTRIBUTION,
+                false,
+            )
+        }
+        client.revokeComponentVersion(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+        )
+        val result = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            releaseDockerDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+        assertEquals(ArtifactType.DISTRIBUTION, result.type)
+    }
+
+    @Test
+    fun testPublishBlocksDistributionOnNewEndpoint() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        assertThrowsExactly(VersionPublishedException::class.java) {
+            client.addAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                releaseMavenDistributionCoordinates,
+                ArtifactType.DISTRIBUTION,
+                false,
+            )
+        }
+    }
+
+    @Test
+    fun testPublishAllowsNotesOnNewEndpoint() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val result = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            releaseNotesCoordinates,
+            ArtifactType.NOTES,
+            false,
+        )
+        assertEquals(ArtifactType.NOTES, result.type)
+    }
+
+    @Test
+    fun testPublishComponentVersionRejectsNonExistentComponent() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.publishComponentVersion(
+                "no-component",
+                "1.0.1",
+            )
+        }
+    }
+
+    @Test
+    fun testRevokeComponentVersionRejectsNonExistentComponent() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.revokeComponentVersion(
+                "no-component",
+                "1.0.1",
+            )
+        }
+    }
+
+
     private fun publishVersion(componentName: String, version: Version) {
         client.addAndRegisterComponentVersionArtifact(
             componentName,
@@ -1866,9 +2029,9 @@ abstract class DmsServiceApplicationBaseTest {
                 ArtifactType.DISTRIBUTION,
                 false,
             )
-            client.patchComponentVersion(depName, depVersion, PatchComponentVersionDTO(true))
+            client.publishComponentVersion(depName, depVersion)
         }
-        client.patchComponentVersion(componentName, version.releaseVersion, PatchComponentVersionDTO(true))
+        client.publishComponentVersion(componentName, version.releaseVersion)
     }
 
     // <editor-fold defaultstate="collapsed" desc="Test Data">
