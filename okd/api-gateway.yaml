@@ -84,6 +84,10 @@ objects:
     kind: Route
     metadata:
       name: ${DEPLOYMENT_PREFIX}-gateway-route
+      annotations:
+        # The router defaults to 30s, which cuts off slow artifact registration
+        # (Debian uploads reindex the Artifactory pool) with a 504.
+        haproxy.router.openshift.io/timeout: 300s
     spec:
       port:
         targetPort: 8765
