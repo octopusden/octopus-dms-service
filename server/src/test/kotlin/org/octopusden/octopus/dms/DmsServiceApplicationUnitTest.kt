@@ -18,7 +18,6 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
@@ -127,30 +126,32 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         override fun publishComponentVersion(
             componentName: String,
             version: String,
-        ): ComponentVersionDTO = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/rest/api/3/components/$componentName/versions/$version/publish")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
-            ).andReturn()
-            .response
-            .toObject(object : TypeReference<ComponentVersionDTO>() {})
+        ): ComponentVersionDTO =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/components/$componentName/versions/$version/publish")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ComponentVersionDTO>() {})
 
         override fun revokeComponentVersion(
             componentName: String,
             version: String,
-        ): ComponentVersionDTO = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/rest/api/3/components/$componentName/versions/$version/revoke")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
-            ).andReturn()
-            .response
-            .toObject(object : TypeReference<ComponentVersionDTO>() {})
+        ): ComponentVersionDTO =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/components/$componentName/versions/$version/revoke")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ComponentVersionDTO>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,
@@ -329,7 +330,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             version: String,
             artifactCoordinates: ArtifactCoordinatesDTO,
             artifactType: ArtifactType,
-            failOnAlreadyExists: Boolean
+            failOnAlreadyExists: Boolean,
         ) = mockMvc
             .perform(
                 MockMvcRequestBuilders
@@ -382,7 +383,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             file: InputStream,
             fileName: String?,
             artifactType: ArtifactType,
-            failOnAlreadyExists: Boolean?
+            failOnAlreadyExists: Boolean?,
         ) = mockMvc
             .perform(
                 MockMvcRequestBuilders

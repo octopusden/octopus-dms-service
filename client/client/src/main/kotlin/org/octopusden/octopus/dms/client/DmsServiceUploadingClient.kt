@@ -21,6 +21,6 @@ interface DmsServiceUploadingClient : DmsServiceFeignClient {
         file: InputStream,
         fileName: String? = null,
         artifactType: ArtifactType,
-        failOnAlreadyExists: Boolean? = null
+        failOnAlreadyExists: Boolean? = null,
     ): ArtifactFullDTO
 }

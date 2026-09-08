@@ -3,7 +3,6 @@ package org.octopusden.octopus.dms.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.servlet.http.HttpServletResponse
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
@@ -30,14 +29,14 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/rest/api/3/components/{component-name}/versions/{version}/artifacts")
 class ComponentVersionArtifactController(
-    private val componentVersionArtifactService: ComponentVersionArtifactService
+    private val componentVersionArtifactService: ComponentVersionArtifactService,
 ) {
     @Operation(summary = "Get list of Component Version Artifacts")
     @GetMapping
     @PreAuthorize(
         "@permissionEvaluator.hasPermission('ACCESS_META') or " +
-                "@permissionEvaluator.hasPermissionByArtifactType(#type) or " +
-                "@permissionEvaluator.hasPermissionByComponent(#componentName)",
+            "@permissionEvaluator.hasPermissionByArtifactType(#type) or " +
+            "@permissionEvaluator.hasPermissionByComponent(#componentName)",
     )
     fun getComponentVersionArtifacts(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
@@ -57,8 +56,8 @@ class ComponentVersionArtifactController(
     @GetMapping("{artifact-id}")
     @PostAuthorize(
         "@permissionEvaluator.hasPermission('ACCESS_META') or " +
-                "@permissionEvaluator.hasPermissionByArtifactType(returnObject.type) or " +
-                "@permissionEvaluator.hasPermissionByComponent(#componentName)",
+            "@permissionEvaluator.hasPermissionByArtifactType(returnObject.type) or " +
+            "@permissionEvaluator.hasPermissionByComponent(#componentName)",
     )
     fun getComponentVersionArtifact(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
@@ -94,7 +93,7 @@ class ComponentVersionArtifactController(
     )
     @PreAuthorize(
         "@permissionEvaluator.hasPermissionByComponent(#componentName) or " +
-                "@permissionEvaluator.hasPermissionByArtifactType(#componentName, #version, #artifactId)",
+            "@permissionEvaluator.hasPermissionByArtifactType(#componentName, #version, #artifactId)",
     )
     fun downloadComponentVersionArtifact(
         @Parameter(description = "Component name") @PathVariable("component-name") componentName: String,
@@ -121,7 +120,7 @@ class ComponentVersionArtifactController(
             }
             log.info(
                 "Download component version artifact resolved: component='{}', version='{}', " +
-                        "artifactId='{}', fileName='{}', contentType='{}'",
+                    "artifactId='{}', fileName='{}', contentType='{}'",
                 componentName,
                 version,
                 artifactId,
@@ -153,7 +152,7 @@ class ComponentVersionArtifactController(
     ): ArtifactFullDTO {
         log.info(
             "Register component version artifact: component='{}', version='{}', artifactId='{}', " +
-                    "failOnAlreadyExists='{}', artifact='{}'",
+                "failOnAlreadyExists='{}', artifact='{}'",
             componentName,
             version,
             artifactId,
@@ -213,7 +212,7 @@ class ComponentVersionArtifactController(
     ): ArtifactFullDTO {
         log.info(
             "Upload artifact and register it: component='{}', version='{}', coordinates='{}', " +
-                    "artifactType='{}', failOnAlreadyExists='{}', fileName='{}', fileSize='{}'",
+                "artifactType='{}', failOnAlreadyExists='{}', fileName='{}', fileSize='{}'",
             componentName,
             version,
             artifactCoordinates,
@@ -248,7 +247,7 @@ class ComponentVersionArtifactController(
     ): ArtifactFullDTO {
         log.info(
             "Add existing artifact and register it: component='{}', version='{}', coordinates='{}', " +
-                    "artifactType='{}', failOnAlreadyExists='{}'",
+                "artifactType='{}', failOnAlreadyExists='{}'",
             componentName,
             version,
             artifactCoordinates,

@@ -120,8 +120,8 @@ class ComponentController(
 
     @Deprecated(
         "Use the dedicated publish/revoke endpoints instead: " +
-                "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
-                "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
+            "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
+            "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
     )
     @PatchMapping("{component-name}/versions/{version}")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
@@ -136,7 +136,7 @@ class ComponentController(
             version,
             patchComponentVersionDTO,
         )
-        return componentService.patchComponentVersion(componentName, version, patchComponentVersionDTO,)
+        return componentService.patchComponentVersion(componentName, version, patchComponentVersionDTO)
     }
 
     @PostMapping("{component-name}/versions/{version}/publish")

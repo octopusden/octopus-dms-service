@@ -29,25 +29,21 @@ class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
 ) : ArtifactService {
-    override fun repositories(repositoryType: RepositoryType): List<String> {
-        return storageService.getRepositoriesUrls(repositoryType, false)
-    }
+    override fun repositories(repositoryType: RepositoryType): List<String> = storageService.getRepositoriesUrls(repositoryType, false)
 
     @Transactional(readOnly = true)
-    override fun get(id: Long): ArtifactDTO {
-        return artifactRepository
+    override fun get(id: Long): ArtifactDTO =
+        artifactRepository
             .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
             .toDTO()
-    }
 
     @Transactional(readOnly = true)
-    override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
-        return (
+    override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO =
+        (
             artifactRepository.findByPath(artifactCoordinates.toPath())
                 ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
         ).toDTO()
-    }
 
     @Transactional(readOnly = true)
     override fun download(id: Long): DownloadArtifactDTO {

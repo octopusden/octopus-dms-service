@@ -108,8 +108,7 @@ class ComponentsRegistryServiceImpl(
             .reversed()
     }
 
-    override fun getExternalExplicitComponent(componentName: String): ComponentDTO =
-        getExternalComponent(componentName).explicitOrBreak()
+    override fun getExternalExplicitComponent(componentName: String): ComponentDTO = getExternalComponent(componentName).explicitOrBreak()
 
     override fun getExternalExplicitComponentVersion(
         componentName: String,

@@ -75,12 +75,12 @@ class ClassicDmsServiceClient(
 
     override fun publishComponentVersion(
         componentName: String,
-        version: String
+        version: String,
     ): ComponentVersionDTO = client.publishComponentVersion(componentName, version)
 
     override fun revokeComponentVersion(
         componentName: String,
-        version: String
+        version: String,
     ): ComponentVersionDTO = client.revokeComponentVersion(componentName, version)
 
     override fun getPreviousLinesLatestVersions(
@@ -152,14 +152,15 @@ class ClassicDmsServiceClient(
         version: String,
         artifactCoordinates: ArtifactCoordinatesDTO,
         artifactType: ArtifactType,
-        failOnAlreadyExists: Boolean
-    ): ArtifactFullDTO = client.addAndRegisterComponentVersionArtifact(
-        componentName,
-        version,
-        artifactCoordinates,
-        artifactType,
-        failOnAlreadyExists,
-    )
+        failOnAlreadyExists: Boolean,
+    ): ArtifactFullDTO =
+        client.addAndRegisterComponentVersionArtifact(
+            componentName,
+            version,
+            artifactCoordinates,
+            artifactType,
+            failOnAlreadyExists,
+        )
 
     override fun uploadArtifact(
         artifactCoordinates: ArtifactCoordinatesDTO,
@@ -175,14 +176,12 @@ class ClassicDmsServiceClient(
                     objectMapper.writeValueAsString(artifactCoordinates),
                     ContentType.APPLICATION_JSON,
                 ),
-            )
-            .addBinaryBody(
+            ).addBinaryBody(
                 "file",
                 file,
                 ContentType.DEFAULT_BINARY,
                 fileName,
-            )
-            .build()
+            ).build()
         val url = buildString {
             append(parametersProvider.getApiUrl())
             append("/rest/api/3/artifacts/upload")
@@ -215,14 +214,12 @@ class ClassicDmsServiceClient(
                     objectMapper.writeValueAsString(artifactCoordinates),
                     ContentType.APPLICATION_JSON,
                 ),
-            )
-            .addBinaryBody(
+            ).addBinaryBody(
                 "file",
                 file,
                 ContentType.DEFAULT_BINARY,
                 fileName,
-            )
-            .build()
+            ).build()
 
         val url = buildString {
             append(parametersProvider.getApiUrl())

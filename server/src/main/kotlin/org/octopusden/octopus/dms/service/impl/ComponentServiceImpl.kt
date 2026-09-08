@@ -1,6 +1,11 @@
 package org.octopusden.octopus.dms.service.impl
 
-import org.octopusden.octopus.dms.client.common.dto.*
+import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
+import org.octopusden.octopus.dms.client.common.dto.ComponentVersionStatus
+import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.dto.BuildDTO
 import org.octopusden.octopus.dms.dto.BuildFullDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionWithInfoDTO
@@ -32,11 +37,10 @@ class ComponentServiceImpl(
     private val componentVersionRepository: ComponentVersionRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) : ComponentService {
-    override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> {
-        return componentsRegistryService.getExternalComponents(filter).sortedWith { a, b ->
+    override fun getComponents(filter: ComponentRequestFilter?): List<ComponentDTO> =
+        componentsRegistryService.getExternalComponents(filter).sortedWith { a, b ->
             a.name.lowercase().compareTo(b.name.lowercase())
         }
-    }
 
     @Transactional(readOnly = true)
     override fun getComponentMinorVersions(componentName: String): Set<String> {
@@ -113,7 +117,8 @@ class ComponentServiceImpl(
                             dependencies.add(
                                 DependencyArtifactsDTO(
                                     componentVersion = dependencyComponentVersion.toDTO(dependencyBuild),
-                                    artifacts = componentVersionArtifactService.getComponentVersionArtifactFullDTOs(dependencyComponentVersion),
+                                    artifacts = componentVersionArtifactService
+                                        .getComponentVersionArtifactFullDTOs(dependencyComponentVersion),
                                 ),
                             )
                         }
@@ -192,6 +197,11 @@ class ComponentServiceImpl(
             .getByComponentNameAndVersion(component.id, release.version)
 
         if (componentVersion.published) {
+            log.info(
+                "Component version is already published (publish = true): component='{}', version='{}'",
+                componentName,
+                release.version,
+            )
             return componentVersion.toDTO(release)
         }
 
@@ -201,7 +211,7 @@ class ComponentServiceImpl(
             if (dependencyCheckResult.unpublished.isNotEmpty()) {
                 throw VersionPublishedException(
                     "Unable to publish version '${release.version}' of solution '${component.id}'. " +
-                            "It has unpublished dependencies ${dependencyCheckResult.unpublished}",
+                        "It has unpublished dependencies ${dependencyCheckResult.unpublished}",
                 )
             }
             dependencyCheckResult.published
@@ -233,6 +243,11 @@ class ComponentServiceImpl(
             componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
 
         if (!componentVersion.published) {
+            log.info(
+                "Component version is already revoked (publish = false): component='{}', version='{}'",
+                componentName,
+                release.version,
+            )
             return componentVersion.toDTO(release)
         }
 
@@ -258,9 +273,7 @@ class ComponentServiceImpl(
             .toDTO(release)
     }
 
-    private fun getDependencyArtifacts(
-        release: BuildFullDTO,
-    ): DependencyCheckResult {
+    private fun getDependencyArtifacts(release: BuildFullDTO): DependencyCheckResult {
         val published = mutableListOf<DependencyArtifactsDTO>()
         val unpublished = mutableListOf<BuildDTO>()
 
@@ -286,6 +299,13 @@ class ComponentServiceImpl(
                 artifacts = componentVersionArtifactService.getComponentVersionArtifactFullDTOs(dependencyComponentVersion),
             )
         }
+        log.debug(
+            "Dependency check completed: component='{}', version='{}', published={}, unpublished={}",
+            release.component,
+            release.version,
+            published.size,
+            unpublished,
+        )
         return DependencyCheckResult(
             published = published,
             unpublished = unpublished,
@@ -298,16 +318,16 @@ class ComponentServiceImpl(
     ) {
         val publishedSolutionParents = release.parents.filter { parent ->
             componentsRegistryService.getExternalComponent(parent.component).solution &&
-                    componentVersionRepository
-                        .findByComponentNameAndVersion(
-                            parent.component,
-                            parent.version,
-                        )?.published == true
+                componentVersionRepository
+                    .findByComponentNameAndVersion(
+                        parent.component,
+                        parent.version,
+                    )?.published == true
         }
         if (publishedSolutionParents.isNotEmpty()) {
             throw VersionPublishedException(
                 "Unable to revoke version '${release.version}' of component '${component.id}'. " +
-                        "It is dependency of published solutions $publishedSolutionParents",
+                    "It is dependency of published solutions $publishedSolutionParents",
             )
         }
     }

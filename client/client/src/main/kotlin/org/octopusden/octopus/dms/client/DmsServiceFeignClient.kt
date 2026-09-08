@@ -155,7 +155,7 @@ interface DmsServiceFeignClient {
 
     @RequestLine(
         "POST /rest/api/3/components/{component-name}/versions/{version}/artifacts/add" +
-                "?artifact-type={artifact-type}&fail-on-already-exists={fail-on-already-exists}"
+            "?artifact-type={artifact-type}&fail-on-already-exists={fail-on-already-exists}",
     )
     @Headers("Content-Type: application/json")
     fun addAndRegisterComponentVersionArtifact(
@@ -163,6 +163,6 @@ interface DmsServiceFeignClient {
         @Param("version") version: String,
         artifactCoordinates: ArtifactCoordinatesDTO,
         @Param("artifact-type") artifactType: ArtifactType,
-        @Param("fail-on-already-exists") failOnAlreadyExists: Boolean
+        @Param("fail-on-already-exists") failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO
 }

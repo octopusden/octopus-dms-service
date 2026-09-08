@@ -10,16 +10,13 @@ import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.springframework.web.multipart.MultipartFile
 
 interface ComponentVersionArtifactService {
-
     fun getComponentVersionArtifacts(
         componentName: String,
         version: String,
         type: ArtifactType?,
     ): ArtifactsDTO
 
-    fun getComponentVersionArtifactFullDTOs(
-        componentVersion: ComponentVersion,
-    ): List<ArtifactFullDTO>
+    fun getComponentVersionArtifactFullDTOs(componentVersion: ComponentVersion): List<ArtifactFullDTO>
 
     fun getComponentVersionArtifact(
         componentName: String,
@@ -54,7 +51,7 @@ interface ComponentVersionArtifactService {
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
         artifactType: ArtifactType,
-        failOnAlreadyExists: Boolean
+        failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO
 
     fun addAndRegisterComponentVersionArtifact(
@@ -62,6 +59,6 @@ interface ComponentVersionArtifactService {
         version: String,
         artifactCoordinates: ArtifactCoordinatesDTO,
         artifactType: ArtifactType,
-        failOnAlreadyExists: Boolean
+        failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO
 }

@@ -2008,8 +2008,10 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-
-    private fun publishVersion(componentName: String, version: Version) {
+    private fun publishVersion(
+        componentName: String,
+        version: Version,
+    ) {
         client.addAndRegisterComponentVersionArtifact(
             componentName,
             version.releaseVersion,

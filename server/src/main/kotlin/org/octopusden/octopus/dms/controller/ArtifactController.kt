@@ -73,7 +73,7 @@ class ArtifactController(
                 arrayOf(
                     ".zip",
                     ".jar",
-                    ".tar"
+                    ".tar",
                 ).any { this.fileName.endsWith(it) } -> MediaType.APPLICATION_OCTET_STREAM_VALUE
 
                 arrayOf(".htm", ".html").any { this.fileName.endsWith(it) } -> MediaType.TEXT_HTML_VALUE
@@ -118,11 +118,9 @@ class ArtifactController(
         @Parameter(description = "Fail if artifact is uploaded already")
         @RequestParam("fail-on-already-exists", defaultValue = "false", required = false)
         failOnAlreadyExists: Boolean,
-
         @Parameter(schema = Schema(implementation = ArtifactCoordinatesDTO::class))
         @RequestPart("artifact")
         artifactCoordinates: ArtifactCoordinatesDTO,
-
         @Parameter(description = "Artifact file")
         @RequestPart("file")
         file: MultipartFile,
