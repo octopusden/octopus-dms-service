@@ -1519,7 +1519,7 @@ abstract class DmsServiceApplicationBaseTest {
 
     @Test
     fun testAddAndRegisterComponentVersionArtifactRejectsNonEEComponent() {
-        assertThrowsExactly(NotFoundException::class.java) {
+        assertThrowsExactly(IllegalComponentTypeException::class.java) {
             client.addAndRegisterComponentVersionArtifact(
                 "ie-component",
                 "1.0.1",

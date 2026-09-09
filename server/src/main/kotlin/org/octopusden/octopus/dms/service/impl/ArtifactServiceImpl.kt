@@ -7,6 +7,7 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.dto.ArtifactWithChangedStatus
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
@@ -60,53 +61,78 @@ class ArtifactServiceImpl(
     override fun add(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-    ): ArtifactDTO {
-        val sha256 = storageService
-            .get(
-                artifactCoordinates.repositoryType,
-                true,
-                artifactCoordinates.toPath(),
-            ).checksums.sha256
-        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
-            with("Artifact with coordinates '${it.path}' already added") {
-                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
-                log.info(this)
-            }
-            it.updateSha256(sha256)
-        } ?: artifactRepository.save(artifactCoordinates.createArtifact(false, sha256))
-        return artifact.toDTO()
-    }
+    ): ArtifactDTO = addWithChangedStatus(failOnAlreadyExists, artifactCoordinates).artifact
 
     @Transactional(readOnly = false)
     override fun upload(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
-    ): ArtifactDTO {
-        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
-            with("Artifact '${it.path}' already uploaded") {
+    ): ArtifactDTO = uploadWithChangedStatus(failOnAlreadyExists, artifactCoordinates, file).artifact
+
+    @Transactional(readOnly = false)
+    override fun uploadWithChangedStatus(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        file: MultipartFile,
+    ): ArtifactWithChangedStatus {
+        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        if (existingArtifact != null) {
+            with("Artifact '${existingArtifact.path}' already uploaded") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
-            // NOTE:
-            // allowing of artifact re-uploading may be an issue if it is registered for published component version
-            // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
-            it.updateSha256(
-                file.inputStream
-                    .use { inputStream ->
-                        storageService.upload(it.repositoryType, it.path, inputStream)
-                    }.checksums.sha256,
+            val sha256 = file.inputStream
+                .use { inputStream ->
+                    storageService.upload(existingArtifact.repositoryType, existingArtifact.path, inputStream)
+                }.checksums.sha256
+            existingArtifact.updateSha256(sha256)
+            return ArtifactWithChangedStatus(
+                artifact = existingArtifact.toDTO(),
+                changed = existingArtifact.sha256 != sha256,
             )
-        } ?: artifactRepository.save(
-            artifactCoordinates.createArtifact(
-                true,
-                file.inputStream
-                    .use { inputStream ->
-                        storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
-                    }.checksums.sha256,
-            ),
+        }
+        val sha256 = file.inputStream
+            .use { inputStream ->
+                storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
+            }.checksums.sha256
+        return ArtifactWithChangedStatus(
+            artifact = artifactRepository.save(
+                artifactCoordinates.createArtifact(true, sha256)
+            ).toDTO(),
+            changed = true,
         )
-        return artifact.toDTO()
+    }
+
+    @Transactional(readOnly = false)
+    override fun addWithChangedStatus(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+    ): ArtifactWithChangedStatus {
+        val sha256 = storageService
+            .get(
+                artifactCoordinates.repositoryType,
+                true,
+                artifactCoordinates.toPath(),
+            ).checksums.sha256
+        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        if (existingArtifact != null) {
+            with("Artifact with coordinates '${existingArtifact.path}' already added") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
+                log.info(this)
+            }
+            existingArtifact.updateSha256(sha256)
+            return ArtifactWithChangedStatus(
+                artifact = existingArtifact.toDTO(),
+                changed = existingArtifact.sha256 != sha256,
+            )
+        }
+        return ArtifactWithChangedStatus(
+            artifact = artifactRepository.save(
+                artifactCoordinates.createArtifact(false, sha256)
+            ).toDTO(),
+            changed = true,
+        )
     }
 
     private fun Artifact.updateSha256(sha256: String) =

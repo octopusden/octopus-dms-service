@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionFullDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.BuildFullDTO
+import org.octopusden.octopus.dms.dto.ComponentVersionArtifactWithRegisteredStatus
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
@@ -114,55 +115,45 @@ class ComponentVersionArtifactServiceImpl(
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
-        storageService
-            .get(artifact.repositoryType, false, artifact.path)
-            .checksums
-            .sha256
-            .let {
-                if (artifact.sha256 != it) {
-                    throw ArtifactChecksumChangedException(
-                        "SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'",
-                    )
-                }
+        storageService.get(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
+            if (artifact.sha256 != it) {
+                throw ArtifactChecksumChangedException(
+                    "SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'",
+                )
             }
+        }
         val release = releaseManagementService.getRelease(
             componentName,
             version,
             registerArtifactDTO.type != ArtifactType.DISTRIBUTION,
         )
-        val componentVersion = getOrCreateComponentVersionEntity(
-            componentName = componentName,
-            version = release.version,
-        )
+        val componentVersion = getOrCreateComponentVersionEntity(componentName, release.version)
         throwIfPublishedVersion(componentVersion, componentName, registerArtifactDTO.type)
         val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
             componentVersion,
             artifact,
         )
-        if (componentVersionArtifact != null) {
+        return if (componentVersionArtifact != null) {
             with("Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '$componentName'") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
-            return componentVersionArtifact.toFullDTO(dockerRegistry).also {
-                applicationEventPublisher.publishEvent(
-                    RegisterComponentVersionArtifactEvent(componentName, release.version, it),
-                )
-            }
+            componentVersionArtifact.toFullDTO(dockerRegistry)
+        } else {
+            componentVersionArtifactRepository
+                .save(
+                    ComponentVersionArtifact(
+                        componentVersion = componentVersion,
+                        artifact = artifact,
+                        type = registerArtifactDTO.type,
+                    ),
+                ).toFullDTO(dockerRegistry)
+                .also {
+                    applicationEventPublisher.publishEvent(
+                        RegisterComponentVersionArtifactEvent(componentName, release.version, it),
+                    )
+                }
         }
-        return componentVersionArtifactRepository
-            .save(
-                ComponentVersionArtifact(
-                    componentVersion = componentVersion,
-                    artifact = artifact,
-                    type = registerArtifactDTO.type,
-                ),
-            ).toFullDTO(dockerRegistry)
-            .also {
-                applicationEventPublisher.publishEvent(
-                    RegisterComponentVersionArtifactEvent(componentName, release.version, it),
-                )
-            }
     }
 
     @Transactional(readOnly = false)
@@ -207,19 +198,28 @@ class ComponentVersionArtifactServiceImpl(
         artifactType: ArtifactType,
         failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
-        checkCanRegister(componentName, version, artifactType)
-        val artifact = artifactService.upload(
+        val release = validateCanRegisterBeforeMutation(componentName, version, artifactType)
+        val uploadResult = artifactService.uploadWithChangedStatus(
             failOnAlreadyExists,
             artifactCoordinates,
             file,
         )
-        return registerComponentVersionArtifact(
-            componentName,
-            version,
-            artifact.id,
-            failOnAlreadyExists,
-            RegisterArtifactDTO(artifactType),
+        val registrationResult = registerComponentVersionArtifactInternal(
+            release = release,
+            artifactId = uploadResult.artifact.id,
+            artifactType = artifactType,
+            failOnAlreadyExists = failOnAlreadyExists,
         )
+        if (uploadResult.changed || registrationResult.registered) {
+            applicationEventPublisher.publishEvent(
+                RegisterComponentVersionArtifactEvent(
+                    componentName,
+                    release.version,
+                    registrationResult.artifact,
+                ),
+            )
+        }
+        return registrationResult.artifact
     }
 
     @Transactional(readOnly = false)
@@ -230,33 +230,88 @@ class ComponentVersionArtifactServiceImpl(
         artifactType: ArtifactType,
         failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
-        checkCanRegister(componentName, version, artifactType)
-        val artifact = artifactService.add(
-            failOnAlreadyExists,
-            artifactCoordinates,
+        val release = validateCanRegisterBeforeMutation(componentName, version, artifactType)
+        val addResult = artifactService.addWithChangedStatus(
+            failOnAlreadyExists = failOnAlreadyExists,
+            artifactCoordinates = artifactCoordinates,
         )
-        return registerComponentVersionArtifact(
-            componentName,
-            version,
-            artifact.id,
-            failOnAlreadyExists,
-            RegisterArtifactDTO(artifactType),
+        val registrationResult = registerComponentVersionArtifactInternal(
+            release = release,
+            artifactId = addResult.artifact.id,
+            artifactType = artifactType,
+            failOnAlreadyExists = failOnAlreadyExists,
+        )
+        if (addResult.changed || registrationResult.registered) {
+            applicationEventPublisher.publishEvent(
+                RegisterComponentVersionArtifactEvent(
+                    componentName,
+                    release.version,
+                    registrationResult.artifact,
+                ),
+            )
+        }
+        return registrationResult.artifact
+    }
+
+    private fun registerComponentVersionArtifactInternal(
+        release: BuildFullDTO,
+        artifactId: Long,
+        artifactType: ArtifactType,
+        failOnAlreadyExists: Boolean,
+    ): ComponentVersionArtifactWithRegisteredStatus {
+        val artifact = artifactRepository.findById(artifactId).orElseThrow {
+            NotFoundException("Artifact with ID '$artifactId' is not found")
+        }
+        val componentVersion = getOrCreateComponentVersionEntity(
+            componentName = release.component,
+            version = release.version,
+        )
+        throwIfPublishedVersion(componentVersion, release.component, artifactType)
+        val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
+            componentVersion = componentVersion,
+            artifact = artifact,
+        )
+        if (componentVersionArtifact != null) {
+            with("Artifact with ID '$artifactId' is already registered for version '${release.version}' of component '${release.component}'") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
+                log.info(this)
+            }
+            return ComponentVersionArtifactWithRegisteredStatus(
+                artifact = componentVersionArtifact.toFullDTO(dockerRegistry),
+                registered = false
+            )
+        }
+        val newComponentVersionArtifact = componentVersionArtifactRepository.save(
+            ComponentVersionArtifact(
+                componentVersion = componentVersion,
+                artifact = artifact,
+                type = artifactType,
+            ),
+        )
+        return ComponentVersionArtifactWithRegisteredStatus(
+            artifact = newComponentVersionArtifact.toFullDTO(dockerRegistry),
+            registered = true
         )
     }
 
-    private fun checkCanRegister(
+    private fun validateCanRegisterBeforeMutation(
         componentName: String,
         version: String,
         artifactType: ArtifactType,
-    ) {
+    ): BuildFullDTO {
+        componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(
             componentName,
             version,
             artifactType != ArtifactType.DISTRIBUTION,
         )
-        val componentVersion = componentVersionRepository
-            .findByComponentNameAndVersion(componentName, release.version) ?: return
-        throwIfPublishedVersion(componentVersion, componentName, artifactType)
+        componentVersionRepository
+            .findByComponentNameAndVersion(componentName, release.version)
+            ?.let { componentVersion ->
+                throwIfPublishedVersion(componentVersion, componentName, artifactType)
+            }
+
+        return release
     }
 
     private fun throwIfPublishedVersion(
