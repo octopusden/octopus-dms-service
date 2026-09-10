@@ -277,13 +277,13 @@ class ComponentVersionArtifactServiceImpl(
             artifact = artifact,
         )
         if (componentVersionArtifact != null) {
-            with("Artifact with ID '$artifactId' is already registered for version '${version}' of component '${componentName}'") {
+            with("Artifact with ID '$artifactId' is already registered for version '$version' of component '$componentName'") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
             return ComponentVersionArtifactRegistrationResult(
                 artifact = componentVersionArtifact.toFullDTO(dockerRegistry),
-                created = false
+                created = false,
             )
         }
         val newComponentVersionArtifact = componentVersionArtifactRepository.save(
@@ -295,7 +295,7 @@ class ComponentVersionArtifactServiceImpl(
         )
         return ComponentVersionArtifactRegistrationResult(
             artifact = newComponentVersionArtifact.toFullDTO(dockerRegistry),
-            created = true
+            created = true,
         )
     }
 

@@ -98,9 +98,10 @@ class ArtifactServiceImpl(
                 storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
             }.checksums.sha256
         return ArtifactWriteResult(
-            artifact = artifactRepository.save(
-                artifactCoordinates.createArtifact(true, sha256)
-            ).toDTO(),
+            artifact = artifactRepository
+                .save(
+                    artifactCoordinates.createArtifact(true, sha256),
+                ).toDTO(),
             changed = true,
         )
     }
@@ -130,9 +131,10 @@ class ArtifactServiceImpl(
             )
         }
         return ArtifactWriteResult(
-            artifact = artifactRepository.save(
-                artifactCoordinates.createArtifact(false, sha256)
-            ).toDTO(),
+            artifact = artifactRepository
+                .save(
+                    artifactCoordinates.createArtifact(false, sha256),
+                ).toDTO(),
             changed = true,
         )
     }

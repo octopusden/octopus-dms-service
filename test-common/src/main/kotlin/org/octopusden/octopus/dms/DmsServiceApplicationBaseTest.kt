@@ -864,6 +864,20 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @Test
+    fun testRevokeComponentVersionRejectsPublishedSolutionParent() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+
+        assertThrowsExactly(VersionPublishedException::class.java) {
+            client.revokeComponentVersion("dependency1", "1.0.1")
+        }
+
+        client.revokeComponentVersion(eeComponent, eeComponentReleaseVersion0354.releaseVersion)
+
+        val result = client.revokeComponentVersion("dependency1", "1.0.1")
+        assertFalse(result.published)
+    }
+
     @ParameterizedTest
     @MethodSource
     fun testGetComponentVersionDependencies(version: Version) {
