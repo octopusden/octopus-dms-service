@@ -2,7 +2,7 @@ package org.octopusden.octopus.dms.dto
 
 import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
 
-data class ComponentVersionArtifactWithRegisteredStatus(
+data class ComponentVersionArtifactRegistrationResult(
     val artifact: ArtifactFullDTO,
-    val registered: Boolean,
+    val created: Boolean,
 )

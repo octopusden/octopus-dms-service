@@ -7,7 +7,7 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
-import org.octopusden.octopus.dms.dto.ArtifactWithChangedStatus
+import org.octopusden.octopus.dms.dto.ArtifactWriteResult
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
@@ -61,21 +61,21 @@ class ArtifactServiceImpl(
     override fun add(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-    ): ArtifactDTO = addWithChangedStatus(failOnAlreadyExists, artifactCoordinates).artifact
+    ): ArtifactDTO = addReportingChange(failOnAlreadyExists, artifactCoordinates).artifact
 
     @Transactional(readOnly = false)
     override fun upload(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
-    ): ArtifactDTO = uploadWithChangedStatus(failOnAlreadyExists, artifactCoordinates, file).artifact
+    ): ArtifactDTO = uploadReportingChange(failOnAlreadyExists, artifactCoordinates, file).artifact
 
     @Transactional(readOnly = false)
-    override fun uploadWithChangedStatus(
+    override fun uploadReportingChange(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
-    ): ArtifactWithChangedStatus {
+    ): ArtifactWriteResult {
         val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
         if (existingArtifact != null) {
             with("Artifact '${existingArtifact.path}' already uploaded") {
@@ -86,17 +86,18 @@ class ArtifactServiceImpl(
                 .use { inputStream ->
                     storageService.upload(existingArtifact.repositoryType, existingArtifact.path, inputStream)
                 }.checksums.sha256
+            val changed = existingArtifact.sha256 != sha256
             existingArtifact.updateSha256(sha256)
-            return ArtifactWithChangedStatus(
+            return ArtifactWriteResult(
                 artifact = existingArtifact.toDTO(),
-                changed = existingArtifact.sha256 != sha256,
+                changed = changed,
             )
         }
         val sha256 = file.inputStream
             .use { inputStream ->
                 storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
             }.checksums.sha256
-        return ArtifactWithChangedStatus(
+        return ArtifactWriteResult(
             artifact = artifactRepository.save(
                 artifactCoordinates.createArtifact(true, sha256)
             ).toDTO(),
@@ -105,10 +106,10 @@ class ArtifactServiceImpl(
     }
 
     @Transactional(readOnly = false)
-    override fun addWithChangedStatus(
+    override fun addReportingChange(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-    ): ArtifactWithChangedStatus {
+    ): ArtifactWriteResult {
         val sha256 = storageService
             .get(
                 artifactCoordinates.repositoryType,
@@ -121,13 +122,14 @@ class ArtifactServiceImpl(
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
+            val changed = existingArtifact.sha256 != sha256
             existingArtifact.updateSha256(sha256)
-            return ArtifactWithChangedStatus(
+            return ArtifactWriteResult(
                 artifact = existingArtifact.toDTO(),
-                changed = existingArtifact.sha256 != sha256,
+                changed = changed,
             )
         }
-        return ArtifactWithChangedStatus(
+        return ArtifactWriteResult(
             artifact = artifactRepository.save(
                 artifactCoordinates.createArtifact(false, sha256)
             ).toDTO(),

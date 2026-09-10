@@ -154,7 +154,7 @@ interface DmsServiceFeignClient {
     ): ArtifactDTO
 
     @RequestLine(
-        "POST /rest/api/3/components/{component-name}/versions/{version}/artifacts/add" +
+        "POST rest/api/3/components/{component-name}/versions/{version}/artifacts/add" +
             "?artifact-type={artifact-type}&fail-on-already-exists={fail-on-already-exists}",
     )
     @Headers("Content-Type: application/json")

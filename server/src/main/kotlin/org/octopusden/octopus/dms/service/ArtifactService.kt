@@ -3,7 +3,7 @@ package org.octopusden.octopus.dms.service
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
-import org.octopusden.octopus.dms.dto.ArtifactWithChangedStatus
+import org.octopusden.octopus.dms.dto.ArtifactWriteResult
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.springframework.web.multipart.MultipartFile
 
@@ -27,14 +27,14 @@ interface ArtifactService {
         file: MultipartFile,
     ): ArtifactDTO
 
-    fun uploadWithChangedStatus(
+    fun uploadReportingChange(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
-    ): ArtifactWithChangedStatus
+    ): ArtifactWriteResult
 
-    fun addWithChangedStatus(
+    fun addReportingChange(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-    ): ArtifactWithChangedStatus
+    ): ArtifactWriteResult
 }

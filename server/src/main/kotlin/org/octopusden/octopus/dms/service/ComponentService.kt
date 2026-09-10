@@ -22,6 +22,7 @@ interface ComponentService {
         version: String,
     ): List<ComponentVersionWithInfoDTO>
 
+    @Deprecated("Use publishComponentVersion or revokeComponentVersion")
     fun patchComponentVersion(
         componentName: String,
         version: String,

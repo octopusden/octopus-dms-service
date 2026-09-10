@@ -80,6 +80,7 @@ class ComponentServiceImpl(
         }
     }
 
+    @Deprecated("Use publishComponentVersion or revokeComponentVersion")
     @Transactional(readOnly = false)
     override fun patchComponentVersion(
         componentName: String,
