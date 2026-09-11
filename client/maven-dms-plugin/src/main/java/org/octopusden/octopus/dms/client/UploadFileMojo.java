@@ -50,7 +50,7 @@ public class UploadFileMojo extends AbstractArtifactMojo {
                         (fileName.length > 1) ? fileName[fileName.length - 1] : "jar",
                         classifier
                 )),
-                failOnAlreadyExists,
+                isFailOnAlreadyExists(),
                 validationLog == null ? null : validationLog.toPath(),
                 dryRun);
     }

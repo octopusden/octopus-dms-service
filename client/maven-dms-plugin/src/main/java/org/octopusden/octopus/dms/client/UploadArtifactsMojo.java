@@ -54,7 +54,7 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                                 ComponentVersion.create(component, version),
                                 targetArtifact.type,
                                 targetArtifact.coordinates,
-                                failOnAlreadyExists,
+                                isFailOnAlreadyExists(),
                                 validationLog == null ? null : validationLog.toPath(),
                                 dryRun
                         )
