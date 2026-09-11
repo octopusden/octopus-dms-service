@@ -86,89 +86,12 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
         patchComponentVersionDTO: PatchComponentVersionDTO,
-    ): ComponentVersionDTO {
-        val component = componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
-        val release = releaseManagementService.getRelease(component.id, version, !patchComponentVersionDTO.published)
-        componentRepository.lock(component.hashCode())
-        val componentVersion = componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
-        return if (componentVersion.published == patchComponentVersionDTO.published) {
-            componentVersion.toDTO(release)
+    ): ComponentVersionDTO =
+        if (patchComponentVersionDTO.published) {
+            publishComponentVersion(componentName, version)
         } else {
-            val artifacts = componentVersionArtifactService.getComponentVersionArtifactFullDTOs(componentVersion)
-            val dependencies = mutableListOf<DependencyArtifactsDTO>()
-            if (component.solution) {
-                // TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components
-                //      behaviour could be changed later - it may be required not to add dependencies artifacts in revoke event
-                val unpublishedDependencies = mutableListOf<BuildDTO>()
-                // TODO: add a cache for component information.
-                release.dependencies.forEach { dependencyBuild ->
-                    if (componentsRegistryService
-                            .getExternalComponentVersion(
-                                dependencyBuild.component,
-                                dependencyBuild.version,
-                            ).explicit
-                    ) {
-                        val dependencyComponentVersion = componentVersionRepository.findByComponentNameAndVersion(
-                            dependencyBuild.component,
-                            dependencyBuild.version,
-                        )
-                        if (dependencyComponentVersion?.published != true) {
-                            unpublishedDependencies.add(dependencyBuild)
-                        } else {
-                            dependencies.add(
-                                DependencyArtifactsDTO(
-                                    componentVersion = dependencyComponentVersion.toDTO(dependencyBuild),
-                                    artifacts = componentVersionArtifactService
-                                        .getComponentVersionArtifactFullDTOs(dependencyComponentVersion),
-                                ),
-                            )
-                        }
-                    }
-                }
-                if (patchComponentVersionDTO.published && unpublishedDependencies.isNotEmpty()) {
-                    throw VersionPublishedException(
-                        "Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies",
-                    )
-                }
-            } else if (!patchComponentVersionDTO.published) {
-                release.parents
-                    .filter {
-                        componentsRegistryService.getExternalComponent(it.component).solution &&
-                            componentVersionRepository
-                                .findByComponentNameAndVersion(
-                                    it.component,
-                                    it.version,
-                                )?.published == true
-                    }.takeIf { it.isNotEmpty() }
-                    ?.let {
-                        throw VersionPublishedException(
-                            "Unable to revoke version '${release.version}' of component '${component.id}'. It is dependency of published solutions $it",
-                        )
-                    }
-            }
-            applicationEventPublisher.publishEvent(
-                if (patchComponentVersionDTO.published) {
-                    PublishComponentVersionEvent(
-                        componentVersion.toFullDTO(component, release),
-                        artifacts,
-                        dependencies,
-                    )
-                } else {
-                    RevokeComponentVersionEvent(
-                        componentVersion.toFullDTO(component, release),
-                        artifacts,
-                        dependencies,
-                    )
-                },
-            )
-            componentVersionRepository
-                .save(
-                    componentVersion.apply {
-                        published = patchComponentVersionDTO.published
-                    },
-                ).toDTO(release)
+            revokeComponentVersion(componentName, version)
         }
-    }
 
     @Transactional(readOnly = true)
     override fun getPreviousLinesLatestVersions(
