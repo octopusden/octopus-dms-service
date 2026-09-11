@@ -368,13 +368,11 @@ class ComponentVersionArtifactServiceImpl(
                 repositoryType = artifact.repositoryType,
                 includeStaging = false,
                 path = artifact.path,
-            )
-            .checksums
-            .sha256
+            ).checksums.sha256
         if (artifact.sha256 != actualSha256) {
             throw ArtifactChecksumChangedException(
                 "SHA256 checksum has changed from ${artifact.sha256} to $actualSha256 " +
-                        "for artifact with ID '${artifact.id}'",
+                    "for artifact with ID '${artifact.id}'",
             )
         }
     }

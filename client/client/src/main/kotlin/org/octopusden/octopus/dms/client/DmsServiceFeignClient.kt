@@ -50,8 +50,8 @@ interface DmsServiceFeignClient {
 
     @Deprecated(
         "Use the dedicated publish/revoke endpoints instead: " +
-                "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
-                "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
+            "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
+            "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
     )
     @RequestLine("PATCH rest/api/3/components/{component-name}/versions/{version}")
     @Headers("Content-Type: application/json")
