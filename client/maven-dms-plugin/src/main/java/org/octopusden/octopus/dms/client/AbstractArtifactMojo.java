@@ -19,7 +19,7 @@ abstract public class AbstractArtifactMojo extends AbstractDmsMojo {
      * The current semantics are inverse: {@code failOnAlreadyExists = !replace}.
      */
     @Deprecated
-    @Parameter(property = "replace", defaultValue = "true")
+    @Parameter(property = "replace")
     protected Boolean replace;
 
     @Parameter(property = "failOnAlreadyExists", defaultValue = "false")
