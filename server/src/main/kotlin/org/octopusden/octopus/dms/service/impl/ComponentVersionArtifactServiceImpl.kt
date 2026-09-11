@@ -10,6 +10,7 @@ import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.BuildFullDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionArtifactRegistrationResult
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
+import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.entity.ComponentVersionArtifact
@@ -115,13 +116,7 @@ class ComponentVersionArtifactServiceImpl(
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
-        storageService.get(artifact.repositoryType, false, artifact.path).checksums.sha256.let {
-            if (artifact.sha256 != it) {
-                throw ArtifactChecksumChangedException(
-                    "SHA256 checksum has changed from ${artifact.sha256} to $it for artifact with ID '$artifactId'",
-                )
-            }
-        }
+        validateArtifactCanBeRegistered(artifact)
         val release = releaseManagementService.getRelease(
             componentName,
             version,
@@ -268,6 +263,7 @@ class ComponentVersionArtifactServiceImpl(
         val artifact = artifactRepository.findById(artifactId).orElseThrow {
             NotFoundException("Artifact with ID '$artifactId' is not found")
         }
+        validateArtifactCanBeRegistered(artifact)
         val componentVersion = getOrCreateComponentVersionEntity(
             componentName = componentName,
             version = version,
@@ -364,6 +360,23 @@ class ComponentVersionArtifactServiceImpl(
             buildVersion,
             artifactId,
         )
+    }
+
+    private fun validateArtifactCanBeRegistered(artifact: Artifact) {
+        val actualSha256 = storageService
+            .get(
+                repositoryType = artifact.repositoryType,
+                includeStaging = false,
+                path = artifact.path,
+            )
+            .checksums
+            .sha256
+        if (artifact.sha256 != actualSha256) {
+            throw ArtifactChecksumChangedException(
+                "SHA256 checksum has changed from ${artifact.sha256} to $actualSha256 " +
+                        "for artifact with ID '${artifact.id}'",
+            )
+        }
     }
 
     companion object {
