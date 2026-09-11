@@ -127,6 +127,7 @@ class ComponentVersionArtifactServiceImpl(
             version,
             registerArtifactDTO.type != ArtifactType.DISTRIBUTION,
         )
+        componentRepository.lock(componentName.hashCode())
         val componentVersion = getOrCreateComponentVersionEntity(componentName, release.version)
         throwIfPublishedVersion(componentVersion, componentName, registerArtifactDTO.type)
         val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
@@ -198,6 +199,7 @@ class ComponentVersionArtifactServiceImpl(
         artifactType: ArtifactType,
         failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
+        componentRepository.lock(componentName.hashCode())
         val release = validateCanRegisterBeforeMutation(componentName, version, artifactType)
         val uploadResult = artifactService.uploadReportingChange(
             failOnAlreadyExists = failOnAlreadyExists,
@@ -231,6 +233,7 @@ class ComponentVersionArtifactServiceImpl(
         artifactType: ArtifactType,
         failOnAlreadyExists: Boolean,
     ): ArtifactFullDTO {
+        componentRepository.lock(componentName.hashCode())
         val release = validateCanRegisterBeforeMutation(componentName, version, artifactType)
         val addResult = artifactService.addReportingChange(
             failOnAlreadyExists = failOnAlreadyExists,
@@ -269,9 +272,6 @@ class ComponentVersionArtifactServiceImpl(
             componentName = componentName,
             version = version,
         )
-        // Re-check after receiving the component lock to prevent registration if the version was published
-        // after the initial validation and before the artifact mutation.
-        throwIfPublishedVersion(componentVersion, componentName, artifactType)
         val componentVersionArtifact = componentVersionArtifactRepository.findByComponentVersionAndArtifact(
             componentVersion = componentVersion,
             artifact = artifact,
@@ -336,8 +336,6 @@ class ComponentVersionArtifactServiceImpl(
         componentName: String,
         version: String,
     ): ComponentVersion {
-        componentRepository.lock(componentName.hashCode())
-
         val component = componentRepository.findByName(componentName)
             ?: componentRepository.save(Component(name = componentName))
 

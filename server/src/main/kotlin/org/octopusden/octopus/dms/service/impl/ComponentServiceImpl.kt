@@ -89,7 +89,7 @@ class ComponentServiceImpl(
     ): ComponentVersionDTO {
         val component = componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, !patchComponentVersionDTO.published)
-        componentRepository.lock(component.id.hashCode())
+        componentRepository.lock(component.hashCode())
         val componentVersion = componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
         return if (componentVersion.published == patchComponentVersionDTO.published) {
             componentVersion.toDTO(release)
@@ -193,7 +193,7 @@ class ComponentServiceImpl(
             .getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, false)
-        componentRepository.lock(component.id.hashCode())
+        componentRepository.lock(component.hashCode())
         val componentVersion = componentVersionRepository
             .getByComponentNameAndVersion(component.id, release.version)
 
@@ -239,7 +239,7 @@ class ComponentServiceImpl(
             .getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, true)
-        componentRepository.lock(component.id.hashCode())
+        componentRepository.lock(component.hashCode())
         val componentVersion =
             componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
 
