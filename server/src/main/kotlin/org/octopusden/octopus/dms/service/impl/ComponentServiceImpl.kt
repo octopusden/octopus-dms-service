@@ -116,7 +116,7 @@ class ComponentServiceImpl(
             .getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, false)
-        componentRepository.lock(component.hashCode())
+        componentRepository.lock(componentName.hashCode())
         val componentVersion = componentVersionRepository
             .getByComponentNameAndVersion(component.id, release.version)
 
@@ -162,7 +162,7 @@ class ComponentServiceImpl(
             .getExternalExplicitComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, true)
-        componentRepository.lock(component.hashCode())
+        componentRepository.lock(componentName.hashCode())
         val componentVersion =
             componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
 

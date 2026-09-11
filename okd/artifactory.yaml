@@ -65,8 +65,8 @@ objects:
                 head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' \
                   > /opt/jfrog/artifactory/var/etc/security/join.key
               fi
-              chmod 600 /opt/jfrog/artifactory/var/etc/security/master.key || true
-              chmod 600 /opt/jfrog/artifactory/var/etc/security/join.key || true
+              chmod 600 /opt/jfrog/artifactory/var/etc/security/master.key
+              chmod 600 /opt/jfrog/artifactory/var/etc/security/join.key
               echo "Initialization completed"
           volumeMounts:
             - name: artifactory-data
