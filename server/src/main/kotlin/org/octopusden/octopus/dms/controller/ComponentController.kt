@@ -123,6 +123,7 @@ class ComponentController(
             "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
             "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
     )
+    @Operation(deprecated = true)
     @PatchMapping("{component-name}/versions/{version}")
     @PreAuthorize("@permissionEvaluator.hasPermission('PUBLISH_ARTIFACT')")
     fun patchComponentVersion(
