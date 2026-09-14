@@ -318,6 +318,7 @@ class ComponentVersionArtifactServiceImpl(
                 created = false,
             )
         }
+        throwIfArtifactChecksumChanged(artifact)
         val newComponentVersionArtifact = componentVersionArtifactRepository.save(
             ComponentVersionArtifact(
                 componentVersion = resolvedComponentVersion,
