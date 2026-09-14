@@ -804,7 +804,7 @@ abstract class DmsServiceApplicationBaseTest {
                 RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
             )
         }
-        assertThrowsExactly(VersionPublishedException::class.java) {
+        assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
                 releaseVersion.buildVersion,
@@ -813,14 +813,16 @@ abstract class DmsServiceApplicationBaseTest {
                 true,
             )
         }
-        assertThrowsExactly(VersionPublishedException::class.java) {
-            client.registerComponentVersionArtifact(
-                eeComponent,
-                releaseVersion.buildVersion,
-                artifact.id,
-                RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
-            )
-        }
+        assertEquals(
+            artifact.id,
+            client
+                .registerComponentVersionArtifact(
+                    eeComponent,
+                    releaseVersion.buildVersion,
+                    artifact.id,
+                    RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+                ).id,
+        )
         dependencies.forEach { (componentName, version) ->
             assertThrowsExactly(VersionPublishedException::class.java) {
                 client.deleteComponentVersionArtifact(componentName, version, artifact.id)
@@ -1215,7 +1217,7 @@ abstract class DmsServiceApplicationBaseTest {
             client.addAndRegisterComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
-                releaseMavenDistributionCoordinates,
+                releaseDebianDistributionCoordinates,
                 ArtifactType.DISTRIBUTION,
                 false,
             )
@@ -1291,10 +1293,88 @@ abstract class DmsServiceApplicationBaseTest {
             client.addAndRegisterComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
-                releaseMavenDistributionCoordinates,
+                releaseRpmDistributionCoordinates,
                 ArtifactType.COMPLIANCE_ARTIFACTS,
                 false,
             )
+        }
+    }
+
+    @Test
+    fun testAddAndRegisterComponentVersionArtifactIdempotentOnPublishedVersion() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val registeredId = client
+            .getComponentVersionArtifacts(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                ArtifactType.DISTRIBUTION,
+            ).artifacts
+            .single()
+            .id
+        val result = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            releaseMavenDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+        assertEquals(registeredId, result.id)
+    }
+
+    @Test
+    fun testUploadAndRegisterComponentVersionArtifactIdempotentOnPublishedVersion() {
+        val first = getResource(TEST_SBOM_FILE_NAME).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                sbomCoordinates,
+                inputStream,
+                TEST_SBOM_FILE_NAME,
+                ArtifactType.COMPLIANCE_ARTIFACTS,
+                false,
+            )
+        }
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val second = getResource(TEST_SBOM_FILE_NAME).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                sbomCoordinates,
+                inputStream,
+                TEST_SBOM_FILE_NAME,
+                ArtifactType.COMPLIANCE_ARTIFACTS,
+                false,
+            )
+        }
+        assertEquals(first.id, second.id)
+    }
+
+    @Test
+    fun testUploadAndRegisterComponentVersionArtifactChangedContentOnPublishedVersionThrows() {
+        getResource(TEST_SBOM_FILE_NAME).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                sbomCoordinates,
+                inputStream,
+                TEST_SBOM_FILE_NAME,
+                ArtifactType.COMPLIANCE_ARTIFACTS,
+                false,
+            )
+        }
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        assertThrowsExactly(VersionPublishedException::class.java) {
+            getResource(releaseReleaseNotesFileName).openStream().use { inputStream ->
+                client.uploadAndRegisterComponentVersionArtifact(
+                    eeComponent,
+                    eeComponentReleaseVersion0354.buildVersion,
+                    sbomCoordinates,
+                    inputStream,
+                    releaseReleaseNotesFileName,
+                    ArtifactType.COMPLIANCE_ARTIFACTS,
+                    false,
+                )
+            }
         }
     }
 
@@ -1759,7 +1839,7 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
-    fun testRegisterEndpointRejectsDistributionOnPublishedAlreadyRegistered() {
+    fun testRegisterDistributionOnPublishedAlreadyRegisteredFailOnExists() {
         val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
         client.registerComponentVersionArtifact(
             eeComponent,
@@ -1768,7 +1848,7 @@ abstract class DmsServiceApplicationBaseTest {
             RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
         )
         publishVersion(eeComponent, eeComponentReleaseVersion0354)
-        assertThrowsExactly(VersionPublishedException::class.java) {
+        assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
             client.registerComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
@@ -1777,6 +1857,25 @@ abstract class DmsServiceApplicationBaseTest {
                 true,
             )
         }
+    }
+
+    @Test
+    fun testRegisterDistributionOnPublishedAlreadyRegisteredIdempotent() {
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+        )
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        val result = client.registerComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifact.id,
+            RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+        )
+        assertEquals(artifact.id, result.id)
     }
 
     @Test
@@ -1982,7 +2081,7 @@ abstract class DmsServiceApplicationBaseTest {
             client.addAndRegisterComponentVersionArtifact(
                 eeComponent,
                 eeComponentReleaseVersion0354.buildVersion,
-                releaseMavenDistributionCoordinates,
+                releaseDockerDistributionCoordinates,
                 ArtifactType.DISTRIBUTION,
                 false,
             )
