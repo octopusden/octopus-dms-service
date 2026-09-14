@@ -83,7 +83,7 @@ objects:
           image: releases-docker.jfrog.io/jfrog/artifactory-oss:${ARTIFACTORY_IMAGE_TAG}
           resources:
             requests:
-              cpu: "50m"
+              cpu: "500m"
               memory: "3Gi"
             limits:
               cpu: "3000m"
@@ -131,6 +131,8 @@ objects:
     kind: Route
     metadata:
       name: ${DEPLOYMENT_PREFIX}-artifactory-route
+      annotations:
+        haproxy.router.openshift.io/timeout: 300s
     spec:
       to:
         kind: Service
