@@ -22,6 +22,7 @@ objects:
       containers:
         - name: dms-service
           image: ${OCTOPUS_GITHUB_DOCKER_REGISTRY}/octopusden/dms-service:${DMS_SERVICE_VERSION}
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "50m"

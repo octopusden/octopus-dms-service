@@ -14,12 +14,27 @@ abstract public class AbstractArtifactMojo extends AbstractDmsMojo {
     @Parameter(property = "name")
     protected String name;
 
-    @Parameter(property = "replace", defaultValue = "true")
-    protected boolean replace;
+    /**
+     * @deprecated Use {@code failOnAlreadyExists} instead.
+     * The current semantics are inverse: {@code failOnAlreadyExists = !replace}.
+     */
+    @Deprecated
+    @Parameter(property = "replace")
+    protected Boolean replace;
+
+    @Parameter(property = "failOnAlreadyExists", defaultValue = "false")
+    protected boolean failOnAlreadyExists;
 
     @Parameter(property = "uploadAttempts", defaultValue = "3")
     protected int uploadAttempts;
 
     @Parameter(property = "validationLog")
     protected File validationLog;
+
+    protected boolean isFailOnAlreadyExists() {
+        if (replace != null) {
+            return !replace;
+        }
+        return failOnAlreadyExists;
+    }
 }

@@ -32,8 +32,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.octopusden.octopus.escrow.dto.DistributionEntity;
-import org.octopusden.octopus.escrow.dto.FileDistributionEntity;
-import org.octopusden.octopus.escrow.dto.MavenArtifactDistributionEntity;
+import org.octopusden.octopus.components.registry.api.distribution.entities.FileDistributionEntity;
+import org.octopusden.octopus.components.registry.api.distribution.entities.MavenArtifactDistributionEntity;
 import org.octopusden.octopus.escrow.utilities.DistributionUtilities;
 
 @Named

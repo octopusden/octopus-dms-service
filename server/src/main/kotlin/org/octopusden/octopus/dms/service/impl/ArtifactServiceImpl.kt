@@ -7,6 +7,7 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.dto.ArtifactWriteResult
 import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
@@ -29,32 +30,24 @@ class ArtifactServiceImpl(
     private val storageService: StorageService,
     private val artifactRepository: ArtifactRepository,
 ) : ArtifactService {
-    override fun repositories(repositoryType: RepositoryType): List<String> {
-        log.info("Get $repositoryType repositories")
-        return storageService.getRepositoriesUrls(repositoryType, false)
-    }
+    override fun repositories(repositoryType: RepositoryType): List<String> = storageService.getRepositoriesUrls(repositoryType, false)
 
     @Transactional(readOnly = true)
-    override fun get(id: Long): ArtifactDTO {
-        log.info("Get artifact with ID '$id'")
-        return artifactRepository
+    override fun get(id: Long): ArtifactDTO =
+        artifactRepository
             .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
             .toDTO()
-    }
 
     @Transactional(readOnly = true)
-    override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO {
-        log.info("Find artifact with coordinates '$artifactCoordinates'")
-        return (
+    override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO =
+        (
             artifactRepository.findByPath(artifactCoordinates.toPath())
                 ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
         ).toDTO()
-    }
 
     @Transactional(readOnly = true)
     override fun download(id: Long): DownloadArtifactDTO {
-        log.info("Download artifact with ID '$id'")
         val artifact = artifactRepository
             .findById(id)
             .orElseThrow { NotFoundException("Artifact with ID '$id' is not found") }
@@ -68,55 +61,82 @@ class ArtifactServiceImpl(
     override fun add(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
-    ): ArtifactDTO {
-        log.info("Add artifact with coordinates '$artifactCoordinates'")
-        val sha256 = storageService
-            .get(
-                artifactCoordinates.repositoryType,
-                true,
-                artifactCoordinates.toPath(),
-            ).checksums.sha256
-        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
-            with("Artifact with coordinates '${it.path}' already added") {
-                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
-                log.info(this)
-            }
-            it.updateSha256(sha256)
-        } ?: artifactRepository.save(artifactCoordinates.createArtifact(false, sha256))
-        return artifact.toDTO()
-    }
+    ): ArtifactDTO = addReportingChange(failOnAlreadyExists, artifactCoordinates).artifact
 
     @Transactional(readOnly = false)
     override fun upload(
         failOnAlreadyExists: Boolean,
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
-    ): ArtifactDTO {
-        log.info("Upload file ${file.originalFilename} as artifact with coordinates '$artifactCoordinates'")
-        val artifact = artifactRepository.findByPath(artifactCoordinates.toPath())?.let {
-            with("Artifact '${it.path}' already uploaded") {
+    ): ArtifactDTO = uploadReportingChange(failOnAlreadyExists, artifactCoordinates, file).artifact
+
+    @Transactional(readOnly = false)
+    override fun uploadReportingChange(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        file: MultipartFile,
+    ): ArtifactWriteResult {
+        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        if (existingArtifact != null) {
+            with("Artifact '${existingArtifact.path}' already uploaded") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
                 log.info(this)
             }
-            // NOTE:
-            // allowing of artifact re-uploading may be an issue if it is registered for published component version
-            // but uploading is used for non-distribution artifacts only so it is allowed for repeatable build purpose
-            it.updateSha256(
-                file.inputStream
-                    .use { inputStream ->
-                        storageService.upload(it.repositoryType, it.path, inputStream)
-                    }.checksums.sha256,
+            val sha256 = file.inputStream
+                .use { inputStream ->
+                    storageService.upload(existingArtifact.repositoryType, existingArtifact.path, inputStream)
+                }.checksums.sha256
+            val changed = existingArtifact.sha256 != sha256
+            existingArtifact.updateSha256(sha256)
+            return ArtifactWriteResult(
+                artifact = existingArtifact.toDTO(),
+                changed = changed,
             )
-        } ?: artifactRepository.save(
-            artifactCoordinates.createArtifact(
-                true,
-                file.inputStream
-                    .use { inputStream ->
-                        storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
-                    }.checksums.sha256,
-            ),
+        }
+        val sha256 = file.inputStream
+            .use { inputStream ->
+                storageService.upload(artifactCoordinates.repositoryType, artifactCoordinates.toPath(), inputStream)
+            }.checksums.sha256
+        return ArtifactWriteResult(
+            artifact = artifactRepository
+                .save(
+                    artifactCoordinates.createArtifact(true, sha256),
+                ).toDTO(),
+            changed = true,
         )
-        return artifact.toDTO()
+    }
+
+    @Transactional(readOnly = false)
+    override fun addReportingChange(
+        failOnAlreadyExists: Boolean,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+    ): ArtifactWriteResult {
+        val sha256 = storageService
+            .get(
+                artifactCoordinates.repositoryType,
+                true,
+                artifactCoordinates.toPath(),
+            ).checksums.sha256
+        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        if (existingArtifact != null) {
+            with("Artifact with coordinates '${existingArtifact.path}' already added") {
+                if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
+                log.info(this)
+            }
+            val changed = existingArtifact.sha256 != sha256
+            existingArtifact.updateSha256(sha256)
+            return ArtifactWriteResult(
+                artifact = existingArtifact.toDTO(),
+                changed = changed,
+            )
+        }
+        return ArtifactWriteResult(
+            artifact = artifactRepository
+                .save(
+                    artifactCoordinates.createArtifact(false, sha256),
+                ).toDTO(),
+            changed = true,
+        )
     }
 
     private fun Artifact.updateSha256(sha256: String) =

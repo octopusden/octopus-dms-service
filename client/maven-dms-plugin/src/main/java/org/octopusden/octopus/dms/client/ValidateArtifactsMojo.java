@@ -134,7 +134,7 @@ public class ValidateArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                                 ComponentVersion.create(component, version),
                                 targetArtifact.coordinates,
                                 validationToUse,
-                                !replace,
+                                isFailOnAlreadyExists(),
                                 validationLog == null ? null : validationLog.toPath(),
                                 dryRun
                         )

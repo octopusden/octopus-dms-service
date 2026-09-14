@@ -1,9 +1,13 @@
+@file:Suppress("DEPRECATION")
+
 package org.octopusden.octopus.dms
 
 import com.fasterxml.jackson.core.type.TypeReference
 import feign.Request
 import feign.Response
 import org.apache.http.entity.ContentType
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
@@ -18,17 +22,18 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
+import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.DMSException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockMultipartFile
@@ -51,9 +56,13 @@ import java.io.InputStream
 )
 @ActiveProfiles("ut")
 @WithMockUser(authorities = ["ROLE_DMS_USER_DEV"])
+@Import(RecordingEventListener::class)
 class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @Autowired
+    private lateinit var eventRecorder: RecordingEventListener
 
     override val client = object : DmsServiceUploadingClient {
         override fun getComponents(filter: ComponentRequestFilter): ComponentsDTO {
@@ -123,6 +132,36 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             ).andReturn()
             .response
             .toObject(object : TypeReference<ComponentVersionDTO>() {})
+
+        override fun publishComponentVersion(
+            componentName: String,
+            version: String,
+        ): ComponentVersionDTO =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/components/$componentName/versions/$version/publish")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ComponentVersionDTO>() {})
+
+        override fun revokeComponentVersion(
+            componentName: String,
+            version: String,
+        ): ComponentVersionDTO =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/components/$componentName/versions/$version/revoke")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .toObject(object : TypeReference<ComponentVersionDTO>() {})
 
         override fun getPreviousLinesLatestVersions(
             componentName: String,
@@ -296,8 +335,28 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .response
             .toObject(object : TypeReference<ArtifactDTO>() {})
 
+        override fun addAndRegisterComponentVersionArtifact(
+            componentName: String,
+            version: String,
+            artifactCoordinates: ArtifactCoordinatesDTO,
+            artifactType: ArtifactType,
+            failOnAlreadyExists: Boolean,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/components/$componentName/versions/$version/artifacts/add")
+                    .param("artifact-type", artifactType.value())
+                    .param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(artifactCoordinates))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
+
         override fun uploadArtifact(
-            artifactCoordinates: MavenArtifactCoordinatesDTO,
+            artifactCoordinates: ArtifactCoordinatesDTO,
             file: InputStream,
             fileName: String?,
             failOnAlreadyExists: Boolean?,
@@ -326,6 +385,41 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             ).andReturn()
             .response
             .toObject(object : TypeReference<MavenArtifactDTO>() {})
+
+        override fun uploadAndRegisterComponentVersionArtifact(
+            componentName: String,
+            version: String,
+            artifactCoordinates: ArtifactCoordinatesDTO,
+            file: InputStream,
+            fileName: String?,
+            artifactType: ArtifactType,
+            failOnAlreadyExists: Boolean?,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .multipart("/rest/api/3/components/$componentName/versions/$version/artifacts/upload")
+                    .also {
+                        it.param("artifact-type", artifactType.value())
+                        if (failOnAlreadyExists != null) it.param("fail-on-already-exists", failOnAlreadyExists.toString())
+                    }.file(
+                        MockMultipartFile(
+                            "artifact",
+                            "",
+                            ContentType.APPLICATION_JSON.mimeType,
+                            objectMapper.writeValueAsString(artifactCoordinates).toByteArray(),
+                        ),
+                    ).file(
+                        MockMultipartFile(
+                            "file",
+                            fileName ?: "",
+                            ContentType.DEFAULT_BINARY.mimeType,
+                            file,
+                        ),
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .toObject(object : TypeReference<ArtifactFullDTO>() {})
 
         private fun MockHttpServletResponse.processError() {
             if (this.status / 100 != 2) {
@@ -385,5 +479,86 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                         ArtifactType.COMPLIANCE_ARTIFACTS.value(),
                     ).with(restricted),
             ).andExpect(status().isForbidden)
+    }
+
+    @BeforeEach
+    fun clearRecordedEvents() {
+        eventRecorder.clear()
+    }
+
+    private fun artifactRegistrationEvents() = eventRecorder.events().filterIsInstance<RegisterComponentVersionArtifactEvent>()
+
+    @Test
+    fun testNewRegistrationPublishesComponentVersionArtifactEvent() {
+        client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            releaseMavenDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+        assertEquals(1, artifactRegistrationEvents().size)
+    }
+
+    @Test
+    fun testIdempotentRegistrationPublishesComponentVersionArtifactEventOnce() {
+        repeat(2) {
+            client.addAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                releaseMavenDistributionCoordinates,
+                ArtifactType.DISTRIBUTION,
+                false,
+            )
+        }
+        // second call neither changes the artifact nor creates a registration -> no event
+        assertEquals(1, artifactRegistrationEvents().size)
+    }
+
+    @Test
+    fun testReUploadWithChangedContentPublishesSecondComponentVersionArtifactEvent() {
+        getResource(devReleaseNotesFileName).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                releaseNotesCoordinates,
+                inputStream,
+                devReleaseNotesFileName,
+                ArtifactType.NOTES,
+                false,
+            )
+        }
+        getResource(releaseReleaseNotesFileName).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                releaseNotesCoordinates,
+                inputStream,
+                releaseReleaseNotesFileName,
+                ArtifactType.NOTES,
+                false,
+            )
+        }
+        // first upload registers, second changes the content -> two events
+        assertEquals(2, artifactRegistrationEvents().size)
+    }
+
+    @Test
+    fun testReUploadWithSameContentPublishesComponentVersionArtifactEventOnce() {
+        repeat(2) {
+            getResource(releaseReleaseNotesFileName).openStream().use { inputStream ->
+                client.uploadAndRegisterComponentVersionArtifact(
+                    eeComponent,
+                    eeComponentReleaseVersion0354.buildVersion,
+                    releaseNotesCoordinates,
+                    inputStream,
+                    releaseReleaseNotesFileName,
+                    ArtifactType.NOTES,
+                    false,
+                )
+            }
+        }
+        // second upload has the same checksum and is already registered -> no event
+        assertEquals(1, artifactRegistrationEvents().size)
     }
 }

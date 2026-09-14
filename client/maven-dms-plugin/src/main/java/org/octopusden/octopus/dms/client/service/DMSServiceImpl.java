@@ -17,9 +17,6 @@ import org.octopusden.octopus.dms.client.RuntimeMojoExecutionException;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
-import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO;
-import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO;
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
 import org.octopusden.octopus.dms.client.common.dto.ValidationPropertiesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
@@ -50,7 +47,17 @@ public class DMSServiceImpl implements DMSService {
             try {
                 ArtifactDTO artifact;
                 if (file != null) {
-                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
+                    artifact = executeWithFileRetry(
+                            log,
+                            file,
+                            uploadAttempts,
+                            inputStream -> dmsServiceClient.uploadArtifact(
+                                    coordinates,
+                                    inputStream,
+                                    file.getName(),
+                                    failOnAlreadyExists
+                            )
+                    );
                 } else {
                     artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
                 }
@@ -68,8 +75,15 @@ public class DMSServiceImpl implements DMSService {
         }
     }
 
+    /**
+     * Registers an artifact for the specified component version.
+     * If a file is provided, uploads it first; otherwise, registers the artifact
+     * using the provided coordinates.
+     *
+     * @param file artifact file to upload, or {@code null} if the artifact already exists in the repository
+     */
     @Override
-    public void uploadArtifact(
+    public void registerComponentVersionArtifact(
             Log log,
             DmsServiceUploadingClient dmsServiceClient,
             File file,
@@ -84,19 +98,30 @@ public class DMSServiceImpl implements DMSService {
         log.info(String.format("Upload %s artifact '%s' for component '%s' version '%s', dry run '%s'", type.value(), coordinates, componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
         if (!dryRun) {
             try {
-                ArtifactDTO artifact;
                 if (file != null) {
-                    artifact = uploadFile(log, dmsServiceClient, file, uploadAttempts, (MavenArtifactCoordinatesDTO) coordinates, failOnAlreadyExists);
+                    executeWithFileRetry(
+                            log,
+                            file,
+                            uploadAttempts,
+                            inputStream -> dmsServiceClient.uploadAndRegisterComponentVersionArtifact(
+                                    componentVersion.getComponentName(),
+                                    componentVersion.getVersion(),
+                                    coordinates,
+                                    inputStream,
+                                    file.getName(),
+                                    type,
+                                    failOnAlreadyExists
+                            )
+                    );
                 } else {
-                    artifact = dmsServiceClient.addArtifact(coordinates, failOnAlreadyExists);
+                    dmsServiceClient.addAndRegisterComponentVersionArtifact(
+                            componentVersion.getComponentName(),
+                            componentVersion.getVersion(),
+                            coordinates,
+                            type,
+                            failOnAlreadyExists
+                    );
                 }
-                dmsServiceClient.registerComponentVersionArtifact(
-                        componentVersion.getComponentName(),
-                        componentVersion.getVersion(),
-                        artifact.getId(),
-                        new RegisterArtifactDTO(type),
-                        failOnAlreadyExists
-                );
             } catch (Exception e) {
                 if (e.getMessage() != null) {
                     Utils.writeToLogFile(e.getMessage(), validationLog);
@@ -117,43 +142,15 @@ public class DMSServiceImpl implements DMSService {
         log.info(String.format("Publish component '%s' version '%s', dry run '%s'", componentVersion.getComponentName(), componentVersion.getVersion(), dryRun));
         if (!dryRun) {
             try {
-                dmsServiceClient.patchComponentVersion(
+                dmsServiceClient.publishComponentVersion(
                         componentVersion.getComponentName(),
-                        componentVersion.getVersion(),
-                        new PatchComponentVersionDTO(true)
+                        componentVersion.getVersion()
                 );
             } catch (Exception e) {
                 throw new RuntimeMojoExecutionException(String.format("Failed to publish component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()), e);
             }
             log.info(String.format("Published component '%s' version '%s'", componentVersion.getComponentName(), componentVersion.getVersion()));
         }
-    }
-
-    private ArtifactDTO uploadFile(
-            Log log,
-            DmsServiceUploadingClient dmsServiceClient,
-            File file,
-            int uploadAttempts,
-            MavenArtifactCoordinatesDTO coordinates,
-            boolean failOnAlreadyExists
-    ) throws Exception {
-        Validate.isTrue(file.isFile(), "File should exist at " + file.getAbsolutePath());
-        Validate.isTrue(uploadAttempts > 0, "uploadAttempts must be greater than zero");
-        ArtifactDTO artifact = null;
-        for(int i = 1; i <= uploadAttempts; i++) {
-            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                artifact = dmsServiceClient.uploadArtifact(coordinates, inputStream, file.getName(), failOnAlreadyExists);
-                break;
-            } catch (IOException e) {
-                log.warn(String.format("File uploading failed (attempt %d of %d)", i, uploadAttempts), e);
-                if (i < uploadAttempts) {
-                    Thread.sleep(5000);
-                } else {
-                    throw e;
-                }
-            }
-        }
-        return artifact;
     }
 
     /**
@@ -202,5 +199,34 @@ public class DMSServiceImpl implements DMSService {
             Utils.writeToLogFile(message.toString(), validationLog);
             throw new Exception(String.format("Artifact '%s' is invalidated.", coordinates.toPath()));
         }
+    }
+
+    private <T> T executeWithFileRetry(
+            Log log,
+            File file,
+            int attempts,
+            FileAction<T> action
+    ) throws Exception {
+        Validate.isTrue(file.isFile(), "File should exist at " + file.getAbsolutePath());
+        Validate.isTrue(attempts > 0, "attempts must be greater than zero");
+
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                return action.execute(inputStream);
+            } catch (IOException e) {
+                log.warn(String.format("File operation failed (attempt %d of %d)", attempt, attempts), e);
+                if (attempt == attempts) {
+                    throw e;
+                }
+                Thread.sleep(5000);
+            }
+        }
+
+        throw new IllegalStateException("Unreachable");
+    }
+
+    @FunctionalInterface
+    private interface FileAction<T> {
+        T execute(InputStream inputStream) throws Exception;
     }
 }

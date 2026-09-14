@@ -1,15 +1,10 @@
 package org.octopusden.octopus.dms.service
 
-import org.octopusden.octopus.dms.client.common.dto.ArtifactFullDTO
-import org.octopusden.octopus.dms.client.common.dto.ArtifactType
-import org.octopusden.octopus.dms.client.common.dto.ArtifactsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
-import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.dto.ComponentVersionWithInfoDTO
-import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 
 interface ComponentService {
     fun getComponents(filter: ComponentRequestFilter? = null): List<ComponentDTO>
@@ -27,6 +22,7 @@ interface ComponentService {
         version: String,
     ): List<ComponentVersionWithInfoDTO>
 
+    @Deprecated("Use publishComponentVersion or revokeComponentVersion")
     fun patchComponentVersion(
         componentName: String,
         version: String,
@@ -39,36 +35,13 @@ interface ComponentService {
         includeRc: Boolean,
     ): List<String>
 
-    fun getComponentVersionArtifacts(
+    fun publishComponentVersion(
         componentName: String,
         version: String,
-        type: ArtifactType?,
-    ): ArtifactsDTO
+    ): ComponentVersionDTO
 
-    fun getComponentVersionArtifact(
+    fun revokeComponentVersion(
         componentName: String,
         version: String,
-        artifactId: Long,
-    ): ArtifactFullDTO
-
-    fun downloadComponentVersionArtifact(
-        componentName: String,
-        version: String,
-        artifactId: Long,
-    ): DownloadArtifactDTO
-
-    fun registerComponentVersionArtifact(
-        componentName: String,
-        version: String,
-        artifactId: Long,
-        failOnAlreadyExists: Boolean,
-        registerArtifactDTO: RegisterArtifactDTO,
-    ): ArtifactFullDTO
-
-    fun deleteComponentVersionArtifact(
-        componentName: String,
-        version: String,
-        artifactId: Long,
-        dryRun: Boolean,
-    )
+    ): ComponentVersionDTO
 }
