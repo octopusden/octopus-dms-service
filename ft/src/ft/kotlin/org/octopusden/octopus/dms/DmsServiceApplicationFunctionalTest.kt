@@ -33,7 +33,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
-        val mavenCommand = if (isWindowsSystem) mvnWinCommand else mvnCommonCommand
+        val mavenCommand = if (isWindowsSystem) MVN_WIN_COMMAND else MVN_COMMON_COMMAND
         "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }
 
@@ -372,9 +372,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(
             runMavenDmsPlugin(
@@ -399,9 +398,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(
             runMavenDmsPlugin(
@@ -773,8 +771,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     companion object {
-        private const val mvnWinCommand = "mvn.cmd"
-        private const val mvnCommonCommand = "mvn"
+        private const val MVN_WIN_COMMAND = "mvn.cmd"
+        private const val MVN_COMMON_COMMAND = "mvn"
 
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =

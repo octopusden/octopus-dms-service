@@ -53,10 +53,10 @@ import org.octopusden.octopus.dms.exception.UnableToFindArtifactException
 import org.octopusden.octopus.dms.exception.VersionPublishedException
 import java.sql.Connection
 import java.sql.DriverManager
-import java.util.*
+import java.util.Properties
 import java.util.stream.Stream
 
-@Suppress("SqlDialectInspection", "SameParameterValue")
+@Suppress("SqlDialectInspection", "SameParameterValue", "ktlint:standard:property-naming")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class DmsServiceApplicationBaseTest {
     abstract val client: DmsServiceUploadingClient
@@ -2320,7 +2320,8 @@ abstract class DmsServiceApplicationBaseTest {
         val RELEASE_DEB_ARTIFACTS_COORDINATES = releaseDebianDistributionCoordinates.deb
         val DEV_RPM_ARTIFACTS_COORDINATES = devRpmDistributionCoordinates.rpm
         val RELEASE_RPM_ARTIFACTS_COORDINATES = releaseRpmDistributionCoordinates.rpm
-        val RELEASE_DOCKER_ARTIFACTS_COORDINATES = "${releaseDockerDistributionCoordinates.image}:${releaseDockerDistributionCoordinates.tag}"
+        val RELEASE_DOCKER_ARTIFACTS_COORDINATES =
+            "${releaseDockerDistributionCoordinates.image}:${releaseDockerDistributionCoordinates.tag}"
         val RELEASE_GENERIC_ARTIFACTS_COORDINATES = releaseGenericDistributionCoordinates.generic
 
         @JvmStatic
