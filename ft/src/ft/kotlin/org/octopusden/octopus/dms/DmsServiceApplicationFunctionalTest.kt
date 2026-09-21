@@ -15,6 +15,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
@@ -211,6 +212,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.version=1.0",
                     "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.generic=$RELEASE_GENERIC_ARTIFACTS_COORDINATES",
                     "-DenabledFileValidators=license,copyright",
                     "-Dtype=distribution",
                 ),
@@ -258,6 +260,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             assertContains(
                 this.second,
                 "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseGenericDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
             )
         }
     }
@@ -469,6 +475,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.deb=$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$RELEASE_RPM_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.generic=$RELEASE_GENERIC_ARTIFACTS_COORDINATES",
                     "-Dtype=distribution",
                 ),
             ),
@@ -490,6 +497,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 this.second,
                 "[INFO] Uploaded distribution artifact '${releaseDockerDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
             )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseGenericDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
         assertEquals(
             releaseMavenDistributionCoordinates.gav,
@@ -506,6 +517,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val dockerArtifact = client.findArtifact(releaseDockerDistributionCoordinates) as DockerArtifactDTO
         assertEquals(releaseDockerDistributionCoordinates.image, dockerArtifact.image)
         assertEquals(releaseDockerDistributionCoordinates.tag, dockerArtifact.tag)
+        assertEquals(
+            releaseGenericDistributionCoordinates.generic,
+            (client.findArtifact(releaseGenericDistributionCoordinates) as GenericArtifactDTO).generic,
+        )
     }
 
     @Test

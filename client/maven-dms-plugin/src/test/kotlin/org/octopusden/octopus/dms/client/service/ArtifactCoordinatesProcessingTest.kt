@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -38,6 +40,7 @@ class ArtifactCoordinatesProcessingTest {
         coordinatesVersion: String? = null,
         version: String = "1.2.3",
         type: String = "distribution",
+        genericCoordinates: String? = null,
     ): List<ArtifactCoordinatesDTO> {
         val collected = mutableListOf<ArtifactCoordinatesDTO>()
         service.processArtifacts(
@@ -53,6 +56,7 @@ class ArtifactCoordinatesProcessingTest {
             null,
             null,
             null,
+            genericCoordinates,
             1,
         ) { target -> collected.add(target.coordinates) }
         return collected
@@ -107,6 +111,38 @@ class ArtifactCoordinatesProcessingTest {
     @Test
     fun `nothing to process is not a failure`() {
         Assertions.assertTrue(process(null).isEmpty())
+    }
+
+    @Test
+    fun `generic coordinates are published as-is`() {
+        val coordinates = processAny(null, genericCoordinates = "path/1.0.0/some-data.tgz")
+            .single() as GenericArtifactCoordinatesDTO
+        Assertions.assertEquals("path/1.0.0/some-data.tgz", coordinates.toPath())
+        Assertions.assertEquals(RepositoryType.GENERIC, coordinates.repositoryType)
+    }
+
+    @Test
+    fun `generic coordinates are rejected for a non distribution type`() {
+        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
+            processAny(null, type = "notes", genericCoordinates = "path/1.0.0/some-data.tgz")
+        }
+        Assertions.assertTrue(exception.message!!.contains("is not DISTRIBUTION"), exception.message)
+    }
+
+    @Test
+    fun `a malformed generic coordinate is rejected`() {
+        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
+            processAny(null, genericCoordinates = "path with space.tgz")
+        }
+        Assertions.assertTrue(exception.message!!.contains("GENERIC entity"), exception.message)
+    }
+
+    @Test
+    fun `every generic coordinate is processed`() {
+        val coordinates = processAny(null, genericCoordinates = "path/a.tgz,path/b.tgz")
+            .map { (it as GenericArtifactCoordinatesDTO).generic }
+            .sorted()
+        Assertions.assertEquals(listOf("path/a.tgz", "path/b.tgz"), coordinates)
     }
 
     @Test

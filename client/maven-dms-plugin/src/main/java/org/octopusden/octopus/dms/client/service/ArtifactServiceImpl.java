@@ -8,6 +8,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType;
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.GavDTO;
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
@@ -52,6 +53,7 @@ public class ArtifactServiceImpl implements ArtifactService {
     private static final Pattern DEB_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.deb$", PROHIBITED_SYMBOLS));
     private static final Pattern RPM_PATTERN = Pattern.compile(String.format("^[^%1$s]+\\.rpm$", PROHIBITED_SYMBOLS));
     private static final Pattern DOCKER_PATTERN = Pattern.compile("^([a-z0-9]+([_.-][a-z0-9]+)*/)*[a-z0-9]+([_.-][a-z0-9]+)*:\\w[\\w.-]{0,127}$");
+    private static final Pattern GENERIC_PATTERN = Pattern.compile(String.format("^[^%1$s]+$", PROHIBITED_SYMBOLS));
 
     @Override
     public void processArtifacts(Log log,
@@ -66,14 +68,20 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
                                  String artifactsCoordinatesDocker,
+                                 String artifactCoordinatesGeneric,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
         final ArtifactType targetType = ArtifactType.findByType(type);
         if (targetType == null) {
             throw new MojoExecutionException(String.format("type %s is not recognized", type));
         }
-        if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) || StringUtils.isNotBlank(artifactsCoordinatesRpm) || StringUtils.isNotBlank(artifactsCoordinatesDocker)) && targetType != ArtifactType.DISTRIBUTION) {
-            throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
+        if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) ||
+                StringUtils.isNotBlank(artifactsCoordinatesRpm) ||
+                StringUtils.isNotBlank(artifactCoordinatesGeneric) ||
+                StringUtils.isNotBlank(artifactsCoordinatesDocker)) &&
+                targetType != ArtifactType.DISTRIBUTION
+        ) {
+            throw new MojoFailureException("DEB, RPM, DOCKER or GENERIC coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
 
         //Bulk validation
@@ -141,6 +149,14 @@ public class ArtifactServiceImpl implements ArtifactService {
                 },
                 DOCKER_PATTERN,
                 "Docker entity '%s' does not match '%s",
+                entities,
+                errors
+        );
+        prepareEntities(
+                artifactCoordinatesGeneric,
+                GenericArtifactCoordinatesDTO::new,
+                GENERIC_PATTERN,
+                "GENERIC entity '%s' does not match '%s'",
                 entities,
                 errors
         );

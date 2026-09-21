@@ -387,6 +387,64 @@
       "signedUrlTtl" : 90
     },
     "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "generic-release-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "GENERIC release artifacts",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
+  }, {
+    "type" : "local",
+    "key" : "generic-upload-repo-local",
+    "packageType" : "generic",
+    "baseConfig" : {
+      "modelVersion" : 2,
+      "description" : "GENERIC artifacts uploaded by DMS",
+      "notes" : "",
+      "repoLayoutRef" : "simple-default",
+      "includesPattern" : "**/*",
+      "excludesPattern" : ""
+    },
+    "repoTypeConfig" : {
+      "archiveBrowsingEnabled" : false,
+      "blackedOut" : false,
+      "propertySetRefs" : [ ],
+      "checksumPolicyType" : "client-checksums",
+      "priorityResolution" : false,
+      "maxUniqueSnapshots" : 0,
+      "handleReleases" : true,
+      "handleSnapshots" : true,
+      "snapshotVersionBehavior" : "unique"
+    },
+    "packageTypeConfig" : { },
+    "securityConfig" : {
+      "hideUnauthorizedResources" : false,
+      "signedUrlTtl" : 90
+    },
+    "repoType" : "LOCAL"
   } ],
   "federatedRepoConfigs" : [ ],
   "releaseBundleRepoConfigs" : [ ],

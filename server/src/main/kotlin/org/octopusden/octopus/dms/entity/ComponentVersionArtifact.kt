@@ -13,6 +13,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactShortDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactFullDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactFullDTO
@@ -49,6 +50,8 @@ class ComponentVersionArtifact(
             artifact as DockerArtifact
             artifact.image + (if (artifact.tag == componentVersion.version) "" else ":${artifact.tag}")
         }
+
+        RepositoryType.GENERIC -> artifact.fileName
     }
 
     fun toShortDTO(dockerRegistry: String): ArtifactShortDTO =
@@ -119,6 +122,15 @@ class ComponentVersionArtifact(
                     this.artifact.tag,
                 )
             }
+
+            RepositoryType.GENERIC -> GenericArtifactFullDTO(
+                this.artifact.id,
+                this.type,
+                this.displayName,
+                this.artifact.fileName,
+                this.artifact.sha256,
+                this.artifact.path,
+            )
         }
 
     override fun toString(): String =

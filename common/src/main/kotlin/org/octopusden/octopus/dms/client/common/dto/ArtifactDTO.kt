@@ -19,6 +19,7 @@ import java.util.Objects
     JsonSubTypes.Type(DebianArtifactDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactDTO::class, name = "RPM"),
     JsonSubTypes.Type(DockerArtifactDTO::class, name = "DOCKER"),
+    JsonSubTypes.Type(GenericArtifactDTO::class, name = "GENERIC"),
 )
 @Schema(
     description = "Artifact info",
@@ -28,6 +29,7 @@ import java.util.Objects
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactDTO::class),
         DiscriminatorMapping("RPM", schema = RpmArtifactDTO::class),
         DiscriminatorMapping("DOCKER", schema = DockerArtifactDTO::class),
+        DiscriminatorMapping("GENERIC", schema = GenericArtifactDTO::class),
     ],
 )
 abstract class ArtifactDTO(

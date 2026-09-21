@@ -4,6 +4,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
@@ -12,6 +13,7 @@ import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
+import org.octopusden.octopus.dms.entity.GenericArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
@@ -195,6 +197,15 @@ class ArtifactServiceImpl(
                 sha256 = sha256,
                 image = image,
                 tag = tag,
+            )
+        }
+
+        RepositoryType.GENERIC -> {
+            this as GenericArtifactCoordinatesDTO
+            GenericArtifact(
+                uploaded = uploaded,
+                path = toPath(),
+                sha256 = sha256,
             )
         }
     }

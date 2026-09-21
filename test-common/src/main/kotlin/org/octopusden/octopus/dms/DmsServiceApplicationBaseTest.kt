@@ -31,6 +31,8 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactFullDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactFullDTO
@@ -1158,6 +1160,82 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(result.id, artifacts.artifacts.first().id)
     }
 
+    @ParameterizedTest
+    @MethodSource("registrableArtifacts")
+    fun testAddAndRegisterDistributionArtifacts(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            artifactCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+        assertEquals(artifactCoordinates.repositoryType, artifact.repositoryType)
+        assertEquals(ArtifactType.DISTRIBUTION, artifact.type)
+        val artifacts = client.getComponentVersionArtifacts(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            ArtifactType.DISTRIBUTION,
+        )
+        assertEquals(1, artifacts.artifacts.size)
+        assertEquals(artifact.id, artifacts.artifacts.single().id)
+    }
+
+    @Test
+    fun testAddAndRegisterGenericArtifact() {
+        val artifact = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            releaseGenericDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        ) as GenericArtifactFullDTO
+        assertEquals(RepositoryType.GENERIC, artifact.repositoryType)
+        assertEquals(ArtifactType.DISTRIBUTION, artifact.type)
+        assertEquals(releaseGenericDistributionCoordinates.generic, artifact.generic)
+        assertEquals("test-add-distribution-release.tgz", artifact.fileName)
+        assertEquals(artifact.fileName, artifact.displayName)
+        assertEquals(
+            artifact,
+            client.getComponentVersionArtifact(eeComponent, eeComponentReleaseVersion0354.buildVersion, artifact.id),
+        )
+        val shortArtifact = client
+            .getComponentVersionArtifacts(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                ArtifactType.DISTRIBUTION,
+            ).artifacts
+            .single()
+        assertEquals(artifact.repositoryType, shortArtifact.repositoryType)
+        assertEquals(artifact.displayName, shortArtifact.displayName)
+        assertEquals(artifact.fileName, shortArtifact.fileName)
+    }
+
+    @ParameterizedTest
+    @MethodSource("uploadableArtifacts")
+    fun testUploadAndRegisterDistributionArtifacts(artifactCoordinates: ArtifactCoordinatesDTO) {
+        val artifact = getResource(releaseReleaseNotesFileName).openStream().use { inputStream ->
+            client.uploadAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                artifactCoordinates,
+                inputStream,
+                releaseReleaseNotesFileName,
+                ArtifactType.DISTRIBUTION,
+                false,
+            )
+        }
+        assertEquals(artifactCoordinates.repositoryType, artifact.repositoryType)
+        assertEquals(ArtifactType.DISTRIBUTION, artifact.type)
+        val artifacts = client.getComponentVersionArtifacts(
+            eeComponent,
+            eeComponentReleaseVersion0354.releaseVersion,
+            ArtifactType.DISTRIBUTION,
+        )
+        assertEquals(1, artifacts.artifacts.size)
+        assertEquals(artifact.id, artifacts.artifacts.single().id)
+    }
+
     @Test
     fun testUploadAndRegisterComponentVersionArtifactNewVersion() {
         val sbomResource = getResource(TEST_SBOM_FILE_NAME)
@@ -2219,6 +2297,12 @@ abstract class DmsServiceApplicationBaseTest {
             RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-release-1.0-1.el8.x86_64.rpm")
         val releaseDockerDistributionCoordinates =
             DockerArtifactCoordinatesDTO("test/test-component", "1.0")
+        val releaseGenericDistributionCoordinates =
+            GenericArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-release.tgz")
+        val uploadMavenDistributionCoordinates =
+            MavenArtifactCoordinatesDTO(GavDTO("test.add.upload", "distribution", "1.0", "zip", "upload"))
+        val uploadGenericDistributionCoordinates =
+            GenericArtifactCoordinatesDTO("test-upload/test-upload-generic.tgz")
 
         private val DEV_GAV = devMavenDistributionCoordinates.gav
         private val DEV_ARTIFACTS_COORDINATES_GAV =
@@ -2237,6 +2321,7 @@ abstract class DmsServiceApplicationBaseTest {
         val DEV_RPM_ARTIFACTS_COORDINATES = devRpmDistributionCoordinates.rpm
         val RELEASE_RPM_ARTIFACTS_COORDINATES = releaseRpmDistributionCoordinates.rpm
         val RELEASE_DOCKER_ARTIFACTS_COORDINATES = "${releaseDockerDistributionCoordinates.image}:${releaseDockerDistributionCoordinates.tag}"
+        val RELEASE_GENERIC_ARTIFACTS_COORDINATES = releaseGenericDistributionCoordinates.generic
 
         @JvmStatic
         private fun repositories(): Stream<Arguments> =
@@ -2256,6 +2341,10 @@ abstract class DmsServiceApplicationBaseTest {
                 Arguments.of(
                     RepositoryType.DOCKER,
                     listOf("docker-repo-local"),
+                ),
+                Arguments.of(
+                    RepositoryType.GENERIC,
+                    listOf("generic-upload-repo-local", "generic-release-repo-local"),
                 ),
             )
 
@@ -2287,6 +2376,7 @@ abstract class DmsServiceApplicationBaseTest {
                 Arguments.of(devRpmDistributionCoordinates),
                 Arguments.of(releaseRpmDistributionCoordinates),
                 Arguments.of(releaseDockerDistributionCoordinates),
+                Arguments.of(releaseGenericDistributionCoordinates),
             )
 
         @JvmStatic
@@ -2301,6 +2391,26 @@ abstract class DmsServiceApplicationBaseTest {
                 Arguments.of(
                     RpmArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-invalid-1.0-1.el8.x86_64.rpm"),
                 ),
+                Arguments.of(
+                    GenericArtifactCoordinatesDTO("test-add-distribution/test-add-distribution-invalid.tgz"),
+                ),
+            )
+
+        @JvmStatic
+        private fun registrableArtifacts(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(releaseMavenDistributionCoordinates),
+                Arguments.of(releaseDebianDistributionCoordinates),
+                Arguments.of(releaseRpmDistributionCoordinates),
+                Arguments.of(releaseDockerDistributionCoordinates),
+                Arguments.of(releaseGenericDistributionCoordinates),
+            )
+
+        @JvmStatic
+        private fun uploadableArtifacts(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(uploadMavenDistributionCoordinates),
+                Arguments.of(uploadGenericDistributionCoordinates),
             )
 
         @JvmStatic
@@ -2326,6 +2436,7 @@ abstract class DmsServiceApplicationBaseTest {
                 Arguments.of(releaseMavenDistributionCoordinates),
                 Arguments.of(releaseDebianDistributionCoordinates),
                 Arguments.of(releaseRpmDistributionCoordinates),
+                Arguments.of(releaseGenericDistributionCoordinates),
             )
 
         @JvmStatic
