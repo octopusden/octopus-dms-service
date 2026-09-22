@@ -68,7 +68,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                                  String artifactsCoordinatesDeb,
                                  String artifactsCoordinatesRpm,
                                  String artifactsCoordinatesDocker,
-                                 String artifactCoordinatesGeneric,
+                                 String artifactsCoordinatesGeneric,
                                  int processParallelism,
                                  Consumer<TargetArtifact> processFunction) throws MojoExecutionException, MojoFailureException {
         final ArtifactType targetType = ArtifactType.findByType(type);
@@ -77,7 +77,7 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
         if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) ||
                 StringUtils.isNotBlank(artifactsCoordinatesRpm) ||
-                StringUtils.isNotBlank(artifactCoordinatesGeneric) ||
+                StringUtils.isNotBlank(artifactsCoordinatesGeneric) ||
                 StringUtils.isNotBlank(artifactsCoordinatesDocker)) &&
                 targetType != ArtifactType.DISTRIBUTION
         ) {
@@ -153,7 +153,7 @@ public class ArtifactServiceImpl implements ArtifactService {
                 errors
         );
         prepareEntities(
-                artifactCoordinatesGeneric,
+                artifactsCoordinatesGeneric,
                 GenericArtifactCoordinatesDTO::new,
                 GENERIC_PATTERN,
                 "GENERIC entity '%s' does not match '%s'",
