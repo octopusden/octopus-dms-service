@@ -180,11 +180,14 @@ abstract class DmsServiceApplicationBaseTest {
 
     @Test
     fun testSamePathUnderDifferentRepositoryTypes() {
-        val bytes = getResource(releaseReleaseNotesFileName).openStream().use { it.readBytes() }
-        val mavenArtifact = bytes.inputStream().use {
-            client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName, true)
+        val mavenBytes = getResource(devReleaseNotesFileName).openStream().use { it.readBytes() }
+        val genericBytes = getResource(releaseReleaseNotesFileName).openStream().use { it.readBytes() }
+        assertFalse(mavenBytes.contentEquals(genericBytes))
+
+        val mavenArtifact = mavenBytes.inputStream().use {
+            client.uploadArtifact(duplicatePathMavenCoordinates, it, devReleaseNotesFileName, true)
         }
-        val genericArtifact = bytes.inputStream().use {
+        val genericArtifact = genericBytes.inputStream().use {
             client.uploadArtifact(duplicatePathGenericCoordinates, it, releaseReleaseNotesFileName, true)
         }
 
@@ -197,15 +200,22 @@ abstract class DmsServiceApplicationBaseTest {
         assertEquals(mavenArtifact, client.getArtifact(mavenArtifact.id))
         assertEquals(genericArtifact, client.getArtifact(genericArtifact.id))
 
+        client.downloadArtifact(mavenArtifact.id).use { response ->
+            assertArrayEquals(mavenBytes, response.body().asInputStream().readBytes())
+        }
+        client.downloadArtifact(genericArtifact.id).use { response ->
+            assertArrayEquals(genericBytes, response.body().asInputStream().readBytes())
+        }
+
         assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
-            bytes.inputStream().use {
-                client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName, true)
+            mavenBytes.inputStream().use {
+                client.uploadArtifact(duplicatePathMavenCoordinates, it, devReleaseNotesFileName, true)
             }
         }
-        bytes.inputStream().use {
+        mavenBytes.inputStream().use {
             assertEquals(
                 mavenArtifact,
-                client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName),
+                client.uploadArtifact(duplicatePathMavenCoordinates, it, devReleaseNotesFileName),
             )
         }
     }
