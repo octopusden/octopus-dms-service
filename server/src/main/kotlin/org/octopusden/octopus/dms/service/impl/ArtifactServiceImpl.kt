@@ -4,6 +4,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO
@@ -12,6 +13,7 @@ import org.octopusden.octopus.dms.dto.DownloadArtifactDTO
 import org.octopusden.octopus.dms.entity.Artifact
 import org.octopusden.octopus.dms.entity.DebianArtifact
 import org.octopusden.octopus.dms.entity.DockerArtifact
+import org.octopusden.octopus.dms.entity.GenericArtifact
 import org.octopusden.octopus.dms.entity.MavenArtifact
 import org.octopusden.octopus.dms.entity.RpmArtifact
 import org.octopusden.octopus.dms.exception.ArtifactAlreadyExistsException
@@ -42,8 +44,10 @@ class ArtifactServiceImpl(
     @Transactional(readOnly = true)
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO =
         (
-            artifactRepository.findByPath(artifactCoordinates.toPath())
-                ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
+            artifactRepository.findByRepositoryTypeAndPath(
+                repositoryType = artifactCoordinates.repositoryType.name,
+                path = artifactCoordinates.toPath(),
+            ) ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
         ).toDTO()
 
     @Transactional(readOnly = true)
@@ -76,7 +80,10 @@ class ArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
     ): ArtifactWriteResult {
-        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
+            repositoryType = artifactCoordinates.repositoryType.name,
+            path = artifactCoordinates.toPath(),
+        )
         if (existingArtifact != null) {
             with("Artifact '${existingArtifact.path}' already uploaded") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
@@ -117,7 +124,10 @@ class ArtifactServiceImpl(
                 true,
                 artifactCoordinates.toPath(),
             ).checksums.sha256
-        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
+            repositoryType = artifactCoordinates.repositoryType.name,
+            path = artifactCoordinates.toPath(),
+        )
         if (existingArtifact != null) {
             with("Artifact with coordinates '${existingArtifact.path}' already added") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
@@ -195,6 +205,15 @@ class ArtifactServiceImpl(
                 sha256 = sha256,
                 image = image,
                 tag = tag,
+            )
+        }
+
+        RepositoryType.GENERIC -> {
+            this as GenericArtifactCoordinatesDTO
+            GenericArtifact(
+                uploaded = uploaded,
+                path = toPath(),
+                sha256 = sha256,
             )
         }
     }

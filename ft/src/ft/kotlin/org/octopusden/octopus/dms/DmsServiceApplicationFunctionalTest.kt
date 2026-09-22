@@ -15,6 +15,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
@@ -32,7 +33,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     private val mvn = with(System.getenv()["M2_HOME"] ?: System.getenv()["MAVEN_HOME"]) {
-        val mavenCommand = if (isWindowsSystem) mvnWinCommand else mvnCommonCommand
+        val mavenCommand = if (isWindowsSystem) MVN_WIN_COMMAND else MVN_COMMON_COMMAND
         "${this?.let { "$it/bin/" } ?: ""}$mavenCommand"
     }
 
@@ -211,6 +212,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.version=1.0",
                     "-Dartifacts.coordinates.deb=$DEV_DEB_ARTIFACTS_COORDINATES,$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$DEV_RPM_ARTIFACTS_COORDINATES,$RELEASE_RPM_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.generic=$RELEASE_GENERIC_ARTIFACTS_COORDINATES",
                     "-DenabledFileValidators=license,copyright",
                     "-Dtype=distribution",
                 ),
@@ -258,6 +260,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
             assertContains(
                 this.second,
                 "[INFO] Validated artifact '${releaseRpmDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
+            assertContains(
+                this.second,
+                "[INFO] Validated artifact '${releaseGenericDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
             )
         }
     }
@@ -366,9 +372,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsExcludeFile() {
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(
             runMavenDmsPlugin(
@@ -393,9 +398,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testMavenDmsPluginValidateArtifactsWlIgnore() {
-        val coordValue = "file:///${File(
-            "",
-        ).absolutePath}/src/ft/resources/test-maven-dms-plugin/$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
+        val coordValue = "file:///${File("").absolutePath}/src/ft/resources/test-maven-dms-plugin/" +
+            "$eeComponent-${eeComponentReleaseVersion0354.buildVersion}.zip?artifactId=distribution&classifier=test"
         val coordArgs = if (isWindowsSystem) "\"$coordValue\"" else coordValue
         with(
             runMavenDmsPlugin(
@@ -469,6 +473,7 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                     "-Dartifacts.coordinates.deb=$RELEASE_DEB_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.rpm=$RELEASE_RPM_ARTIFACTS_COORDINATES",
                     "-Dartifacts.coordinates.docker=$RELEASE_DOCKER_ARTIFACTS_COORDINATES",
+                    "-Dartifacts.coordinates.generic=$RELEASE_GENERIC_ARTIFACTS_COORDINATES",
                     "-Dtype=distribution",
                 ),
             ),
@@ -490,6 +495,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
                 this.second,
                 "[INFO] Uploaded distribution artifact '${releaseDockerDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
             )
+            assertContains(
+                this.second,
+                "[INFO] Uploaded distribution artifact '${releaseGenericDistributionCoordinates.toPath()}' for component '$eeComponent' version '${eeComponentReleaseVersion0354.buildVersion}'",
+            )
         }
         assertEquals(
             releaseMavenDistributionCoordinates.gav,
@@ -506,6 +515,10 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
         val dockerArtifact = client.findArtifact(releaseDockerDistributionCoordinates) as DockerArtifactDTO
         assertEquals(releaseDockerDistributionCoordinates.image, dockerArtifact.image)
         assertEquals(releaseDockerDistributionCoordinates.tag, dockerArtifact.tag)
+        assertEquals(
+            releaseGenericDistributionCoordinates.generic,
+            (client.findArtifact(releaseGenericDistributionCoordinates) as GenericArtifactDTO).generic,
+        )
     }
 
     @Test
@@ -758,8 +771,8 @@ class DmsServiceApplicationFunctionalTest : DmsServiceApplicationBaseTest() {
     }
 
     companion object {
-        private const val mvnWinCommand = "mvn.cmd"
-        private const val mvnCommonCommand = "mvn"
+        private const val MVN_WIN_COMMAND = "mvn.cmd"
+        private const val MVN_COMMON_COMMAND = "mvn"
 
         @JvmStatic
         private fun gradleVersions(): Stream<Arguments> =

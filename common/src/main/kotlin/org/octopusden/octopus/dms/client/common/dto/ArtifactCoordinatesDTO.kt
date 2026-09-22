@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema
     JsonSubTypes.Type(DebianArtifactCoordinatesDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactCoordinatesDTO::class, name = "RPM"),
     JsonSubTypes.Type(DockerArtifactCoordinatesDTO::class, name = "DOCKER"),
+    JsonSubTypes.Type(GenericArtifactCoordinatesDTO::class, name = "GENERIC"),
 )
 @Schema(
     description = "Artifact coordinates",
@@ -26,6 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema
         DebianArtifactCoordinatesDTO::class,
         RpmArtifactCoordinatesDTO::class,
         DockerArtifactCoordinatesDTO::class,
+        GenericArtifactCoordinatesDTO::class,
     ],
     discriminatorProperty = "repositoryType",
     discriminatorMapping = [
@@ -44,6 +46,10 @@ import io.swagger.v3.oas.annotations.media.Schema
         DiscriminatorMapping(
             value = "DOCKER",
             schema = DockerArtifactCoordinatesDTO::class,
+        ),
+        DiscriminatorMapping(
+            value = "GENERIC",
+            schema = GenericArtifactCoordinatesDTO::class,
         ),
     ],
 )

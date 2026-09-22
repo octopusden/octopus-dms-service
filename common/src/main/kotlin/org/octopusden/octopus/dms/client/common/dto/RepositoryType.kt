@@ -5,4 +5,5 @@ enum class RepositoryType {
     DEBIAN,
     RPM,
     DOCKER,
+    GENERIC,
 }

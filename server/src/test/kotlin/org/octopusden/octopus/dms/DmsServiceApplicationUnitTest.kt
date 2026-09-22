@@ -22,7 +22,6 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentVersionsDTO
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.PatchComponentVersionDTO
 import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
@@ -384,7 +383,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
                     .with(SecurityMockMvcRequestPostProcessors.csrf()),
             ).andReturn()
             .response
-            .toObject(object : TypeReference<MavenArtifactDTO>() {})
+            .toObject(object : TypeReference<ArtifactDTO>() {})
 
         override fun uploadAndRegisterComponentVersionArtifact(
             componentName: String,
