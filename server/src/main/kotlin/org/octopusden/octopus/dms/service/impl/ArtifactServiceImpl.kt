@@ -44,8 +44,10 @@ class ArtifactServiceImpl(
     @Transactional(readOnly = true)
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO =
         (
-            artifactRepository.findByPath(artifactCoordinates.toPath())
-                ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
+            artifactRepository.findByRepositoryTypeAndPath(
+                repositoryType = artifactCoordinates.repositoryType,
+                path = artifactCoordinates.toPath(),
+            ) ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
         ).toDTO()
 
     @Transactional(readOnly = true)
@@ -78,7 +80,10 @@ class ArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO,
         file: MultipartFile,
     ): ArtifactWriteResult {
-        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
+            repositoryType = artifactCoordinates.repositoryType,
+            path = artifactCoordinates.toPath(),
+        )
         if (existingArtifact != null) {
             with("Artifact '${existingArtifact.path}' already uploaded") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
@@ -119,7 +124,10 @@ class ArtifactServiceImpl(
                 true,
                 artifactCoordinates.toPath(),
             ).checksums.sha256
-        val existingArtifact = artifactRepository.findByPath(artifactCoordinates.toPath())
+        val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
+            repositoryType = artifactCoordinates.repositoryType,
+            path = artifactCoordinates.toPath(),
+        )
         if (existingArtifact != null) {
             with("Artifact with coordinates '${existingArtifact.path}' already added") {
                 if (failOnAlreadyExists) throw ArtifactAlreadyExistsException(this)
