@@ -10,6 +10,7 @@ import org.octopusden.octopus.dms.client.common.dto.DockerArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO;
 import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO;
+import org.octopusden.octopus.dms.client.common.dto.RepositoryType;
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactCoordinatesDTO;
 import org.octopusden.octopus.dms.client.util.Utils;
 import java.io.File;
@@ -124,7 +125,8 @@ public class ArtifactServiceImpl implements ArtifactService {
                     artifactsCoordinatesVersion, COORDINATE_VERSION_SEPARATOR
             ));
         }
-        final Map<String, Function<String, ArtifactCoordinatesDTO>> entities = new HashMap<>();
+        final Map<ArtifactCoordinatesKey, ArtifactCoordinatesDTO> entities =
+                new HashMap<>();
         prepareEntities(
                 artifactsCoordinatesDeb,
                 DebianArtifactCoordinatesDTO::new,
@@ -218,7 +220,15 @@ public class ArtifactServiceImpl implements ArtifactService {
             }
             targets.add(new TargetArtifact(targetType, targetCoordinates, targetFile));
         }
-        entities.forEach((entity, creater) -> targets.add(new TargetArtifact(targetType, creater.apply(entity), null)));
+        entities.values().forEach(coordinates ->
+                targets.add(
+                        new TargetArtifact(
+                                targetType,
+                                coordinates,
+                                null
+                        )
+                )
+        );
 
         //Bulk processing
         final ExecutorService executorService = Executors.newFixedThreadPool(processParallelism);
@@ -354,7 +364,7 @@ public class ArtifactServiceImpl implements ArtifactService {
      * Prepare entities
      *
      * @param artifactsCoordinates - comma separated list of entities
-     * @param creater              - function to create entity
+     * @param creator              - function to create entity
      * @param pattern              - pattern to validate entity
      * @param message              - message for exception
      * @param entities             - cumulative map of entities
@@ -362,16 +372,20 @@ public class ArtifactServiceImpl implements ArtifactService {
      */
     private void prepareEntities(
             String artifactsCoordinates,
-            Function<String, ArtifactCoordinatesDTO> creater,
+            Function<String, ArtifactCoordinatesDTO> creator,
             Pattern pattern,
             String message,
-            Map<String, Function<String, ArtifactCoordinatesDTO>> entities,
+            Map<ArtifactCoordinatesKey, ArtifactCoordinatesDTO> entities,
             List<String> errors
     ) {
         if (StringUtils.isNotBlank(artifactsCoordinates)) {
             for (String entity : artifactsCoordinates.split(",")) {
                 if (pattern.matcher(entity).matches()) {
-                    entities.put(entity, creater);
+                    ArtifactCoordinatesDTO coordinates = creator.apply(entity);
+                    entities.put(
+                            ArtifactCoordinatesKey.of(coordinates),
+                            coordinates
+                    );
                 } else {
                     errors.add(String.format(message, entity, pattern));
                 }
@@ -388,6 +402,48 @@ public class ArtifactServiceImpl implements ArtifactService {
             this.type = type;
             this.coordinates = coordinates;
             this.file = file;
+        }
+    }
+
+    private static final class ArtifactCoordinatesKey {
+        private final RepositoryType repositoryType;
+        private final String path;
+
+        private ArtifactCoordinatesKey(
+                RepositoryType repositoryType,
+                String path
+        ) {
+            this.repositoryType = repositoryType;
+            this.path = path;
+        }
+
+        private static ArtifactCoordinatesKey of(ArtifactCoordinatesDTO coordinates) {
+            return new ArtifactCoordinatesKey(
+                    coordinates.getRepositoryType(),
+                    coordinates.toPath()
+            );
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ArtifactCoordinatesKey)) {
+                return false;
+            }
+
+            ArtifactCoordinatesKey that = (ArtifactCoordinatesKey) o;
+
+            return repositoryType == that.repositoryType
+                    && path.equals(that.path);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = repositoryType.hashCode();
+            result = 31 * result + path.hashCode();
+            return result;
         }
     }
 }
