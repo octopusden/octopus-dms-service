@@ -337,7 +337,7 @@ class ComponentVersionArtifactServiceImpl(
         artifactCoordinates: ArtifactCoordinatesDTO,
     ): ComponentVersionArtifact? {
         val artifact = artifactRepository.findByRepositoryTypeAndPath(
-            repositoryType = artifactCoordinates.repositoryType,
+            repositoryType = artifactCoordinates.repositoryType.name,
             path = artifactCoordinates.toPath(),
         ) ?: return null
         val registration = componentVersionArtifactRepository.findByComponentVersionAndArtifact(componentVersion, artifact)

@@ -45,7 +45,7 @@ class ArtifactServiceImpl(
     override fun find(artifactCoordinates: ArtifactCoordinatesDTO): ArtifactDTO =
         (
             artifactRepository.findByRepositoryTypeAndPath(
-                repositoryType = artifactCoordinates.repositoryType,
+                repositoryType = artifactCoordinates.repositoryType.name,
                 path = artifactCoordinates.toPath(),
             ) ?: throw NotFoundException("Artifact with path '${artifactCoordinates.toPath()}' has not been found")
         ).toDTO()
@@ -81,7 +81,7 @@ class ArtifactServiceImpl(
         file: MultipartFile,
     ): ArtifactWriteResult {
         val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
-            repositoryType = artifactCoordinates.repositoryType,
+            repositoryType = artifactCoordinates.repositoryType.name,
             path = artifactCoordinates.toPath(),
         )
         if (existingArtifact != null) {
@@ -125,7 +125,7 @@ class ArtifactServiceImpl(
                 artifactCoordinates.toPath(),
             ).checksums.sha256
         val existingArtifact = artifactRepository.findByRepositoryTypeAndPath(
-            repositoryType = artifactCoordinates.repositoryType,
+            repositoryType = artifactCoordinates.repositoryType.name,
             path = artifactCoordinates.toPath(),
         )
         if (existingArtifact != null) {
