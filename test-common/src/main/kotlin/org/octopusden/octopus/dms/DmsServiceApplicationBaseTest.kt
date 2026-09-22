@@ -178,6 +178,90 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
+    @Test
+    fun testSamePathUnderDifferentRepositoryTypes() {
+        val bytes = getResource(releaseReleaseNotesFileName).openStream().use { it.readBytes() }
+        val mavenArtifact = bytes.inputStream().use {
+            client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName, true)
+        }
+        val genericArtifact = bytes.inputStream().use {
+            client.uploadArtifact(duplicatePathGenericCoordinates, it, releaseReleaseNotesFileName, true)
+        }
+
+        assertEquals(RepositoryType.MAVEN, mavenArtifact.repositoryType)
+        assertEquals(RepositoryType.GENERIC, genericArtifact.repositoryType)
+        assertNotEquals(mavenArtifact.id, genericArtifact.id)
+
+        assertEquals(mavenArtifact, client.findArtifact(duplicatePathMavenCoordinates))
+        assertEquals(genericArtifact, client.findArtifact(duplicatePathGenericCoordinates))
+        assertEquals(mavenArtifact, client.getArtifact(mavenArtifact.id))
+        assertEquals(genericArtifact, client.getArtifact(genericArtifact.id))
+
+        assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
+            bytes.inputStream().use {
+                client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName, true)
+            }
+        }
+        bytes.inputStream().use {
+            assertEquals(
+                mavenArtifact,
+                client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName),
+            )
+        }
+    }
+
+    @Test
+    fun testSamePathUnderDifferentRepositoryTypesRegistration() {
+        val bytes = getResource(releaseReleaseNotesFileName).openStream().use { it.readBytes() }
+        val mavenArtifact = bytes.inputStream().use {
+            client.uploadArtifact(duplicatePathMavenCoordinates, it, releaseReleaseNotesFileName, true)
+        }
+        val genericArtifact = bytes.inputStream().use {
+            client.uploadArtifact(duplicatePathGenericCoordinates, it, releaseReleaseNotesFileName, true)
+        }
+
+        val mavenRegistered = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            duplicatePathMavenCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        ) as MavenArtifactFullDTO
+        val genericRegistered = client.addAndRegisterComponentVersionArtifact(
+            eeComponent,
+            eeComponentReleaseVersion0354.buildVersion,
+            duplicatePathGenericCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        ) as GenericArtifactFullDTO
+
+        assertEquals(mavenArtifact.id, mavenRegistered.id)
+        assertEquals(genericArtifact.id, genericRegistered.id)
+        assertNotEquals(mavenRegistered.id, genericRegistered.id)
+
+        val registered = client
+            .getComponentVersionArtifacts(
+                eeComponent,
+                eeComponentReleaseVersion0354.releaseVersion,
+                ArtifactType.DISTRIBUTION,
+            ).artifacts
+        assertEquals(2, registered.size)
+        assertEquals(
+            setOf(RepositoryType.MAVEN, RepositoryType.GENERIC),
+            registered.map { it.repositoryType }.toSet(),
+        )
+
+        assertThrowsExactly(ArtifactAlreadyExistsException::class.java) {
+            client.addAndRegisterComponentVersionArtifact(
+                eeComponent,
+                eeComponentReleaseVersion0354.buildVersion,
+                duplicatePathMavenCoordinates,
+                ArtifactType.DISTRIBUTION,
+                true,
+            )
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("artifacts")
     fun testAddArtifacts(artifactCoordinates: ArtifactCoordinatesDTO) {
@@ -2303,6 +2387,11 @@ abstract class DmsServiceApplicationBaseTest {
             MavenArtifactCoordinatesDTO(GavDTO("test.add.upload", "distribution", "1.0", "zip", "upload"))
         val uploadGenericDistributionCoordinates =
             GenericArtifactCoordinatesDTO("test-upload/test-upload-generic.tgz")
+
+        /** Same path in two repository types, which the server stores per `(repositoryType, path)`. */
+        val duplicatePathMavenCoordinates =
+            MavenArtifactCoordinatesDTO(GavDTO("test.add.duplicate", "distribution", "1.0", "zip", "release"))
+        val duplicatePathGenericCoordinates = GenericArtifactCoordinatesDTO(duplicatePathMavenCoordinates.gav.toPath())
 
         private val DEV_GAV = devMavenDistributionCoordinates.gav
         private val DEV_ARTIFACTS_COORDINATES_GAV =

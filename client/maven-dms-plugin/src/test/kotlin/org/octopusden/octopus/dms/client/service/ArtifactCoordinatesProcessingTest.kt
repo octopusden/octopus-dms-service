@@ -41,6 +41,9 @@ class ArtifactCoordinatesProcessingTest {
         version: String = "1.2.3",
         type: String = "distribution",
         genericCoordinates: String? = null,
+        debCoordinates: String? = null,
+        rpmCoordinates: String? = null,
+        dockerCoordinates: String? = null,
     ): List<ArtifactCoordinatesDTO> {
         val collected = mutableListOf<ArtifactCoordinatesDTO>()
         service.processArtifacts(
@@ -53,9 +56,9 @@ class ArtifactCoordinatesProcessingTest {
             null,
             coordinates,
             coordinatesVersion,
-            null,
-            null,
-            null,
+            debCoordinates,
+            rpmCoordinates,
+            dockerCoordinates,
             genericCoordinates,
             1,
         ) { target -> collected.add(target.coordinates) }
@@ -142,6 +145,37 @@ class ArtifactCoordinatesProcessingTest {
         val coordinates = processAny(null, genericCoordinates = "path/a.tgz,path/b.tgz")
             .map { (it as GenericArtifactCoordinatesDTO).generic }
             .sorted()
+        Assertions.assertEquals(listOf("path/a.tgz", "path/b.tgz"), coordinates)
+    }
+
+    @Test
+    fun `the same path under different repository types is not collapsed`() {
+        val path = "pkg/dist/x.deb"
+        val keys = processAny(
+            null,
+            debCoordinates = path,
+            genericCoordinates = path,
+        ).map { it.repositoryType to it.toPath() }.toSet()
+
+        Assertions.assertEquals(
+            setOf(RepositoryType.DEBIAN to path, RepositoryType.GENERIC to path),
+            keys,
+        )
+    }
+
+    @Test
+    fun `a coordinate repeated within one repository type is deduplicated`() {
+        val coordinates = processAny(null, genericCoordinates = "path/a.tgz,path/a.tgz")
+
+        Assertions.assertEquals(1, coordinates.size)
+    }
+
+    @Test
+    fun `different paths in one repository type are kept`() {
+        val coordinates = processAny(null, genericCoordinates = "path/a.tgz,path/b.tgz")
+            .map { (it as GenericArtifactCoordinatesDTO).generic }
+            .sorted()
+
         Assertions.assertEquals(listOf("path/a.tgz", "path/b.tgz"), coordinates)
     }
 
