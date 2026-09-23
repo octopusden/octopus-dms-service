@@ -282,7 +282,11 @@ val prepareCommonJarForBootJar = tasks.register<Copy>("prepareCommonJarForBootJa
 tasks.named<BootJar>("bootJar") {
     dependsOn(prepareCommonJarForBootJar)
     doFirst {
-        val originalCommonJar = commonJar.get().archiveFile.get().asFile
+        val originalCommonJar = commonJar
+            .get()
+            .archiveFile
+            .get()
+            .asFile
         val renamedCommonJarFile = layout.buildDirectory
             .file("boot-libs/dms-${originalCommonJar.name}")
             .get()
