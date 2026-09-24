@@ -1,7 +1,5 @@
 import org.octopusden.octopus.task.ConfigureMockServer
 import org.octopusden.octopus.task.ImportArtifactoryDump
-import org.octopusden.octopus.task.configureUniqueLibs
-import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("org.springframework.boot")
@@ -258,12 +256,6 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
         "--spring.config.additional-location=dev/",
     )
     sourceResources(sourceSets.main.get())
-}
-
-tasks.named<BootJar>("bootJar") {
-    configureUniqueLibs(
-        runtimeClasspath = configurations.runtimeClasspath.get(),
-    )
 }
 
 dependencies {
