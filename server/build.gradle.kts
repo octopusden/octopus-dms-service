@@ -1,4 +1,3 @@
-import org.gradle.jvm.tasks.Jar
 import org.octopusden.octopus.task.ConfigureMockServer
 import org.octopusden.octopus.task.ImportArtifactoryDump
 import org.octopusden.octopus.task.configureUniqueLibs
@@ -263,7 +262,6 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 
 tasks.named<BootJar>("bootJar") {
     configureUniqueLibs(
-        project = project,
         runtimeClasspath = configurations.runtimeClasspath.get(),
     )
 }

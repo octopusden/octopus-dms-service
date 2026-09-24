@@ -1,7 +1,6 @@
 package org.octopusden.octopus.task
 
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -19,7 +18,6 @@ import java.io.File
  * their filenames, which causes bootJar to fail on duplicate entries.
  */
 fun BootJar.configureUniqueLibs(
-    project: Project,
     runtimeClasspath: Configuration,
 ) {
     duplicatesStrategy = DuplicatesStrategy.FAIL
