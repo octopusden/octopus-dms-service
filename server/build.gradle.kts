@@ -1,6 +1,7 @@
 import org.gradle.jvm.tasks.Jar
 import org.octopusden.octopus.task.ConfigureMockServer
 import org.octopusden.octopus.task.ImportArtifactoryDump
+import org.octopusden.octopus.task.configureUniqueLibs
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
@@ -260,47 +261,11 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     sourceResources(sourceSets.main.get())
 }
 
-/*
-* Spring Boot packages runtime dependencies into BOOT-INF/lib using their file names.
-* DMS :common and release-management-service:common may have the same JAR name
-* (for example, common-2.1.2.jar), which causes a duplicate entry in bootJar.
-*
-* Keep the published DMS common artifact unchanged and rename only its copy used
-* for Spring Boot packaging.
-*/
-
-val commonJar = project(":common").tasks.named<Jar>("jar")
-val prepareCommonJarForBootJar = tasks.register<Copy>("prepareCommonJarForBootJar") {
-    description = "Prepares the DMS common JAR with a unique name for Spring Boot packaging"
-    dependsOn(commonJar)
-    from(commonJar.flatMap { it.archiveFile })
-    into(layout.buildDirectory.dir("boot-libs"))
-    rename { fileName ->
-        "dms-$fileName"
-    }
-}
 tasks.named<BootJar>("bootJar") {
-    dependsOn(prepareCommonJarForBootJar)
-    doFirst {
-        val originalCommonJar = commonJar
-            .get()
-            .archiveFile
-            .get()
-            .asFile
-        val renamedCommonJarFile = layout.buildDirectory
-            .file("boot-libs/dms-${originalCommonJar.name}")
-            .get()
-            .asFile
-        classpath = files(
-            classpath.files.map { file ->
-                if (file.canonicalFile == originalCommonJar.canonicalFile) {
-                    renamedCommonJarFile
-                } else {
-                    file
-                }
-            },
-        )
-    }
+    configureUniqueLibs(
+        project = project,
+        runtimeClasspath = configurations.runtimeClasspath.get(),
+    )
 }
 
 dependencies {
