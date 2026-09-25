@@ -25,7 +25,7 @@ objects:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: "50m"
+              cpu: "200m"
               memory: "600Mi"
             limits:
               cpu: "1000m"
