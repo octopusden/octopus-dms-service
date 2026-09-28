@@ -50,7 +50,7 @@ dependencies {
         "org.octopusden.octopus.infrastructure:components-registry-service-client:${project.properties["octopus-components-registry-service.version"]}",
     )
 
-    implementation("org.gradle:gradle-core:1.6")
+    compileOnly(gradleApi())
     implementation("org.gradle:gradle-tooling-api:2.6")
 
     implementation("org.codehaus.groovy:groovy-all:2.4.15")
