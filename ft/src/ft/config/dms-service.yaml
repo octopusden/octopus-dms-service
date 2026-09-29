@@ -37,6 +37,7 @@ storage:
     password: password
     upload-repositories:
       MAVEN: maven-upload-repo-local
+      GENERIC: generic-upload-repo-local
     staging-repositories:
       MAVEN:
         - maven-dev-repo-local
@@ -55,6 +56,8 @@ storage:
         - debian-release-repo-local-2
       RPM:
         - rpm-release-repo-local
+      GENERIC:
+        - generic-release-repo-local
 
 components-registry-service:
   url: http://${TEST_COMPONENTS_REGISTRY_HOST}

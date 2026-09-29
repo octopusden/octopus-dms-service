@@ -13,6 +13,7 @@
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun invalidArtifacts(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun nonEEComponents(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun nonEEComponentsVersioned(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun registrableArtifacts(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun reportArtifactBuildVersions(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun stagingArtifactsReleaseVersions(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetComponentMinorVersions(): Stream&lt;Arguments&gt;</ID>
@@ -21,6 +22,7 @@
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testGetPreviousLinesLatestVersions(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testPatchComponentVersion(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun testRegisterUploadedArtifact(): Stream&lt;Arguments&gt;</ID>
+    <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun uploadableArtifacts(): Stream&lt;Arguments&gt;</ID>
     <ID>UnusedPrivateMember:DmsServiceApplicationBaseTest.kt$DmsServiceApplicationBaseTest.Companion$@JvmStatic private fun versionRangeDistributionCases(): Stream&lt;Arguments&gt;</ID>
   </CurrentIssues>
 </SmellBaseline>

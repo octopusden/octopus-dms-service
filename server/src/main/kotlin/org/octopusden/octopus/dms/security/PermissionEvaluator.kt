@@ -5,7 +5,7 @@ import org.octopusden.cloud.commons.security.SecurityService
 import org.octopusden.cloud.commons.security.dto.User
 import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.ComponentsDTO
-import org.octopusden.octopus.dms.service.ComponentService
+import org.octopusden.octopus.dms.service.ComponentVersionArtifactService
 import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class PermissionEvaluator(
     private val componentsRegistryService: ComponentsRegistryService,
-    private val componentService: ComponentService,
+    private val componentVersionArtifactService: ComponentVersionArtifactService,
     securityService: SecurityService,
 ) : BasePermissionEvaluator(securityService) {
     fun hasPermissionByArtifactType(type: ArtifactType?) =
@@ -33,7 +33,7 @@ class PermissionEvaluator(
         artifactId: Long,
     ) = hasPermissionByArtifactType(
         try {
-            componentService.getComponentVersionArtifact(componentName, version, artifactId).type
+            componentVersionArtifactService.getComponentVersionArtifact(componentName, version, artifactId).type
         } catch (_: Exception) {
             null
         },

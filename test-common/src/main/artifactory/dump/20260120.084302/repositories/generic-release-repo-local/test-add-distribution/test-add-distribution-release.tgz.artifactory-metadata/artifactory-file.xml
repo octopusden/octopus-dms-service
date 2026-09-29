@@ -1,0 +1,35 @@
+<artifactory-file>
+    <repoPath>
+        <repoKey>generic-release-repo-local</repoKey>
+        <path>test-add-distribution/test-add-distribution-release.tgz</path>
+        <folder>false</folder>
+    </repoPath>
+    <name>test-add-distribution-release.tgz</name>
+    <created>1768898561000</created>
+    <lastModified>1768898561000</lastModified>
+    <size>30</size>
+    <additionalInfo>
+        <createdBy>admin</createdBy>
+        <lastUpdated>1768898561007</lastUpdated>
+        <modifiedBy>admin</modifiedBy>
+        <checksumsInfo>
+            <checksums>
+                <checksum>
+                    <type>sha1</type>
+                    <original>cd877141321de0f92d42d423e24a639dc56f50a3</original>
+                    <actual>cd877141321de0f92d42d423e24a639dc56f50a3</actual>
+                </checksum>
+                <checksum>
+                    <type>md5</type>
+                    <original>e84f0f1222e18257d3dccd4b7697e6fc</original>
+                    <actual>e84f0f1222e18257d3dccd4b7697e6fc</actual>
+                </checksum>
+                <checksum>
+                    <type>sha256</type>
+                    <original>4688921bcc5deb13ae0e0c8f1d459b9b286f3a990d64cd324e65de5e0ecb11d1</original>
+                    <actual>4688921bcc5deb13ae0e0c8f1d459b9b286f3a990d64cd324e65de5e0ecb11d1</actual>
+                </checksum>
+            </checksums>
+        </checksumsInfo>
+    </additionalInfo>
+</artifactory-file>

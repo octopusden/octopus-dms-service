@@ -52,12 +52,22 @@ objects:
               set -e
               echo "Initializing Artifactory configuration"
               mkdir -p /opt/jfrog/artifactory/var/etc/artifactory
-              echo "Copying system.yaml"
+              mkdir -p /opt/jfrog/artifactory/var/etc/security
               cp /tmp/system.yaml /opt/jfrog/artifactory/var/etc/system.yaml
-              echo "Copying artifactory.system.properties"
               cp /tmp/artifactory.system.properties /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
-              chmod 666 /opt/jfrog/artifactory/var/etc/system.yaml
-              chmod 666 /opt/jfrog/artifactory/var/etc/artifactory/artifactory.system.properties
+              if [ ! -s /opt/jfrog/artifactory/var/etc/security/master.key ]; then
+                echo "Generating master.key"
+                head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' \
+                  > /opt/jfrog/artifactory/var/etc/security/master.key
+              fi
+              if [ ! -s /opt/jfrog/artifactory/var/etc/security/join.key ]; then
+                echo "Generating join.key"
+                head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' \
+                  > /opt/jfrog/artifactory/var/etc/security/join.key
+              fi
+              chmod 600 /opt/jfrog/artifactory/var/etc/security/master.key
+              chmod 600 /opt/jfrog/artifactory/var/etc/security/join.key
+              echo "Initialization completed"
           volumeMounts:
             - name: artifactory-data
               mountPath: /opt/jfrog/artifactory/var

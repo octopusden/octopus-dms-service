@@ -13,6 +13,7 @@ import org.octopusden.octopus.dms.client.common.dto.ArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DebianArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.DockerArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.GavDTO
+import org.octopusden.octopus.dms.client.common.dto.GenericArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.RpmArtifactDTO
@@ -111,4 +112,20 @@ class RpmArtifact(
     override val repositoryType get() = RepositoryType.RPM
 
     override fun toDTO() = RpmArtifactDTO(id, uploaded, sha256, path)
+}
+
+@Entity
+@DiscriminatorValue("GENERIC")
+class GenericArtifact(
+    uploaded: Boolean,
+    path: String,
+    sha256: String,
+) : Artifact(
+        path = path,
+        uploaded = uploaded,
+        sha256 = sha256,
+    ) {
+    override val repositoryType get() = RepositoryType.GENERIC
+
+    override fun toDTO() = GenericArtifactDTO(id, uploaded, sha256, path)
 }

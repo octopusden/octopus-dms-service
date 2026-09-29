@@ -16,10 +16,15 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
+base {
+    archivesName.set("dms-common")
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            artifactId = "common"
             pom {
                 name.set(project.name)
                 description.set("Octopus module: ${project.name}")

@@ -48,12 +48,31 @@ interface DmsServiceFeignClient {
         @Param("version") version: String,
     ): List<ComponentVersionDTO>
 
+    @Deprecated(
+        "Use the dedicated publish/revoke endpoints instead: " +
+            "POST /rest/api/3/components/{component-name}/versions/{version}/publish or " +
+            "POST /rest/api/3/components/{component-name}/versions/{version}/revoke",
+    )
     @RequestLine("PATCH rest/api/3/components/{component-name}/versions/{version}")
     @Headers("Content-Type: application/json")
     fun patchComponentVersion(
         @Param("component-name") componentName: String,
         @Param("version") version: String,
         patchComponentVersionDTO: PatchComponentVersionDTO,
+    ): ComponentVersionDTO
+
+    @RequestLine("POST rest/api/3/components/{component-name}/versions/{version}/publish")
+    @Headers("Content-Type: application/json")
+    fun publishComponentVersion(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+    ): ComponentVersionDTO
+
+    @RequestLine("POST rest/api/3/components/{component-name}/versions/{version}/revoke")
+    @Headers("Content-Type: application/json")
+    fun revokeComponentVersion(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
     ): ComponentVersionDTO
 
     @RequestLine("GET rest/api/3/components/{component-name}/versions/{version}/previous-lines-latest-versions?include-rc={include-rc}")
@@ -138,4 +157,17 @@ interface DmsServiceFeignClient {
         artifactCoordinates: ArtifactCoordinatesDTO,
         @Param("fail-on-already-exists") failOnAlreadyExists: Boolean? = null,
     ): ArtifactDTO
+
+    @RequestLine(
+        "POST rest/api/3/components/{component-name}/versions/{version}/artifacts/add" +
+            "?artifact-type={artifact-type}&fail-on-already-exists={fail-on-already-exists}",
+    )
+    @Headers("Content-Type: application/json")
+    fun addAndRegisterComponentVersionArtifact(
+        @Param("component-name") componentName: String,
+        @Param("version") version: String,
+        artifactCoordinates: ArtifactCoordinatesDTO,
+        @Param("artifact-type") artifactType: ArtifactType,
+        @Param("fail-on-already-exists") failOnAlreadyExists: Boolean,
+    ): ArtifactFullDTO
 }

@@ -28,7 +28,8 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
         if (StringUtils.isBlank(artifactsCoordinates) &&
                 StringUtils.isBlank(artifactsCoordinatesDeb) &&
                 StringUtils.isBlank(artifactsCoordinatesRpm) &&
-                StringUtils.isBlank(artifactsCoordinatesDocker)
+                StringUtils.isBlank(artifactsCoordinatesDocker) &&
+                StringUtils.isBlank(artifactsCoordinatesGeneric)
         ) {
             log.warn("Artifacts coordinates are not set. Do nothing");
             return;
@@ -44,16 +45,18 @@ public class UploadArtifactsMojo extends AbstractArtifactCoordinatesMojo {
                 artifactsCoordinatesDeb,
                 artifactsCoordinatesRpm,
                 artifactsCoordinatesDocker,
+                artifactsCoordinatesGeneric,
                 parallelism,
                 targetArtifact ->
-                        dmsService.uploadArtifact(log,
+                        dmsService.registerComponentVersionArtifact(
+                                log,
                                 dmsServiceClient,
                                 targetArtifact.file,
                                 uploadAttempts,
                                 ComponentVersion.create(component, version),
                                 targetArtifact.type,
                                 targetArtifact.coordinates,
-                                !replace,
+                                isFailOnAlreadyExists(),
                                 validationLog == null ? null : validationLog.toPath(),
                                 dryRun
                         )

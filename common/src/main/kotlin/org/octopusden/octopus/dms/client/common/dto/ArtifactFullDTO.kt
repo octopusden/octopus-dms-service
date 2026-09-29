@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema
     JsonSubTypes.Type(DebianArtifactFullDTO::class, name = "DEBIAN"),
     JsonSubTypes.Type(RpmArtifactFullDTO::class, name = "RPM"),
     JsonSubTypes.Type(DockerArtifactFullDTO::class, name = "DOCKER"),
+    JsonSubTypes.Type(GenericArtifactFullDTO::class, name = "GENERIC"),
 )
 @Schema(
     description = "Full artifact info",
@@ -27,6 +28,7 @@ import io.swagger.v3.oas.annotations.media.Schema
         DiscriminatorMapping("DEBIAN", schema = DebianArtifactFullDTO::class),
         DiscriminatorMapping("RPM", schema = RpmArtifactFullDTO::class),
         DiscriminatorMapping("DOCKER", schema = DockerArtifactFullDTO::class),
+        DiscriminatorMapping("GENERIC", schema = GenericArtifactFullDTO::class),
     ],
 )
 abstract class ArtifactFullDTO(
