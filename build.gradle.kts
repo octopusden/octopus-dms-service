@@ -106,7 +106,12 @@ subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
     repositories {
-        mavenCentral()
+        mavenCentral {
+            // Central's gradle-core 1.6 (published 2026-09-25) has only a 'gradle-distribution'
+            // variant, no library; component-resolver-core still depends on it, so take it
+            // from repo.gradle.org, where it resolves as a plain library.
+            content { excludeModule("org.gradle", "gradle-core") }
+        }
         maven {
             url = uri("https://repo.gradle.org/gradle/libs-releases")
         }
