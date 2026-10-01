@@ -309,6 +309,5 @@ dependencies {
     ftImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
     ftImplementation("org.junit.jupiter:junit-jupiter-engine")
     ftImplementation("org.junit.jupiter:junit-jupiter-params")
-    // Gradle no longer puts the JUnit Platform launcher on the test runtime classpath itself.
     "ftRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }

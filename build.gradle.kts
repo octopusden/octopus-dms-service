@@ -137,7 +137,7 @@ subprojects {
         compilerOptions.apiVersion = KotlinVersion.KOTLIN_1_9
         // Version the plugin gives kotlin-stdlib / kotlin-reflect and its own constraints on them;
         // it defaults to the plugin's version, which would leak into the published POMs/modules.
-        coreLibrariesVersion = project.properties["kotlin.version"] as String
+        coreLibrariesVersion = providers.gradleProperty("kotlin.version").get()
     }
 
     idea.module {
