@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.nio.charset.StandardCharsets
 
@@ -11,10 +12,8 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    "1.8".let {
-        kotlinOptions.jvmTarget = it
-        compilerOptions.freeCompilerArgs.add("-Xjdk-release=$it")
-    }
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
+    compilerOptions.freeCompilerArgs.add("-Xjdk-release=1.8")
 }
 
 val pomFile = layout.buildDirectory
@@ -136,4 +135,6 @@ dependencies {
 
     testImplementation("org.apache.maven:maven-core:3.3.9")
     testImplementation("org.junit.jupiter:junit-jupiter")
+    // Gradle no longer puts the JUnit Platform launcher on the test runtime classpath itself.
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
