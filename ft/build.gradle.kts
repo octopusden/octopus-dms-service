@@ -43,8 +43,6 @@ val ftImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
-ftImplementation.isCanBeResolved = true
-
 configurations["ftRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 tasks.named("ocCreate") {
@@ -298,7 +296,8 @@ val ft by tasks.creating(Test::class) {
 }
 
 idea.module {
-    scopes["PROVIDED"]?.get("plus")?.add(configurations["ftImplementation"])
+    // The resolvable view of ftImplementation: a declare-only configuration cannot be resolved.
+    scopes["PROVIDED"]?.get("plus")?.add(configurations["ftCompileClasspath"])
 }
 
 dependencies {
@@ -310,4 +309,5 @@ dependencies {
     ftImplementation(platform("org.junit:junit-bom:${project.properties["junit.version"]}"))
     ftImplementation("org.junit.jupiter:junit-jupiter-engine")
     ftImplementation("org.junit.jupiter:junit-jupiter-params")
+    "ftRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }

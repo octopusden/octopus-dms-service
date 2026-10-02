@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -10,10 +11,8 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    "1.8".let {
-        kotlinOptions.jvmTarget = it
-        compilerOptions.freeCompilerArgs.add("-Xjdk-release=$it")
-    }
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
+    compilerOptions.freeCompilerArgs.add("-Xjdk-release=1.8")
 }
 
 base {
