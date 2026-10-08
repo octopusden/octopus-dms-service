@@ -4,6 +4,7 @@ import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.entity.ComponentVersion
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
@@ -32,6 +33,10 @@ interface ComponentVersionRepository : JpaRepository<ComponentVersion, Long> {
         componentName: String,
         version: String,
     ): ComponentVersion?
+
+    @Modifying
+    @Query("update ComponentVersion cv set cv.published = false where cv.component = :component")
+    fun revokeAllByComponent(component: Component)
 }
 
 fun ComponentVersionRepository.getByComponentNameAndVersion(

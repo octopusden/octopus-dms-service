@@ -3,6 +3,8 @@ package org.octopusden.octopus.dms.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.octopusden.octopus.dms.service.AdminService
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -51,4 +54,17 @@ class AdminController(
         @PathVariable(name = "new-component-name") newComponentName: String,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) = adminService.renameComponent(componentName, newComponentName, dryRun)
+
+    @PostMapping("archive-component/{component-name}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun archiveComponent(
+        @PathVariable("component-name") componentName: String,
+    ) {
+        log.info("Archive component: component='{}'", componentName)
+        adminService.archiveComponent(componentName)
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(AdminController::class.java)
+    }
 }
