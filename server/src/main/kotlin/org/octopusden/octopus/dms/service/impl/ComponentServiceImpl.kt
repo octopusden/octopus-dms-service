@@ -176,19 +176,13 @@ class ComponentServiceImpl(
         }
 
         val artifacts = componentVersionArtifactService.getComponentVersionArtifactFullDTOs(componentVersion)
-        val dependencies = if (component.solution) {
-            // TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components.
-            //       Behaviour could be changed later - it may be required not to add dependency artifacts in revoke event.
-            getDependencyArtifacts(release).published
-        } else {
+        if (!component.solution) {
             validateNoPublishedSolutionParents(component, release)
-            emptyList()
         }
         applicationEventPublisher.publishEvent(
             RevokeComponentVersionEvent(
                 componentVersion.toFullDTO(component, release),
                 artifacts,
-                dependencies,
             ),
         )
         componentVersion.published = false
