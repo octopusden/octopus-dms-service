@@ -68,7 +68,9 @@ class AdminController(
     ) {
         log.info(
             "Rename component: componentName='{}', newComponentName='{}', dryRun='{}'",
-            componentName, newComponentName, dryRun
+            componentName,
+            newComponentName,
+            dryRun,
         )
         adminService.renameComponent(componentName, newComponentName, dryRun)
     }

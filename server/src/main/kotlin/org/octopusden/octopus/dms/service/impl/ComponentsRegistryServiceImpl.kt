@@ -18,6 +18,7 @@ import org.octopusden.releng.versions.VersionNames
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.octopusden.octopus.dms.exception.NotFoundException as DmsNotFoundException
 
 @Service
 class ComponentsRegistryServiceImpl(
@@ -114,6 +115,17 @@ class ComponentsRegistryServiceImpl(
         componentName: String,
         version: String,
     ): ComponentDTO = getExternalComponentVersion(componentName, version).explicitOrBreak()
+
+    override fun getComponentVersionForArtifactAccess(
+        componentName: String,
+        version: String,
+    ): ComponentDTO {
+        val component = client.getDetailedComponent(componentName, version)
+        if (component.archived) {
+            throw DmsNotFoundException("Component version '$version' of component '$componentName' is not found")
+        }
+        return component.externalOrBreak().explicitOrBreak()
+    }
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)

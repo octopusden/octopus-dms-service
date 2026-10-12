@@ -976,6 +976,35 @@ abstract class DmsServiceApplicationBaseTest {
         assertFalse(result.published)
     }
 
+    @Test
+    fun testArchiveComponentRevokesPublishedVersions() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+
+        client.archiveComponent(eeComponent)
+
+        val versions = client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion).versions
+        assertTrue(versions.isNotEmpty())
+        assertTrue(versions.none { it.published })
+    }
+
+    @Test
+    fun testArchiveUnknownComponent() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.archiveComponent("no-component")
+        }
+    }
+
+    @Test
+    fun testArchivedComponentArtifactEndpoints() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.getComponentVersionArtifact(archivedComponent, archivedComponentVersion, 1L)
+        }
+        // listing artifacts of an archived component version keeps returning 400
+        assertThrowsExactly(IllegalComponentTypeException::class.java) {
+            client.getComponentVersionArtifacts(archivedComponent, archivedComponentVersion, null)
+        }
+    }
+
     @ParameterizedTest
     @MethodSource
     fun testGetComponentVersionDependencies(version: Version) {
@@ -2293,7 +2322,7 @@ abstract class DmsServiceApplicationBaseTest {
         }
     }
 
-    private fun publishVersion(
+    protected fun publishVersion(
         componentName: String,
         version: Version,
     ) {
@@ -2338,6 +2367,8 @@ abstract class DmsServiceApplicationBaseTest {
         const val eeComponent = "ee-component"
         const val eeClientSpecificComponent = "ee-client-specific-component"
         const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"
+        const val archivedComponent = "archived-component"
+        const val archivedComponentVersion = "1.0.1"
 
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")

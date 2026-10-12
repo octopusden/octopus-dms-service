@@ -42,4 +42,9 @@ interface ComponentsRegistryService {
         componentName: String,
         version: String,
     ): ComponentDTO
+
+    fun getComponentVersionForArtifactAccess(
+        componentName: String,
+        version: String,
+    ): ComponentDTO
 }

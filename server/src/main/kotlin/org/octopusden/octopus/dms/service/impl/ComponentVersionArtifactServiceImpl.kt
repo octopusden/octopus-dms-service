@@ -385,7 +385,7 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         artifactId: Long,
     ): ComponentVersionArtifact {
-        componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
+        componentsRegistryService.getComponentVersionForArtifactAccess(componentName, version)
         val buildVersion = releaseManagementService.getRelease(componentName, version, true).version
         return componentVersionArtifactRepository.getByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
             componentName,

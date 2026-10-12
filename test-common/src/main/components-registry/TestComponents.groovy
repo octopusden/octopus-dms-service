@@ -139,7 +139,7 @@
         displayName = 'Archived Component'
     }
     distribution {
-        explicit = true
+        explicit = false
         external = true
     }
 }

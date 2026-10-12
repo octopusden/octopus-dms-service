@@ -27,6 +27,7 @@ import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
+import org.octopusden.octopus.dms.event.ArchiveComponentEvent
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.DMSException
 import org.springframework.beans.factory.annotation.Autowired
@@ -262,6 +263,16 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             ).andReturn()
             .response
             .processError()
+
+        override fun archiveComponent(componentName: String) =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/rest/api/3/admin/archive-component/$componentName")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
+                ).andReturn()
+                .response
+                .processError()
 
         override fun getConfiguration() =
             mockMvc
@@ -559,5 +570,27 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         }
         // second upload has the same checksum and is already registered -> no event
         assertEquals(1, artifactRegistrationEvents().size)
+    }
+
+    private fun archiveComponentEvents() = eventRecorder.events().filterIsInstance<ArchiveComponentEvent>()
+
+    @Test
+    fun testArchiveComponentPublishesArchiveComponentEvent() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+
+        client.archiveComponent(eeComponent)
+
+        assertEquals(1, archiveComponentEvents().size)
+        assertEquals(eeComponent, archiveComponentEvents().first().component)
+    }
+
+    @Test
+    fun testArchiveComponentPublishesEventOnRepeatedCalls() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+
+        client.archiveComponent(eeComponent)
+        client.archiveComponent(eeComponent)
+
+        assertEquals(2, archiveComponentEvents().size)
     }
 }

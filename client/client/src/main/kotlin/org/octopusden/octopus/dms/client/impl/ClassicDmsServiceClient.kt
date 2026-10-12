@@ -132,6 +132,8 @@ class ClassicDmsServiceClient(
         newComponentName: String,
     ) = client.renameComponent(componentName, newComponentName)
 
+    override fun archiveComponent(componentName: String) = client.archiveComponent(componentName)
+
     override fun getConfiguration() = client.getConfiguration()
 
     override fun getRepositories(repositoryType: RepositoryType) = client.getRepositories(repositoryType)
