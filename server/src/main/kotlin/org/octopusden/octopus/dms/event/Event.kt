@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     visible = true,
 )
 @JsonSubTypes(
+    JsonSubTypes.Type(ArchiveComponentEvent::class, name = "ARCHIVE_COMPONENT"),
     JsonSubTypes.Type(PublishComponentVersionEvent::class, name = "PUBLISH_COMPONENT_VERSION"),
     JsonSubTypes.Type(RevokeComponentVersionEvent::class, name = "REVOKE_COMPONENT_VERSION"),
     JsonSubTypes.Type(RegisterComponentVersionArtifactEvent::class, name = "REGISTER_COMPONENT_VERSION_ARTIFACT"),
