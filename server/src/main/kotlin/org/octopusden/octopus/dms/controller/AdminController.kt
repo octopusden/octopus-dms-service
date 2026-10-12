@@ -3,6 +3,7 @@ package org.octopusden.octopus.dms.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.octopusden.octopus.dms.service.AdminService
+import org.octopusden.octopus.dms.util.sanitizeForLog
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -68,8 +69,8 @@ class AdminController(
     ) {
         log.info(
             "Rename component: componentName='{}', newComponentName='{}', dryRun='{}'",
-            componentName,
-            newComponentName,
+            componentName.sanitizeForLog(),
+            newComponentName.sanitizeForLog(),
             dryRun,
         )
         adminService.renameComponent(componentName, newComponentName, dryRun)
@@ -80,7 +81,7 @@ class AdminController(
     fun archiveComponent(
         @PathVariable("component-name") componentName: String,
     ) {
-        log.info("Archive component: component='{}'", componentName)
+        log.info("Archive component: component='{}'", componentName.sanitizeForLog())
         adminService.archiveComponent(componentName)
     }
 
