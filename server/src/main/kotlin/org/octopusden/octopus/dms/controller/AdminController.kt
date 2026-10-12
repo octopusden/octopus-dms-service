@@ -26,26 +26,38 @@ class AdminController(
     @DeleteMapping("invalid-components")
     fun deleteInvalidComponents(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
-    ) = adminService.deleteInvalidComponents(dryRun)
+    ) {
+        log.info("Delete invalid components: dryRun='{}'", dryRun)
+        adminService.deleteInvalidComponents(dryRun)
+    }
 
     @Operation(summary = "Delete Invalid Components Versions")
     @DeleteMapping("invalid-components-versions")
     fun deleteInvalidComponentsVersions(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
-    ) = adminService.deleteInvalidComponentsVersions(dryRun)
+    ) {
+        log.info("Delete invalid components versions: dryRun='{}'", dryRun)
+        adminService.deleteInvalidComponentsVersions(dryRun)
+    }
 
     @Operation(summary = "Delete Invalid Artifacts")
     @DeleteMapping("invalid-artifacts")
     fun deleteInvalidArtifacts(
         @RequestParam("update-sha256", defaultValue = "true", required = false) updateSha256: Boolean,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
-    ) = adminService.deleteInvalidArtifacts(updateSha256, dryRun)
+    ) {
+        log.info("Delete invalid artifacts: updateSha256='{}', dryRun='{}'", updateSha256, dryRun)
+        adminService.deleteInvalidArtifacts(updateSha256, dryRun)
+    }
 
     @Operation(summary = "Delete Orphaned Artifacts")
     @DeleteMapping("orphaned-artifacts")
     fun deleteOrphanedArtifacts(
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
-    ) = adminService.deleteOrphanedArtifacts(dryRun)
+    ) {
+        log.info("Delete orphaned artifacts: dryRun='{}'", dryRun)
+        adminService.deleteOrphanedArtifacts(dryRun)
+    }
 
     @Operation(summary = "Rename a component")
     @PostMapping("rename-component/{component-name}/{new-component-name}", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -53,7 +65,13 @@ class AdminController(
         @PathVariable(name = "component-name") componentName: String,
         @PathVariable(name = "new-component-name") newComponentName: String,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
-    ) = adminService.renameComponent(componentName, newComponentName, dryRun)
+    ) {
+        log.info(
+            "Rename component: componentName='{}', newComponentName='{}', dryRun='{}'",
+            componentName, newComponentName, dryRun
+        )
+        adminService.renameComponent(componentName, newComponentName, dryRun)
+    }
 
     @PostMapping("archive-component/{component-name}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
