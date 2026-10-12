@@ -122,7 +122,7 @@ class ComponentsRegistryServiceImpl(
     ): ComponentDTO {
         val component = client.getDetailedComponent(componentName, version)
         if (component.archived) {
-            throw DmsNotFoundException("Component version '$version' of component '$componentName' is not found")
+            throw DmsNotFoundException("Component '$componentName' is archived!")
         }
         return component.externalOrBreak().explicitOrBreak()
     }
