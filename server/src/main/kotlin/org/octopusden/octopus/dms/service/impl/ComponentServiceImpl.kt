@@ -238,9 +238,7 @@ class ComponentServiceImpl(
         release: BuildFullDTO,
     ) {
         val publishedSolutionParents = release.parents.filter { parent ->
-                val parentComponent = componentsRegistryService.getExternalComponent(parent.component)
-            !parentComponent.archived &&
-                parentComponent.solution &&
+            componentsRegistryService.getExternalComponent(parent.component).solution &&
                 componentVersionRepository
                     .findByComponentNameAndVersion(
                         parent.component,
