@@ -82,7 +82,7 @@ class AdminController(
         @PathVariable("component-name") componentName: String,
         @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) {
-        log.info("Archive component: component='{}'", componentName.sanitizeForLog())
+        log.info("Archive component: component='{}', dryRun='{}'", componentName.sanitizeForLog(), dryRun)
         adminService.archiveComponent(componentName, dryRun)
     }
 

@@ -223,6 +223,7 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
                 componentName,
             ),
         )
+        log.info("Component is archived: componentName='{}'", component.name)
     }
 
     companion object {
