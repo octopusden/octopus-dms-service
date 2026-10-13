@@ -80,9 +80,10 @@ class AdminController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun archiveComponent(
         @PathVariable("component-name") componentName: String,
+        @RequestParam("dry-run", defaultValue = "true", required = false) dryRun: Boolean,
     ) {
         log.info("Archive component: component='{}'", componentName.sanitizeForLog())
-        adminService.archiveComponent(componentName)
+        adminService.archiveComponent(componentName, dryRun)
     }
 
     companion object {

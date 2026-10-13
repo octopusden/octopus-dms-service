@@ -129,7 +129,7 @@ interface DmsServiceFeignClient {
         @Param("new-component-name") newComponentName: String,
     )
 
-    @RequestLine("POST /rest/api/3/admin/archive-component/{component-name}")
+    @RequestLine("POST /rest/api/3/admin/archive-component/{component-name}?dry-run=false")
     fun archiveComponent(
         @Param("component-name") componentName: String,
     )

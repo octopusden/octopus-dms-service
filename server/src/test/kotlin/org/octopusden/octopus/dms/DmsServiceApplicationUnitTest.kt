@@ -268,7 +268,7 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .post("/rest/api/3/admin/archive-component/$componentName")
+                        .post("/rest/api/3/admin/archive-component/$componentName?dry-run=false")
                         .with(SecurityMockMvcRequestPostProcessors.csrf()),
                 ).andReturn()
                 .response

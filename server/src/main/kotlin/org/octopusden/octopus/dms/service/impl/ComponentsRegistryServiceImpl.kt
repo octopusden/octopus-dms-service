@@ -109,14 +109,15 @@ class ComponentsRegistryServiceImpl(
             .reversed()
     }
 
-    override fun getExternalExplicitComponent(componentName: String): ComponentDTO = getExternalComponent(componentName).explicitOrBreak()
+    override fun getAvailableComponent(componentName: String): ComponentDTO {
+        val component = client.getById(componentName)
+        if (component.archived) {
+            throw DmsNotFoundException("Component '$componentName' is archived!")
+        }
+        return component.externalOrBreak().explicitOrBreak()
+    }
 
-    override fun getExternalExplicitComponentVersion(
-        componentName: String,
-        version: String,
-    ): ComponentDTO = getExternalComponentVersion(componentName, version).explicitOrBreak()
-
-    override fun getComponentVersionForArtifactAccess(
+    override fun getAvailableComponentVersion(
         componentName: String,
         version: String,
     ): ComponentDTO {
@@ -140,6 +141,7 @@ class ComponentsRegistryServiceImpl(
                 parentComponent,
                 SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList()),
                 labels,
+                archived,
             )
 
         private fun matches(

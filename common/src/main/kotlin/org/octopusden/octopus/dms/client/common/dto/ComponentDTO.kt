@@ -28,4 +28,5 @@ data class ComponentDTO(
     val parentComponent: String?,
     val securityGroups: SecurityGroupsDTO,
     val labels: Set<String> = emptySet(),
+    val archived: Boolean = false,
 )

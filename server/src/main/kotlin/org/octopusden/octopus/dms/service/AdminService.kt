@@ -18,5 +18,8 @@ interface AdminService {
         dryRun: Boolean,
     )
 
-    fun archiveComponent(componentName: String)
+    fun archiveComponent(
+        componentName: String,
+        dryRun: Boolean,
+    )
 }

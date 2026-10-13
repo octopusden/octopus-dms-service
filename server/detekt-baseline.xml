@@ -7,8 +7,6 @@
     <ID>ForbiddenComment:AdminServiceImpl.kt$AdminServiceImpl$// TODO: move functionality to ComponentService and ArtifactService?</ID>
     <ID>ForbiddenComment:ArtifactController.kt$ArtifactController$// TODO: separate permission for download?</ID>
     <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: add a cache for component information.</ID>
-    <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components</ID>
-    <ID>ForbiddenComment:ComponentServiceImpl.kt$ComponentServiceImpl$// TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components.</ID>
     <ID>MaxLineLength:AdminServiceImpl.kt$AdminServiceImpl$*</ID>
     <ID>MaxLineLength:BuildFullDTO.kt$BuildFullDTO$"BuildFullDTO(component='$component', version='$version', status=$status, hotfix=$hotfix, promotedAt=$promotedAt, parents=$parents, dependencies=$dependencies, limitations=$limitations)"</ID>
     <ID>MaxLineLength:ComponentServiceImpl.kt$ComponentServiceImpl$"Unable to publish version '${release.version}' of solution '${component.id}'. It has unpublished dependencies $unpublishedDependencies"</ID>
@@ -21,7 +19,6 @@
     <ID>TooGenericExceptionCaught:StorageServiceImpl.kt$StorageServiceImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WebhookEventListener.kt$WebhookEventListener$e: Exception</ID>
     <ID>TooManyFunctions:ComponentServiceImpl.kt$ComponentServiceImpl : ComponentService</ID>
-    <ID>TooManyFunctions:ComponentsRegistryService.kt$ComponentsRegistryService</ID>
     <ID>TooManyFunctions:ComponentVersionArtifactServiceImpl.kt$ComponentVersionArtifactServiceImpl : ComponentVersionArtifactService</ID>
     <ID>TooManyFunctions:ComponentsRegistryServiceImpl.kt$ComponentsRegistryServiceImpl : ComponentsRegistryService</ID>
     <ID>UnusedParameter:ExceptionHandler.kt$ExceptionHandler$response: HttpServletResponse</ID>

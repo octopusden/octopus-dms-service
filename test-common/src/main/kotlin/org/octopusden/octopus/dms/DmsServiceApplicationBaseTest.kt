@@ -999,9 +999,40 @@ abstract class DmsServiceApplicationBaseTest {
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(archivedComponent, archivedComponentVersion, 1L)
         }
-        // listing artifacts of an archived component version keeps returning 400
-        assertThrowsExactly(IllegalComponentTypeException::class.java) {
+        assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifacts(archivedComponent, archivedComponentVersion, null)
+        }
+    }
+
+    @Test
+    fun testArchivedComponentVersions() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.getComponentMinorVersions(archivedComponent)
+        }
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.getComponentVersions(archivedComponent, archivedComponentVersion)
+        }
+    }
+
+    @Test
+    fun testArchivedComponentVersionOperations() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.getComponentVersionDependencies(archivedComponent, archivedComponentVersion)
+        }
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.publishComponentVersion(archivedComponent, archivedComponentVersion)
+        }
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.revokeComponentVersion(archivedComponent, archivedComponentVersion)
+        }
+        val artifact = client.addArtifact(releaseMavenDistributionCoordinates)
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.registerComponentVersionArtifact(
+                archivedComponent,
+                archivedComponentVersion,
+                artifact.id,
+                RegisterArtifactDTO(ArtifactType.DISTRIBUTION),
+            )
         }
     }
 

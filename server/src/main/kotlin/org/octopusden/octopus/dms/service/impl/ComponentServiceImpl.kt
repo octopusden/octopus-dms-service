@@ -44,7 +44,7 @@ class ComponentServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getComponentMinorVersions(componentName: String): Set<String> {
-        componentsRegistryService.getExternalExplicitComponent(componentName)
+        componentsRegistryService.getAvailableComponent(componentName)
         return componentVersionRepository.getMinorVersionsByComponentName(componentName)
     }
 
@@ -64,7 +64,7 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): List<ComponentVersionWithInfoDTO> {
-        if (!componentsRegistryService.getExternalExplicitComponentVersion(componentName, version).solution) {
+        if (!componentsRegistryService.getAvailableComponentVersion(componentName, version).solution) {
             throw IllegalComponentTypeException("Component '$componentName' is not solution")
         }
         val release = releaseManagementService.getRelease(componentName, version, true)
@@ -113,7 +113,7 @@ class ComponentServiceImpl(
         version: String,
     ): ComponentVersionDTO {
         val component = componentsRegistryService
-            .getExternalExplicitComponentVersion(componentName, version)
+            .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, false)
         componentRepository.lock(componentName.hashCode())
@@ -159,7 +159,7 @@ class ComponentServiceImpl(
         version: String,
     ): ComponentVersionDTO {
         val component = componentsRegistryService
-            .getExternalExplicitComponentVersion(componentName, version)
+            .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, true)
         componentRepository.lock(componentName.hashCode())
@@ -200,6 +200,9 @@ class ComponentServiceImpl(
                 dependency.component,
                 dependency.version,
             )
+            if (dependencyComponent.archived) {
+                throw IllegalComponentTypeException("Dependency component '${dependency.component}' is archived")
+            }
             if (!dependencyComponent.explicit) {
                 return@forEach
             }
@@ -235,7 +238,9 @@ class ComponentServiceImpl(
         release: BuildFullDTO,
     ) {
         val publishedSolutionParents = release.parents.filter { parent ->
-            componentsRegistryService.getExternalComponent(parent.component).solution &&
+                val parentComponent = componentsRegistryService.getExternalComponent(parent.component)
+            !parentComponent.archived &&
+                parentComponent.solution &&
                 componentVersionRepository
                     .findByComponentNameAndVersion(
                         parent.component,
@@ -255,7 +260,7 @@ class ComponentServiceImpl(
         minorVersions: List<String>,
         includeRc: Boolean,
     ): List<ComponentVersionDTO> {
-        componentsRegistryService.getExternalExplicitComponent(componentName)
+        componentsRegistryService.getAvailableComponent(componentName)
         val componentVersions = if (minorVersions.isEmpty()) {
             componentVersionRepository.findByComponentName(componentName)
         } else {

@@ -201,7 +201,10 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
         }
     }
 
-    override fun archiveComponent(componentName: String) {
+    override fun archiveComponent(
+        componentName: String,
+        dryRun: Boolean,
+    ) {
         if (!componentsRegistryService.isComponentExists(componentName)) {
             throw NotFoundException("Component $componentName does not exists in CR!")
         }
@@ -209,8 +212,12 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
         val component = componentRepository.findByName(componentName)
             ?: throw NotFoundException("Component $componentName does not exists in DMS!")
 
-        componentVersionRepository.revokeAllByComponent(component)
+        if (dryRun) {
+            log.info("Component can be archived: componentName='{}'", component.name)
+            return
+        }
 
+        componentVersionRepository.revokeAllByComponent(component)
         applicationEventPublisher.publishEvent(
             ArchiveComponentEvent(
                 componentName,
