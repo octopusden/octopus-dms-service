@@ -128,6 +128,14 @@ class ComponentsRegistryServiceImpl(
         return component.externalOrBreak().explicitOrBreak()
     }
 
+    override fun isComponentArchived(componentName: String): Boolean {
+        return try {
+            client.getById(componentName).archived
+        } catch (_: NotFoundException) {
+            throw DmsNotFoundException("Component $componentName does not exist in CR!")
+        }
+    }
+
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)
 

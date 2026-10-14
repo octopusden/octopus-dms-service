@@ -112,11 +112,11 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): ComponentVersionDTO {
+        componentRepository.lock(componentName.hashCode())
         val component = componentsRegistryService
             .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, false)
-        componentRepository.lock(componentName.hashCode())
         val componentVersion = componentVersionRepository
             .getByComponentNameAndVersion(component.id, release.version)
 
@@ -136,6 +136,12 @@ class ComponentServiceImpl(
                 throw VersionPublishedException(
                     "Unable to publish version '${release.version}' of solution '${component.id}'. " +
                         "It has unpublished dependencies ${dependencyCheckResult.unpublished}",
+                )
+            }
+            if (dependencyCheckResult.archived.isNotEmpty()) {
+                throw IllegalComponentTypeException(
+                    "Unable to publish version '${release.version}' of solution '${component.id}'. " +
+                            "It has archived dependencies ${dependencyCheckResult.archived}",
                 )
             }
             dependencyCheckResult.published
@@ -158,11 +164,11 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): ComponentVersionDTO {
+        componentRepository.lock(componentName.hashCode())
         val component = componentsRegistryService
             .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, true)
-        componentRepository.lock(componentName.hashCode())
         val componentVersion =
             componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
 
@@ -194,6 +200,7 @@ class ComponentServiceImpl(
     private fun getDependencyArtifacts(release: BuildFullDTO): DependencyCheckResult {
         val published = mutableListOf<DependencyArtifactsDTO>()
         val unpublished = mutableListOf<BuildDTO>()
+        val archived = mutableListOf<BuildDTO>()
 
         release.dependencies.forEach { dependency ->
             val dependencyComponent = componentsRegistryService.getExternalComponentVersion(
@@ -201,7 +208,8 @@ class ComponentServiceImpl(
                 dependency.version,
             )
             if (dependencyComponent.archived) {
-                throw IllegalComponentTypeException("Dependency component '${dependency.component}' is archived")
+                archived += dependency
+                return@forEach
             }
             if (!dependencyComponent.explicit) {
                 return@forEach
@@ -221,15 +229,17 @@ class ComponentServiceImpl(
             )
         }
         log.debug(
-            "Dependency check completed: component='{}', version='{}', published={}, unpublished={}",
+            "Dependency check completed: component='{}', version='{}', published={}, unpublished={}, archived={}",
             release.component,
             release.version,
             published.size,
             unpublished,
+            archived
         )
         return DependencyCheckResult(
             published = published,
             unpublished = unpublished,
+            archived = archived,
         )
     }
 
@@ -282,6 +292,7 @@ class ComponentServiceImpl(
     private data class DependencyCheckResult(
         val published: List<DependencyArtifactsDTO>,
         val unpublished: List<BuildDTO>,
+        val archived: List<BuildDTO>,
     )
 
     companion object {

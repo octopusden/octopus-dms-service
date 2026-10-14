@@ -42,4 +42,6 @@ interface ComponentsRegistryService {
         componentName: String,
         version: String,
     ): ComponentDTO
+
+    fun isComponentArchived(componentName: String): Boolean
 }

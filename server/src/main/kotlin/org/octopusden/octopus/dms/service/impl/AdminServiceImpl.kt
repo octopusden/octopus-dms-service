@@ -4,6 +4,7 @@ import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.entity.Component
 import org.octopusden.octopus.dms.event.ArchiveComponentEvent
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
+import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentRepository
@@ -205,8 +206,8 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
         componentName: String,
         dryRun: Boolean,
     ) {
-        if (!componentsRegistryService.isComponentExists(componentName)) {
-            throw NotFoundException("Component $componentName does not exists in CR!")
+        if (!componentsRegistryService.isComponentArchived(componentName)) {
+            throw IllegalComponentTypeException("Component $componentName is not archived!")
         }
         componentRepository.lock(componentName.hashCode())
         val component = componentRepository.findByName(componentName)
