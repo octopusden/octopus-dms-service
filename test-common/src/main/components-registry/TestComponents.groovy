@@ -232,3 +232,21 @@ dependency3 {
         external = true
     }
 }
+
+"solution-parent" {
+    system = "CLASSIC"
+    componentDisplayName = "Solution Parent"
+    componentOwner = "Solution Parent Owner"
+    releaseManager = "Solution Parent Release Manager"
+    solution = true
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/sp/solution-parent.git"
+    jira {
+        projectKey = 'SPARENT'
+        displayName = 'Solution Parent'
+    }
+    distribution {
+        explicit = true
+        external = true
+    }
+}

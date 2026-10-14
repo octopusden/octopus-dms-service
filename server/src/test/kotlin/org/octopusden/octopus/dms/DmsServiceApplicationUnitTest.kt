@@ -28,6 +28,7 @@ import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
 import org.octopusden.octopus.dms.event.ArchiveComponentEvent
+import org.octopusden.octopus.dms.event.Event
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.DMSException
 import org.springframework.beans.factory.annotation.Autowired
@@ -574,8 +575,6 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         assertEquals(1, artifactRegistrationEvents().size)
     }
 
-    private fun archiveComponentEvents() = eventRecorder.events().filterIsInstance<ArchiveComponentEvent>()
-
     @Test
     fun testArchiveComponentPublishesArchiveComponentEvent() {
         insertComponent(archivedComponent)
@@ -583,8 +582,8 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
 
         client.archiveComponent(archivedComponent, false)
 
-        assertEquals(1, archiveComponentEvents().size)
-        assertEquals(archivedComponent, archiveComponentEvents().first().component)
+        // archiving must emit exactly one event and it must be ARCHIVE_COMPONENT
+        assertEquals(listOf(ArchiveComponentEvent(archivedComponent)), eventRecorder.events())
     }
 
     @Test
@@ -595,7 +594,10 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         client.archiveComponent(archivedComponent, false)
         client.archiveComponent(archivedComponent, false)
 
-        assertEquals(2, archiveComponentEvents().size)
+        assertEquals(
+            listOf(ArchiveComponentEvent(archivedComponent), ArchiveComponentEvent(archivedComponent)),
+            eventRecorder.events(),
+        )
     }
 
     @Test
@@ -605,6 +607,21 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
 
         client.archiveComponent(archivedComponent, true)
 
-        assertEquals(0, archiveComponentEvents().size)
+        assertEquals(emptyList<Event>(), eventRecorder.events())
+    }
+
+    @Test
+    fun testArchiveComponentAccessDeniedWithoutPermission() {
+        val restricted = SecurityMockMvcRequestPostProcessors
+            .user("restricted")
+            .authorities(SimpleGrantedAuthority("ROLE_DMS_USER_NO_COMPLIANCE"))
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/admin/archive-component/$archivedComponent?dry-run=true")
+                    .with(restricted)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andExpect(status().isForbidden)
     }
 }

@@ -1068,6 +1068,25 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
+    fun testRevokeSolutionBypassesPublishedSolutionParents() {
+        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        client.addAndRegisterComponentVersionArtifact(
+            solutionParent,
+            solutionParentVersion,
+            releaseMavenDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+        client.publishComponentVersion(solutionParent, solutionParentVersion)
+
+        // ee-component is a solution and depends on a published solution parent, but the parent
+        // validation is skipped for solutions
+        val result = client.revokeComponentVersion(eeComponent, eeComponentReleaseVersion0354.releaseVersion)
+
+        assertFalse(result.published)
+    }
+
+    @Test
     fun testArchivedComponentArtifactEndpoints() {
         assertThrowsExactly(NotFoundException::class.java) {
             client.getComponentVersionArtifact(archivedComponent, archivedComponentVersion, 1L)
@@ -2478,6 +2497,8 @@ abstract class DmsServiceApplicationBaseTest {
         const val archivedDependencyVersion = "1.0.1"
         const val solutionWithArchivedDependency = "solution-with-archived-dependency"
         const val solutionWithArchivedDependencyVersion = "1.0.1"
+        const val solutionParent = "solution-parent"
+        const val solutionParentVersion = "1.0.1"
 
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")
