@@ -358,5 +358,21 @@
     "dependencies": [],
     "commits": [],
     "statusHistory": {}
+  },
+  {
+    "component": "solution-with-archived-dependency",
+    "status": "RELEASE",
+    "version": "1.0.1",
+    "release_version": "1.0.1",
+    "parents": [],
+    "dependencies": [
+      {
+        "component": "archived-dependency",
+        "version": "1.0.1",
+        "status": "RELEASE"
+      }
+    ],
+    "commits": [],
+    "statusHistory": {}
   }
 ]

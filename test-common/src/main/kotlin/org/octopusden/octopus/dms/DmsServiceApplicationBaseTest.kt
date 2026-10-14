@@ -119,6 +119,41 @@ abstract class DmsServiceApplicationBaseTest {
         it.executeUpdate("UPDATE component SET name = '$newName' WHERE name = '$name'")
     }
 
+    protected fun insertComponent(name: String): Long {
+        dmsDbConnection.createStatement().use { statement ->
+            val resultSet = statement.executeQuery("INSERT INTO component(name) VALUES ('$name') RETURNING id")
+            resultSet.next()
+            return resultSet.getLong(1)
+        }
+    }
+
+    protected fun insertPublishedVersion(
+        componentName: String,
+        minorVersion: String,
+        version: String,
+    ) {
+        dmsDbConnection.createStatement().use { statement ->
+            statement.executeUpdate(
+                "INSERT INTO component_version(component_id, minor_version, version, published)" +
+                    " SELECT id, '$minorVersion', '$version', true FROM component WHERE name = '$componentName'",
+            )
+        }
+    }
+
+    protected fun isComponentVersionPublished(
+        componentName: String,
+        version: String,
+    ): Boolean {
+        dmsDbConnection.createStatement().use { statement ->
+            val resultSet = statement.executeQuery(
+                "SELECT cv.published FROM component_version cv" +
+                    " JOIN component c ON cv.component_id = c.id" +
+                    " WHERE c.name = '$componentName' AND cv.version = '$version'",
+            )
+            return resultSet.next() && resultSet.getBoolean(1)
+        }
+    }
+
     fun getResource(path: String) = this.javaClass.classLoader.getResource(path)!!
 
     @ParameterizedTest
@@ -977,20 +1012,58 @@ abstract class DmsServiceApplicationBaseTest {
     }
 
     @Test
+    fun testArchiveComponentDryRun() {
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
+
+        client.archiveComponent(archivedComponent, true)
+
+        assertTrue(isComponentVersionPublished(archivedComponent, archivedComponentVersion))
+    }
+
+    @Test
     fun testArchiveComponentRevokesPublishedVersions() {
-        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
 
-        client.archiveComponent(eeComponent)
+        client.archiveComponent(archivedComponent, false)
 
-        val versions = client.getComponentVersions(eeComponent, eeComponentReleaseVersion0354.minorVersion).versions
-        assertTrue(versions.isNotEmpty())
-        assertTrue(versions.none { it.published })
+        assertFalse(isComponentVersionPublished(archivedComponent, archivedComponentVersion))
+    }
+
+    @Test
+    fun testArchiveArchivedComponentAbsentInDms() {
+        assertThrowsExactly(NotFoundException::class.java) {
+            client.archiveComponent(archivedComponent, false)
+        }
+    }
+
+    @Test
+    fun testArchiveNotArchivedComponent() {
+        assertThrowsExactly(IllegalComponentTypeException::class.java) {
+            client.archiveComponent(eeComponent, false)
+        }
     }
 
     @Test
     fun testArchiveUnknownComponent() {
         assertThrowsExactly(NotFoundException::class.java) {
-            client.archiveComponent("no-component")
+            client.archiveComponent("no-component", false)
+        }
+    }
+
+    @Test
+    fun testPublishSolutionWithArchivedDependency() {
+        client.addAndRegisterComponentVersionArtifact(
+            solutionWithArchivedDependency,
+            solutionWithArchivedDependencyVersion,
+            releaseMavenDistributionCoordinates,
+            ArtifactType.DISTRIBUTION,
+            false,
+        )
+
+        assertThrowsExactly(IllegalComponentTypeException::class.java) {
+            client.publishComponentVersion(solutionWithArchivedDependency, solutionWithArchivedDependencyVersion)
         }
     }
 
@@ -2400,6 +2473,11 @@ abstract class DmsServiceApplicationBaseTest {
         const val eeComponentWithVersionRanges = "ee-component-with-version-ranges"
         const val archivedComponent = "archived-component"
         const val archivedComponentVersion = "1.0.1"
+        const val archivedComponentMinorVersion = "1.0"
+        const val archivedDependency = "archived-dependency"
+        const val archivedDependencyVersion = "1.0.1"
+        const val solutionWithArchivedDependency = "solution-with-archived-dependency"
+        const val solutionWithArchivedDependencyVersion = "1.0.1"
 
         val eeComponentReleaseVersion0353 = Version("03.53.31", "03.53.30.31-1", "03.53.30.31")
         val eeComponentBuildVersion0353 = Version("03.53.31", "03.53.30.42-1", "03.53.30.42")

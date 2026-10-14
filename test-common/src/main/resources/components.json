@@ -90,6 +90,19 @@
           "Production Security"
         ]
       }
+    },
+    {
+      "id": "solution-with-archived-dependency",
+      "name": "Solution With Archived Dependency",
+      "solution": true,
+      "explicit": true,
+      "clientCode": null,
+      "parentComponent": null,
+      "securityGroups": {
+        "read": [
+          "Production Security"
+        ]
+      }
     }
   ]
 }

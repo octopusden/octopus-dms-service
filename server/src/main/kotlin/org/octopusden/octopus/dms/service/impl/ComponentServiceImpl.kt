@@ -141,7 +141,7 @@ class ComponentServiceImpl(
             if (dependencyCheckResult.archived.isNotEmpty()) {
                 throw IllegalComponentTypeException(
                     "Unable to publish version '${release.version}' of solution '${component.id}'. " +
-                            "It has archived dependencies ${dependencyCheckResult.archived}",
+                        "It has archived dependencies ${dependencyCheckResult.archived}",
                 )
             }
             dependencyCheckResult.published
@@ -234,7 +234,7 @@ class ComponentServiceImpl(
             release.version,
             published.size,
             unpublished,
-            archived
+            archived,
         )
         return DependencyCheckResult(
             published = published,

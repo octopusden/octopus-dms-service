@@ -264,15 +264,17 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .response
             .processError()
 
-        override fun archiveComponent(componentName: String) =
-            mockMvc
-                .perform(
-                    MockMvcRequestBuilders
-                        .post("/rest/api/3/admin/archive-component/$componentName?dry-run=false")
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()),
-                ).andReturn()
-                .response
-                .processError()
+        override fun archiveComponent(
+            componentName: String,
+            dryRun: Boolean,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/admin/archive-component/$componentName?dry-run=$dryRun")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .processError()
 
         override fun getConfiguration() =
             mockMvc
@@ -576,21 +578,33 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
 
     @Test
     fun testArchiveComponentPublishesArchiveComponentEvent() {
-        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
 
-        client.archiveComponent(eeComponent)
+        client.archiveComponent(archivedComponent, false)
 
         assertEquals(1, archiveComponentEvents().size)
-        assertEquals(eeComponent, archiveComponentEvents().first().component)
+        assertEquals(archivedComponent, archiveComponentEvents().first().component)
     }
 
     @Test
     fun testArchiveComponentPublishesEventOnRepeatedCalls() {
-        publishVersion(eeComponent, eeComponentReleaseVersion0354)
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
 
-        client.archiveComponent(eeComponent)
-        client.archiveComponent(eeComponent)
+        client.archiveComponent(archivedComponent, false)
+        client.archiveComponent(archivedComponent, false)
 
         assertEquals(2, archiveComponentEvents().size)
+    }
+
+    @Test
+    fun testArchiveComponentDryRunDoesNotPublishEvent() {
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
+
+        client.archiveComponent(archivedComponent, true)
+
+        assertEquals(0, archiveComponentEvents().size)
     }
 }

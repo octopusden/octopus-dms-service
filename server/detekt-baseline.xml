@@ -20,6 +20,7 @@
     <ID>TooGenericExceptionCaught:WebhookEventListener.kt$WebhookEventListener$e: Exception</ID>
     <ID>TooManyFunctions:ComponentServiceImpl.kt$ComponentServiceImpl : ComponentService</ID>
     <ID>TooManyFunctions:ComponentVersionArtifactServiceImpl.kt$ComponentVersionArtifactServiceImpl : ComponentVersionArtifactService</ID>
+    <ID>TooManyFunctions:ComponentsRegistryService.kt$ComponentsRegistryService</ID>
     <ID>TooManyFunctions:ComponentsRegistryServiceImpl.kt$ComponentsRegistryServiceImpl : ComponentsRegistryService</ID>
     <ID>UnusedParameter:ExceptionHandler.kt$ExceptionHandler$response: HttpServletResponse</ID>
   </CurrentIssues>

@@ -132,7 +132,10 @@ class ClassicDmsServiceClient(
         newComponentName: String,
     ) = client.renameComponent(componentName, newComponentName)
 
-    override fun archiveComponent(componentName: String) = client.archiveComponent(componentName)
+    override fun archiveComponent(
+        componentName: String,
+        dryRun: Boolean,
+    ) = client.archiveComponent(componentName, dryRun)
 
     override fun getConfiguration() = client.getConfiguration()
 
