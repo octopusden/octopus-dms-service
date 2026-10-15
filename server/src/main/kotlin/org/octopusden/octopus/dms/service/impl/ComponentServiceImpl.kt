@@ -44,7 +44,7 @@ class ComponentServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getComponentMinorVersions(componentName: String): Set<String> {
-        componentsRegistryService.getExternalExplicitComponent(componentName)
+        componentsRegistryService.getAvailableComponent(componentName)
         return componentVersionRepository.getMinorVersionsByComponentName(componentName)
     }
 
@@ -64,7 +64,7 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): List<ComponentVersionWithInfoDTO> {
-        if (!componentsRegistryService.getExternalExplicitComponentVersion(componentName, version).solution) {
+        if (!componentsRegistryService.getAvailableComponentVersion(componentName, version).solution) {
             throw IllegalComponentTypeException("Component '$componentName' is not solution")
         }
         val release = releaseManagementService.getRelease(componentName, version, true)
@@ -112,11 +112,11 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): ComponentVersionDTO {
+        componentRepository.lock(componentName.hashCode())
         val component = componentsRegistryService
-            .getExternalExplicitComponentVersion(componentName, version)
+            .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, false)
-        componentRepository.lock(componentName.hashCode())
         val componentVersion = componentVersionRepository
             .getByComponentNameAndVersion(component.id, release.version)
 
@@ -136,6 +136,12 @@ class ComponentServiceImpl(
                 throw VersionPublishedException(
                     "Unable to publish version '${release.version}' of solution '${component.id}'. " +
                         "It has unpublished dependencies ${dependencyCheckResult.unpublished}",
+                )
+            }
+            if (dependencyCheckResult.archived.isNotEmpty()) {
+                throw IllegalComponentTypeException(
+                    "Unable to publish version '${release.version}' of solution '${component.id}'. " +
+                        "It has archived dependencies ${dependencyCheckResult.archived}",
                 )
             }
             dependencyCheckResult.published
@@ -158,11 +164,11 @@ class ComponentServiceImpl(
         componentName: String,
         version: String,
     ): ComponentVersionDTO {
+        componentRepository.lock(componentName.hashCode())
         val component = componentsRegistryService
-            .getExternalExplicitComponentVersion(componentName, version)
+            .getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService
             .getRelease(component.id, version, true)
-        componentRepository.lock(componentName.hashCode())
         val componentVersion =
             componentVersionRepository.getByComponentNameAndVersion(component.id, release.version)
 
@@ -176,19 +182,13 @@ class ComponentServiceImpl(
         }
 
         val artifacts = componentVersionArtifactService.getComponentVersionArtifactFullDTOs(componentVersion)
-        val dependencies = if (component.solution) {
-            // TODO: for now, EE dependencies artifacts are included in both publish and revoke events for solution components.
-            //       Behaviour could be changed later - it may be required not to add dependency artifacts in revoke event.
-            getDependencyArtifacts(release).published
-        } else {
+        if (!component.solution) {
             validateNoPublishedSolutionParents(component, release)
-            emptyList()
         }
         applicationEventPublisher.publishEvent(
             RevokeComponentVersionEvent(
                 componentVersion.toFullDTO(component, release),
                 artifacts,
-                dependencies,
             ),
         )
         componentVersion.published = false
@@ -200,12 +200,17 @@ class ComponentServiceImpl(
     private fun getDependencyArtifacts(release: BuildFullDTO): DependencyCheckResult {
         val published = mutableListOf<DependencyArtifactsDTO>()
         val unpublished = mutableListOf<BuildDTO>()
+        val archived = mutableListOf<BuildDTO>()
 
         release.dependencies.forEach { dependency ->
             val dependencyComponent = componentsRegistryService.getExternalComponentVersion(
                 dependency.component,
                 dependency.version,
             )
+            if (dependencyComponent.archived) {
+                archived += dependency
+                return@forEach
+            }
             if (!dependencyComponent.explicit) {
                 return@forEach
             }
@@ -224,15 +229,17 @@ class ComponentServiceImpl(
             )
         }
         log.debug(
-            "Dependency check completed: component='{}', version='{}', published={}, unpublished={}",
+            "Dependency check completed: component='{}', version='{}', published={}, unpublished={}, archived={}",
             release.component,
             release.version,
             published.size,
             unpublished,
+            archived,
         )
         return DependencyCheckResult(
             published = published,
             unpublished = unpublished,
+            archived = archived,
         )
     }
 
@@ -261,7 +268,7 @@ class ComponentServiceImpl(
         minorVersions: List<String>,
         includeRc: Boolean,
     ): List<ComponentVersionDTO> {
-        componentsRegistryService.getExternalExplicitComponent(componentName)
+        componentsRegistryService.getAvailableComponent(componentName)
         val componentVersions = if (minorVersions.isEmpty()) {
             componentVersionRepository.findByComponentName(componentName)
         } else {
@@ -285,6 +292,7 @@ class ComponentServiceImpl(
     private data class DependencyCheckResult(
         val published: List<DependencyArtifactsDTO>,
         val unpublished: List<BuildDTO>,
+        val archived: List<BuildDTO>,
     )
 
     companion object {

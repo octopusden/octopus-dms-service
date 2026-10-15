@@ -129,6 +129,12 @@ interface DmsServiceFeignClient {
         @Param("new-component-name") newComponentName: String,
     )
 
+    @RequestLine("POST /rest/api/3/admin/archive-component/{component-name}?dry-run={dry-run}")
+    fun archiveComponent(
+        @Param("component-name") componentName: String,
+        @Param("dry-run") dryRun: Boolean = false,
+    )
+
     @RequestLine("GET rest/api/3/configuration")
     fun getConfiguration(): PropertiesDTO
 

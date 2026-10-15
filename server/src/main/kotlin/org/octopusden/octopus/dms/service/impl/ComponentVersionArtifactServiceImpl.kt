@@ -66,7 +66,7 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         type: ArtifactType?,
     ): ArtifactsDTO {
-        val component = componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
+        val component = componentsRegistryService.getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(component.id, version, true)
         val componentVersion = componentVersionRepository.findByComponentNameAndVersion(component.id, release.version)
         val componentVersionArtifacts = if (componentVersion != null) {
@@ -351,7 +351,7 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         artifactType: ArtifactType,
     ): BuildFullDTO {
-        componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
+        componentsRegistryService.getAvailableComponentVersion(componentName, version)
         val release = releaseManagementService.getRelease(
             component = componentName,
             version = version,
@@ -385,7 +385,7 @@ class ComponentVersionArtifactServiceImpl(
         version: String,
         artifactId: Long,
     ): ComponentVersionArtifact {
-        componentsRegistryService.getExternalExplicitComponentVersion(componentName, version)
+        componentsRegistryService.getAvailableComponentVersion(componentName, version)
         val buildVersion = releaseManagementService.getRelease(componentName, version, true).version
         return componentVersionArtifactRepository.getByComponentVersionComponentNameAndComponentVersionVersionAndArtifactId(
             componentName,

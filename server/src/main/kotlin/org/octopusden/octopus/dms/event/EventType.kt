@@ -1,6 +1,7 @@
 package org.octopusden.octopus.dms.event
 
 enum class EventType {
+    ARCHIVE_COMPONENT,
     PUBLISH_COMPONENT_VERSION,
     REVOKE_COMPONENT_VERSION,
     REGISTER_COMPONENT_VERSION_ARTIFACT,

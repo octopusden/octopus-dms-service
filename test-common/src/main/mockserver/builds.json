@@ -98,7 +98,13 @@
     "status": "RELEASE",
     "version": "03.54.30.64-1",
     "release_version": "03.54.30.64",
-    "parents": [],
+    "parents": [
+      {
+        "component": "solution-parent",
+        "version": "1.0.1",
+        "status": "RELEASE"
+      }
+    ],
     "dependencies": [
       {
         "component": "dependency1",
@@ -354,6 +360,32 @@
     "status": "RELEASE",
     "version": "03.55.30.63-1",
     "release_version": "03.55.30.63",
+    "parents": [],
+    "dependencies": [],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "solution-with-archived-dependency",
+    "status": "RELEASE",
+    "version": "1.0.1",
+    "release_version": "1.0.1",
+    "parents": [],
+    "dependencies": [
+      {
+        "component": "archived-dependency",
+        "version": "1.0.1",
+        "status": "RELEASE"
+      }
+    ],
+    "commits": [],
+    "statusHistory": {}
+  },
+  {
+    "component": "solution-parent",
+    "status": "RELEASE",
+    "version": "1.0.1",
+    "release_version": "1.0.1",
     "parents": [],
     "dependencies": [],
     "commits": [],

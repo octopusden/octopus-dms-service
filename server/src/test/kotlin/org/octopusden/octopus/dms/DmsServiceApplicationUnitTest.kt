@@ -27,6 +27,8 @@ import org.octopusden.octopus.dms.client.common.dto.PropertiesDTO
 import org.octopusden.octopus.dms.client.common.dto.RegisterArtifactDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
 import org.octopusden.octopus.dms.client.common.dto.VersionsDTO
+import org.octopusden.octopus.dms.event.ArchiveComponentEvent
+import org.octopusden.octopus.dms.event.Event
 import org.octopusden.octopus.dms.event.RegisterComponentVersionArtifactEvent
 import org.octopusden.octopus.dms.exception.DMSException
 import org.springframework.beans.factory.annotation.Autowired
@@ -258,6 +260,18 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
             .perform(
                 MockMvcRequestBuilders
                     .post("/rest/api/3/admin/rename-component/$componentName/$newComponentName")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andReturn()
+            .response
+            .processError()
+
+        override fun archiveComponent(
+            componentName: String,
+            dryRun: Boolean,
+        ) = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/admin/archive-component/$componentName?dry-run=$dryRun")
                     .with(SecurityMockMvcRequestPostProcessors.csrf()),
             ).andReturn()
             .response
@@ -559,5 +573,55 @@ class DmsServiceApplicationUnitTest : DmsServiceApplicationBaseTest() {
         }
         // second upload has the same checksum and is already registered -> no event
         assertEquals(1, artifactRegistrationEvents().size)
+    }
+
+    @Test
+    fun testArchiveComponentPublishesArchiveComponentEvent() {
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
+
+        client.archiveComponent(archivedComponent, false)
+
+        // archiving must emit exactly one event and it must be ARCHIVE_COMPONENT
+        assertEquals(listOf(ArchiveComponentEvent(archivedComponent)), eventRecorder.events())
+    }
+
+    @Test
+    fun testArchiveComponentPublishesEventOnRepeatedCalls() {
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
+
+        client.archiveComponent(archivedComponent, false)
+        client.archiveComponent(archivedComponent, false)
+
+        assertEquals(
+            listOf(ArchiveComponentEvent(archivedComponent), ArchiveComponentEvent(archivedComponent)),
+            eventRecorder.events(),
+        )
+    }
+
+    @Test
+    fun testArchiveComponentDryRunDoesNotPublishEvent() {
+        insertComponent(archivedComponent)
+        insertPublishedVersion(archivedComponent, archivedComponentMinorVersion, archivedComponentVersion)
+
+        client.archiveComponent(archivedComponent, true)
+
+        assertEquals(emptyList<Event>(), eventRecorder.events())
+    }
+
+    @Test
+    fun testArchiveComponentAccessDeniedWithoutPermission() {
+        val restricted = SecurityMockMvcRequestPostProcessors
+            .user("restricted")
+            .authorities(SimpleGrantedAuthority("ROLE_DMS_USER_NO_COMPLIANCE"))
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/rest/api/3/admin/archive-component/$archivedComponent?dry-run=true")
+                    .with(restricted)
+                    .with(SecurityMockMvcRequestPostProcessors.csrf()),
+            ).andExpect(status().isForbidden)
     }
 }

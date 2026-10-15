@@ -18,6 +18,7 @@ import org.octopusden.releng.versions.VersionNames
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.octopusden.octopus.dms.exception.NotFoundException as DmsNotFoundException
 
 @Service
 class ComponentsRegistryServiceImpl(
@@ -108,12 +109,31 @@ class ComponentsRegistryServiceImpl(
             .reversed()
     }
 
-    override fun getExternalExplicitComponent(componentName: String): ComponentDTO = getExternalComponent(componentName).explicitOrBreak()
+    override fun getAvailableComponent(componentName: String): ComponentDTO {
+        val component = client.getById(componentName)
+        if (component.archived) {
+            throw DmsNotFoundException("Component '$componentName' is archived!")
+        }
+        return component.externalOrBreak().explicitOrBreak()
+    }
 
-    override fun getExternalExplicitComponentVersion(
+    override fun getAvailableComponentVersion(
         componentName: String,
         version: String,
-    ): ComponentDTO = getExternalComponentVersion(componentName, version).explicitOrBreak()
+    ): ComponentDTO {
+        val component = client.getDetailedComponent(componentName, version)
+        if (component.archived) {
+            throw DmsNotFoundException("Component '$componentName' is archived!")
+        }
+        return component.externalOrBreak().explicitOrBreak()
+    }
+
+    override fun isComponentArchived(componentName: String): Boolean =
+        try {
+            client.getById(componentName).archived
+        } catch (_: NotFoundException) {
+            throw DmsNotFoundException("Component $componentName does not exist in CR!")
+        }
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(ComponentsRegistryServiceImpl::class.java)
@@ -128,6 +148,7 @@ class ComponentsRegistryServiceImpl(
                 parentComponent,
                 SecurityGroupsDTO(distribution?.securityGroups?.read ?: emptyList()),
                 labels,
+                archived,
             )
 
         private fun matches(
