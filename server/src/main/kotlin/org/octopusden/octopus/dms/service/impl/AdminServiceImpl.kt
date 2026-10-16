@@ -2,7 +2,9 @@ package org.octopusden.octopus.dms.service.impl
 
 import org.octopusden.octopus.dms.client.common.dto.ComponentRequestFilter
 import org.octopusden.octopus.dms.entity.Component
+import org.octopusden.octopus.dms.event.ArchiveComponentEvent
 import org.octopusden.octopus.dms.exception.IllegalComponentRenamingException
+import org.octopusden.octopus.dms.exception.IllegalComponentTypeException
 import org.octopusden.octopus.dms.exception.NotFoundException
 import org.octopusden.octopus.dms.repository.ArtifactRepository
 import org.octopusden.octopus.dms.repository.ComponentRepository
@@ -13,6 +15,7 @@ import org.octopusden.octopus.dms.service.ComponentsRegistryService
 import org.octopusden.octopus.dms.service.ReleaseManagementService
 import org.octopusden.octopus.dms.service.StorageService
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,6 +29,7 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
     private val componentVersionRepository: ComponentVersionRepository,
     private val componentVersionArtifactRepository: ComponentVersionArtifactRepository,
     private val artifactRepository: ArtifactRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) : AdminService {
     /**
      * Remove all implicit/internal components.
@@ -196,6 +200,31 @@ class AdminServiceImpl( // TODO: move functionality to ComponentService and Arti
             }
             log.info("Component $name already renamed to $newName")
         }
+    }
+
+    override fun archiveComponent(
+        componentName: String,
+        dryRun: Boolean,
+    ) {
+        if (!componentsRegistryService.isComponentArchived(componentName)) {
+            throw IllegalComponentTypeException("Component $componentName is not archived!")
+        }
+        componentRepository.lock(componentName.hashCode())
+        val component = componentRepository.findByName(componentName)
+            ?: throw NotFoundException("Component $componentName does not exists in DMS!")
+
+        if (dryRun) {
+            log.info("Component can be archived: componentName='{}'", component.name)
+            return
+        }
+
+        componentVersionRepository.revokeAllByComponent(component)
+        applicationEventPublisher.publishEvent(
+            ArchiveComponentEvent(
+                componentName,
+            ),
+        )
+        log.info("Component is archived: componentName='{}'", component.name)
     }
 
     companion object {

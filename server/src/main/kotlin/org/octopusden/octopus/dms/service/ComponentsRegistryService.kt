@@ -36,10 +36,12 @@ interface ComponentsRegistryService {
         versions: List<String>,
     ): List<String>
 
-    fun getExternalExplicitComponent(componentName: String): ComponentDTO
+    fun getAvailableComponent(componentName: String): ComponentDTO
 
-    fun getExternalExplicitComponentVersion(
+    fun getAvailableComponentVersion(
         componentName: String,
         version: String,
     ): ComponentDTO
+
+    fun isComponentArchived(componentName: String): Boolean
 }

@@ -139,7 +139,7 @@
         displayName = 'Archived Component'
     }
     distribution {
-        explicit = true
+        explicit = false
         external = true
     }
 }
@@ -195,5 +195,58 @@ dependency3 {
     distribution {
         external = true
         explicit = true
+    }
+}
+
+"archived-dependency" {
+    componentDisplayName = "Archived Dependency"
+    componentOwner = "Archived Dependency Owner"
+    releaseManager = "Archived Dependency Release Manager"
+    archived = true
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/ad/archived-dependency.git"
+    jira {
+        projectKey = 'ARCHDEP'
+        displayName = 'Archived Dependency'
+    }
+    distribution {
+        explicit = false
+        external = true
+    }
+}
+
+"solution-with-archived-dependency" {
+    system = "CLASSIC"
+    componentDisplayName = "Solution With Archived Dependency"
+    componentOwner = "Solution With Archived Dependency Owner"
+    releaseManager = "Solution With Archived Dependency Release Manager"
+    solution = true
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/swad/solution-with-archived-dependency.git"
+    jira {
+        projectKey = 'SWAD'
+        displayName = 'Solution With Archived Dependency'
+    }
+    distribution {
+        explicit = true
+        external = true
+    }
+}
+
+"solution-parent" {
+    system = "CLASSIC"
+    componentDisplayName = "Solution Parent"
+    componentOwner = "Solution Parent Owner"
+    releaseManager = "Solution Parent Release Manager"
+    solution = true
+    groupId = "corp.domain"
+    vcsUrl = "ssh://git@git.domain.corp/sp/solution-parent.git"
+    jira {
+        projectKey = 'SPARENT'
+        displayName = 'Solution Parent'
+    }
+    distribution {
+        explicit = true
+        external = true
     }
 }
