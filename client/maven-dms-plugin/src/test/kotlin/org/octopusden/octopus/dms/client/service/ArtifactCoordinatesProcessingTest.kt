@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.octopusden.octopus.dms.client.common.dto.ArtifactCoordinatesDTO
+import org.octopusden.octopus.dms.client.common.dto.ArtifactType
 import org.octopusden.octopus.dms.client.common.dto.GenericArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.MavenArtifactCoordinatesDTO
 import org.octopusden.octopus.dms.client.common.dto.RepositoryType
@@ -125,11 +126,23 @@ class ArtifactCoordinatesProcessingTest {
     }
 
     @Test
-    fun `generic coordinates are rejected for a non distribution type`() {
-        val exception = Assertions.assertThrows(MojoFailureException::class.java) {
-            processAny(null, type = "notes", genericCoordinates = "path/1.0.0/some-data.tgz")
+    fun `generic coordinates are accepted for a non distribution type`() {
+        val coordinates = processAny(null, type = "documentation", genericCoordinates = "path/1.0.0/some-data.tgz")
+            .single() as GenericArtifactCoordinatesDTO
+        Assertions.assertEquals("path/1.0.0/some-data.tgz", coordinates.toPath())
+        Assertions.assertEquals(RepositoryType.GENERIC, coordinates.repositoryType)
+    }
+
+    @Test
+    fun `generic coordinates are accepted for every artifact type`() {
+        ArtifactType.values().forEach { type ->
+            val coordinates = processAny(null, type = type.value(), genericCoordinates = "path/1.0.0/some-data.tgz")
+                .single()
+            Assertions.assertTrue(
+                coordinates is GenericArtifactCoordinatesDTO,
+                "generic coordinate was not processed for type '${type.value()}'",
+            )
         }
-        Assertions.assertTrue(exception.message!!.contains("is not DISTRIBUTION"), exception.message)
     }
 
     @Test

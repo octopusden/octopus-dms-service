@@ -78,11 +78,10 @@ public class ArtifactServiceImpl implements ArtifactService {
         }
         if ((StringUtils.isNotBlank(artifactsCoordinatesDeb) ||
                 StringUtils.isNotBlank(artifactsCoordinatesRpm) ||
-                StringUtils.isNotBlank(artifactsCoordinatesGeneric) ||
                 StringUtils.isNotBlank(artifactsCoordinatesDocker)) &&
                 targetType != ArtifactType.DISTRIBUTION
         ) {
-            throw new MojoFailureException("DEB, RPM, DOCKER or GENERIC coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
+            throw new MojoFailureException("DEB, RPM or DOCKER coordinates are set, but type=" + targetType + " is not DISTRIBUTION");
         }
 
         //Bulk validation
